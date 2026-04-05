@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+build/
+dist/
+out/
+bin/
+obj/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Engine-specific
+Library/
+Temp/
+Logs/
+UserSettings/
+*.unitypackage
+*.uproject
+*.uplugin
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets
+.env
+.env.local
+*.key
+*.pem
+
+# Assets (keep tracked formats, ignore raw binaries you don't want in git)
+# *.psd
+# *.blend
+# *.mp4
+# Uncomment and add specific asset ignores as needed
