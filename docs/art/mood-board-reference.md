@@ -100,7 +100,7 @@ Examples to look at:
 | | | Tempo, instrumentation, mood |
 
 Consider these musical directions:
-- Medieval/Folk authentic (period instruments: lute, hurdy-gurdy, hurdy-gurdy, bagpipes)
+- Medieval/Folk authentic (period instruments: lute, hurdy-gurdy, bagpipes)
 - Cinematic orchestral (full orchestra, dramatic, modern feeling)
 - Hybrid (period instruments with modern production)
 - Minimal ambient (drone, tension, atmosphere)
