@@ -13,14 +13,27 @@ obj/
 *.so
 *.dylib
 
-# Engine-specific
+# Engine-specific - Unity
 Library/
 Temp/
 Logs/
 UserSettings/
 *.unitypackage
+
+# Engine-specific - Unreal
 *.uproject
 *.uplugin
+*.uasset
+*.umap
+DerivedDataCache/
+Intermediate/
+Saved/
+Binaries/
+
+# Engine-specific - Godot
+.godot/
+.import/
+export_credentials.cfg
 
 # IDE
 .vscode/
