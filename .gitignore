@@ -31,8 +31,8 @@ Saved/
 Binaries/
 
 # Engine-specific - Godot
-.godot/
-.import/
+.godot/           # local editor cache (DO NOT commit)
+# NOTE: *.import files are project metadata and MUST be committed
 export_credentials.cfg
 
 # IDE
