@@ -2,6 +2,10 @@
 
 A feudal-themed game built from the ground up by first-time developers. The design follows the MDA framework (Mechanics, Dynamics, Aesthetics) and focuses on delivering a clear, playable vertical slice.
 
+## Collaborators
+
+- **woodlive** — Project lead, developer
+
 ## Structure
 
 ```
