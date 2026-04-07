@@ -11,7 +11,7 @@ This wiki sits alongside the existing `docs/` folder. They serve different purpo
 | Layer | What it is | Who owns it | How it relates |
 |---|---|---|---|
 | `docs/` | Project documentation -- game design, tech specs, plans, ADRs, research reports | Human-driven | Stable, curated project artifacts |
-| `wiki/` (this folder) | Persistent, LLM-maintained knowledge base -- entity pages, concepts, cross-references, synthesis | LLM-driven | Evolving knowledge layer that references and synthesizes everything in docs/ and raw/ |
+| `wiki/` (this folder) | Full game knowledge base -- design knowledge, lore, narrative, scripts, dialogs, cross-references | LLM + Human co-authored | Central source of truth for game content |
 | `wiki/raw/` | Immutable source documents fed into the wiki | Human-curated | Raw materials the LLM reads but never modifies |
 
 The wiki is a **compounding knowledge layer**. It reads from `docs/` and `wiki/raw/`, synthesizes, cross-references, and keeps everything current. It never modifies files in `docs/` or `wiki/raw/`.
