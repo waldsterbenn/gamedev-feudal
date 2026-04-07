@@ -60,3 +60,4 @@ desktop.ini
 # *.blend
 # *.mp4
 # Uncomment and add specific asset ignores as needed
+docs/.obsidian/
