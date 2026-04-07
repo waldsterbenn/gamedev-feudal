@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3]
+
+[sub_resource type="WorldEnvironment" id="WorldEnvironment_1"]
+environment = SubResource("Environment_1")
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 2
+sky/custom_sky = true
+
+[node name="Main" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, -10, 10)
