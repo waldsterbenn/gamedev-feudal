@@ -8,34 +8,30 @@
 
 ```
 gamedev-feudal/
-├── docs/
-│   ├── design/
-│   │   ├── game-design.md           # Core game design document
-│   │   ├── world-lore.md            # World building and lore bible
-│   │   ├── level-design.md          # Level layouts and area documentation
-│   │   ├── game-dev-basics.md       # Plain-language game dev intro for newcomers
-│   │   ├── iq-game-design.md        # Game design interview questionnaire
-│   │   ├── iq-lore-world.md         # Lore & world interview questionnaire
-│   │   └── iq-facilitator-guide.md  # How to run design interview sessions
-│   ├── tech/
-│   │   └── technical-spec.md        # Engine, architecture, and tech specs (Godot 4.x)
-│   ├── art/
-│   │   ├── art-style-guide.md       # Visual style and art guidelines
-│   │   └── mood-board-reference.md  # Visual & audio reference collection / mood board
-│   ├── audio/
-│   │   └── audio-design.md          # Music, SFX, and audio specs
-│   ├── qa/
-│   │   ├── testing-plan.md          # QA strategy and bug tracking
-│   │   └── playtest-framework.md    # Playtest process, feedback forms, metrics
-│   └── project/
-│       ├── project-plan.md          # Milestones, team, and sprint planning
-│       ├── changelog.md             # Project change history
-│       ├── design-decisions.md      # Architecture Decision Records (ADRs)
-│       └── asset-naming-conventions.md  # File naming, formats, and directory rules
-├── src/          # Godot project root (create when ready)
-├── assets/       # Source assets (create when ready)
-├── config/       # Config files (create when ready)
-└── build/        # Build outputs (gitignored)
+├── docs/          # Project documentation (human-curated, stable artifacts)
+│   ├── design/    # Game design documents, questionnaires, world lore
+│   ├── tech/      # Engine, architecture, and technical specs
+│   ├── art/       # Visual style guide, mood board
+│   ├── audio/     # Music, SFX, and audio design
+│   ├── qa/        # Testing plans, playtest frameworks
+│   └── project/   # Plans, changelog, ADRs, conventions
+├── wiki/          # LLM-maintained knowledge base (compounding, cross-referenced)
+│   ├── AGENTS.md  # Schema -- tells LLM how to maintain the wiki
+│   ├── index.md   # Catalog of all wiki pages
+│   ├── log.md     # Append-only activity log
+│   ├── raw/       # Immutable source documents for ingestion
+│   ├── topics/    # Concept pages (mechanics, systems, design patterns)
+│   ├── entities/  # Entity pages (characters, factions, locations)
+│   ├── synthesis/ # Analyses, comparisons, evolving theses
+│   ├── queries/   # Preserved Q&A and analysis outputs
+│   ├── lore/      # Game lore and worldbuilding
+│   ├── narrative/ # Story arcs, plot outlines, narrative structure
+│   ├── scripts/   # Cutscene scripts, event scripts
+│   └── dialogs/   # NPC dialogs, quest conversations
+├── src/           # Godot project root (create when ready)
+├── assets/        # Source assets (create when ready)
+├── config/        # Config files (create when ready)
+└── build/         # Build outputs (gitignored)
 ```
 
 ## Quick Start
@@ -46,6 +42,22 @@ gamedev-feudal/
 4. **Set art direction** -- Populate `docs/art/mood-board-reference.md` before any art is made
 5. **Follow conventions** -- Read `docs/project/asset-naming-conventions.md` before adding files
 6. **Plan playtests** -- Follow `docs/qa/playtest-framework.md` from the first playable build
+
+## LLM Wiki
+
+The `wiki/` folder is a persistent, LLM-maintained knowledge base that complements the human-curated `docs/`. See `wiki/AGENTS.md` for the full schema.
+
+| What | Where | Purpose |
+|---|---|---|
+| Design docs | `docs/` | Stable project artifacts (GDD, specs, ADRs) |
+| Knowledge base | `wiki/topics/` | Concepts, mechanics, design patterns |
+| Entities | `wiki/entities/` | Characters, factions, locations |
+| Lore | `wiki/lore/` | Worldbuilding, history, cultures |
+| Narrative | `wiki/narrative/` | Story arcs, plot outlines |
+| Dialogs/Scripts | `wiki/dialogs/` + `wiki/scripts/` | NPC conversations, cutscenes |
+| Sources | `wiki/raw/` | Documents to ingest into the wiki |
+
+The LLM reads from `docs/` and `wiki/raw/`, synthesizes knowledge, maintains cross-references, and keeps everything current. You direct; it maintains.
 
 ## Conventions
 
