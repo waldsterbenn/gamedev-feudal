@@ -55,6 +55,9 @@ desktop.ini
 *.key
 *.pem
 
+# Obsidian
+.obsidian/
+
 # Assets (keep tracked formats, ignore raw binaries you don't want in git)
 # *.psd
 # *.blend
