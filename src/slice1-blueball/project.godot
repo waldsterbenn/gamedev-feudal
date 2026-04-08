@@ -1,0 +1,1 @@
+[gd_resource type="ProjectSettings" load_steps=2 format=3]\n\n[application]\nconfig/name="Slice 1 - Blue Ball"\nrun/main_scene="res://moving_demo.tscn"\n
