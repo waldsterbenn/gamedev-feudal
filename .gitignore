@@ -64,3 +64,37 @@ desktop.ini
 # *.mp4
 # Uncomment and add specific asset ignores as needed
 docs/.obsidian/
+
+# Godot Engine additional files
+*.gdignore
+uid_cache.bin
+*.ctex
+*.md5
+*.vulkan.cache
+
+# Godot editor files
+*.editstate-*.cfg
+*.folding-*.cfg
+script_editor_cache.cfg
+project_metadata.cfg
+editor_layout.cfg
+filesystem_cache*
+filesystem_update*
+
+# Imported files (commented out as per existing guidance)
+# *.import
+
+# OS files
+Thumbs.db
+
+# Editor temp files
+*.swp
+*.swo
+*~
+
+# Build files
+export/
+
+# Temporary files
+*.tmp
+*.temp
