@@ -38,12 +38,12 @@ The following tools are recommended for high-quality development. While these ar
 - Beehave (Behavior Trees)
 
 ## 3. OPERATIONAL ITERATION WORKFLOW (MCP)
-Follow this exact loop for every task:
-1.  **Prep**: Call `get_project_info` via MCP to verify scene context.
+Follow this exact loop for every task using your available Godot MCP tools:
+1.  **Prep**: Call `get_project_info` to verify scene context.
 2.  **Implementation**: Work ONLY in `src/slice_<feature_name>/` first.
 3.  **Validation**:
-    - Execute: `hermes mcp call godot run_project '{"projectPath": "./src/slice_..."}'`
-    - Analyze: Fetch logs immediately via `hermes mcp call godot get_debug_output`.
+    - Execute: Call `run_project` for your current slice.
+    - Analyze: Fetch logs immediately via `get_debug_output`.
     - Headless Test: Run `godot --path ./src/feudal-age/ --headless --quit` before migrating. If exit code != 0, capture logs and fix immediately.
 4.  **Integration**: After stability, migrate validated code to `src/feudal-age/`.
 5.  **Documentation**: Log all architectural decisions in `docs/project/design-decisions.md`.
