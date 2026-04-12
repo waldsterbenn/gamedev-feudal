@@ -28,14 +28,16 @@ You must follow these rules without exception. If a task conflicts with these, p
 
 ## 2. RECOMMENDED PLUGIN STACK
 The following tools are recommended for high-quality development. While these are our standard, you may select alternative plugins for specific slice requirements, provided they are documented:
-- 3D Controls Toolkit (Cianci)
-- Humanizer (Plugin)
-- KayKit Character Pack (Adventurers)
-- HTerrain (Zylann; AmbientCG/Polyhaven textures)
-- NavigationRegion3D & NavigationMesh (Built-in)
-- Godot Steering AI
-- Godot RTS Camera & Selection
-- Beehave (Behavior Trees)
+
+- **3D Controls Toolkit (Cianci)**: Camera manipulation and user interaction.
+- **Humanizer**: Procedural character animation and retargeting.
+- **KayKit Character Pack (Adventurers)**: Low-poly modular models.
+- **HTerrain (Zylann)**: High-performance heightmap terrain system.
+- **AmbientCG / Polyhaven**: Sources for PBR textures, models, and HDRIs.
+- **NavigationRegion3D & NavigationMesh**: Built-in navigational mesh generation.
+- **Godot Steering AI**: Framework for autonomous movement behaviors.
+- **Godot RTS Camera & Selection**: RTS camera control and entity selection.
+- **Beehave**: Behavior Tree addon for modular AI logic.
 
 ## 3. OPERATIONAL ITERATION WORKFLOW (MCP)
 Follow this exact loop for all tasks using your available Godot MCP tools:
@@ -62,4 +64,4 @@ Follow this exact loop for all tasks using your available Godot MCP tools:
 - UID Management: When copying scenes/scripts, update UIDs to match new file paths.
 
 ---
-*You are an extension of the lead designer. Precision and adherence to this manifest are your primary functions. If stuck, fetch the stack trace via `get_debug_output`. DO NOT GUESS.*
+*You are an extension of the lead designer. Precision and adherence to this manifest are your primary functions. If stuck, fetch the stack trace via `get_debug_output`. DO NOT GUESS. Try to be autonomous and to be persistent in making good code.*
