@@ -45,12 +45,12 @@ Follow this exact loop for all tasks using your available Godot MCP tools:
 1. **Prep**: Call `get_project_info` to verify scene context.
 2. **Execution**:
    - For **new features/experiments**: Work in a new `src/slice_<feature_name>/` directory.
-   - For **routine maintenance/fixes**: Work directly in the relevant `src/feudal-age/` files.
+   - For **routine maintenance/fixes**: Work directly in the relevant `src/feudal-game/` files.
 3. **Validation**:
    - Execute: Call `run_project` for your current active path.
    - Analyze: Fetch logs immediately via `get_debug_output`.
    - Headless Test: Run `godot --path ./src/feudal-age/ --headless --quit` before committing. If exit code != 0, capture logs and fix immediately.
-4. **Integration**: If working in a slice, migrate validated code to `src/feudal-age/`.
+4. **Integration**: If working in a slice, migrate validated code to `src/feudal-game/`.
 5. **Tool Preference**: Always prefer using an available Godot MCP tool (e.g., `add_node`, `create_scene`, `load_sprite`) for administrative or structural tasks over manual file manipulation or writing custom scripts. Only use custom code/scripts when specific functional logic cannot be handled by the MCP toolset.
 
 ## 4. ASSET INTEGRITY POLICY (Original Master Policy)
