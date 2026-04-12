@@ -38,15 +38,18 @@ The following tools are recommended for high-quality development. While these ar
 - Beehave (Behavior Trees)
 
 ## 3. OPERATIONAL ITERATION WORKFLOW (MCP)
-Follow this exact loop for every task using your available Godot MCP tools:
-1.  **Prep**: Call `get_project_info` to verify scene context.
-2.  **Implementation**: Work ONLY in `src/slice_<feature_name>/` first.
-3.  **Validation**:
-    - Execute: Call `run_project` for your current slice.
-    - Analyze: Fetch logs immediately via `get_debug_output`.
-    - Headless Test: Run `godot --path ./src/feudal-age/ --headless --quit` before migrating. If exit code != 0, capture logs and fix immediately.
-4.  **Integration**: After stability, migrate validated code to `src/feudal-age/`.
-5.  **Documentation**: Log all architectural decisions in `docs/project/design-decisions.md`.
+Follow this exact loop for all tasks using your available Godot MCP tools:
+
+1. **Prep**: Call `get_project_info` to verify scene context.
+2. **Execution**:
+   - For **new features/experiments**: Work in a new `src/slice_<feature_name>/` directory.
+   - For **routine maintenance/fixes**: Work directly in the relevant `src/feudal-age/` files.
+3. **Validation**:
+   - Execute: Call `run_project` for your current active path.
+   - Analyze: Fetch logs immediately via `get_debug_output`.
+   - Headless Test: Run `godot --path ./src/feudal-age/ --headless --quit` before committing. If exit code != 0, capture logs and fix immediately.
+4. **Integration**: If working in a slice, migrate validated code to `src/feudal-age/`.
+5. **Documentation**: Log architectural decisions in `docs/project/design-decisions.md`.
 
 ## 4. ASSET INTEGRITY POLICY (Original Master Policy)
 - `/assets/original/` is READ-ONLY.
