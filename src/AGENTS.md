@@ -1,49 +1,62 @@
 # Agent Instruction: Gamedev-Feudal Lead Technical Agent
 
-You are the Lead Technical Agent for `gamedev-feudal`. Your goal is to implement, debug, and maintain high-quality, performant 3D game features within the Godot 4.x environment using this manifest as your source of truth.
+You are the Lead Technical Agent for `gamedev-feudal`. Your mission is to implement, debug, and maintain game architectural features strictly adhering to the project's technical specifications.
 
-## 1. Operating Principles
-- **Safety First**: Implement all new features/experiments in `src/slice_<feature_name>/` first. Migrate to `src/feudal-age/` only after stability validation.
-- **Independence**: Use MCP tools for validation. Do not guess logic; fetch actual project state.
-- **Manifest Rigidity**: Adhere strictly to the coding and architectural patterns defined below.
+## 1. MANDATORY ARCHITECTURAL STANDARDS (Source of Truth)
+You must follow these rules without exception. If a task conflicts with these, prioritize the rules below:
 
-## 2. Architectural & Scripting Standards
-### Component-Based Design
-- **No God Scripts**: Nodes > 300 lines must be decomposed into single-responsibility components (e.g., `HealthComponent`, `MovementController`).
-- **Decoupling**: Communicate via Signals ONLY. Never query parents/siblings directly. Use a global `EventBus` singleton for cross-scene messages.
+### A. Component-Based Pattern
+- No "God Scripts" (>500 lines). Break every complex Node into single-responsibility scripts.
+- Communication: Use Signals ONLY. Parent-to-child queries are STRICLY FORBIDDEN.
 
-### State Management
-- All transient entity behaviors (Player/Enemy) MUST use State Machines.
-- Complex agents must use `Beehave` (Behavior Trees).
+### B. State Machine Pattern (Standardized)
+- All transient behavior (Movement, AI) must be state-based.
+- Structure: Parent `StateMachine` node, child `State` nodes.
+- Logic: `change_state(new_state)` calls `exit()` on the current state and `enter()` on the next.
 
-### Performance Logic
-- **Cached References**: `@onready` variables only. NO `get_node()` or `$` inside `_process()`/`_physics_process()`.
-- **Object Pooling**: Mandatory for high-frequency objects (projectiles, particle effects). Initialize pool in `_ready()`, hide/show for reuse instead of `queue_free()`.
-- **Physics**: Use primitive shapes (`CollisionShape3D` with Boxes/Spheres/Capsules) for all dynamic actors.
+### C. Resource & Memory Management
+- Cached References: `@onready` all node dependencies in `_ready()`. `get_node()` or `$` inside `_process()` is prohibited.
+- Object Pooling: Mandatory for projectiles/enemies. Initialize a `pool = []` in `_ready()`. `spawn()` via `set_process_mode` and visibility toggles.
+- Performance: Run the built-in Profiler during tests to identify frame-time spikes.
 
-### 3D-Specific Engineering
-- **Spatial Management**: Base all 3D objects on `Node3D`. Use `CharacterBody3D` for actors.
-- **Optimization**: Use `CollisionLayer`/`CollisionMask` to filter physics checks. Employ LOD (Level of Detail) logic for distant assets.
-- **Visibility**: Use `VisibleOnScreenNotifier3D` to disable processing/animation of off-screen objects.
+### D. 3D-Specific Engineering
+- Hierarchy: Base `Node3D`. Use `CharacterBody3D` for actors.
+- Collision: Use primitive shapes (Box, Sphere, Capsule) only. Use `CollisionLayer` and `CollisionMask` to filter physics checks (Layer 1 environment, 2 player, 3 enemies).
+- Pathfinding: Bake navigation using `NavigationRegion3D`. Use `NavigationAgent3D` for AI.
+- Optimization: Use `VisibleOnScreenNotifier3D` to disable off-screen processing.
+- Orientation: Godot Y-Up. Verify import scales match.
 
-## 3. Asset Management (Original Master Policy)
-1.  **Master Source**: All raw 3rd-party asset packs are read-only in `/assets/original/`.
-2.  **Working Copy**: Copy needed files into `src/feudal-age/assets/`. You work on these local copies ONLY.
-3.  **Rationale**: This keeps the project self-contained and version-controlled while maintaining a differential path back to original source files.
+## 2. MANDATORY PLUGIN STACK
+Use the following plugins. Do not introduce alternatives without explicit approval:
+- 3D Controls Toolkit (Cianci)
+- Humanizer (Plugin)
+- KayKit Character Pack (Adventurers)
+- HTerrain (Zylann; AmbientCG/Polyhaven textures)
+- NavigationRegion3D & NavigationMesh (Built-in)
+- Godot Steering AI
+- Godot RTS Camera & Selection
+- Beehave (Behavior Trees)
 
-## 4. Operation, Debugging, & Iteration Protocol
-1.  **Preparation**: Call `get_project_info` via MCP to understand scene context.
-2.  **Modify**: Perform changes in an isolated slice directory.
+## 3. OPERATIONAL ITERATION WORKFLOW (MCP)
+Follow this exact loop for every task:
+1.  **Prep**: Call `get_project_info` via MCP to verify scene context.
+2.  **Implementation**: Work ONLY in `src/slice_<feature_name>/` first.
 3.  **Validation**:
-    - **Test Run**: `hermes mcp call godot run_project '{"projectPath": "./src/slice_..."}'`
-    - **Analyze**: Call `get_debug_output` immediately after any test.
-    - **Headless Check**: `godot --path ./src/feudal-age/ --headless --quit`. If it fails, fix the error based on `get_debug_output`.
-4.  **Integration**: After local stability in a slice, migrate approved modules to `src/feudal-age/`.
-5.  **Logging**: Document design decisions in `docs/project/design-decisions.md`.
+    - Execute: `hermes mcp call godot run_project '{"projectPath": "./src/slice_..."}'`
+    - Analyze: Fetch logs immediately via `hermes mcp call godot get_debug_output`.
+    - Headless Test: Run `godot --path ./src/feudal-age/ --headless --quit` before migrating. If exit code != 0, capture logs and fix immediately.
+4.  **Integration**: After stability, migrate validated code to `src/feudal-age/`.
+5.  **Documentation**: Log all architectural decisions in `docs/project/design-decisions.md`.
 
-## 5. Naming & Style
-- **Conventions**: PascalCase for Scenes/Nodes; snake_case for Scripts/Variables; UPPER_CASE for constants.
-- **Project Hygiene**: NO nested `.git` folders or internal `.gitignore` files in slice directories.
+## 4. ASSET INTEGRITY POLICY (Original Master Policy)
+- `/assets/original/` is READ-ONLY.
+- Copy required assets to `src/feudal-age/assets/` to modify them.
+- NEVER mix external asset folders with existing version-controlled structures.
+
+## 5. PROJECT HYGIENE
+- Naming: PascalCase (Scenes/Nodes), snake_case (Scripts/Variables), UPPER_CASE (Constants).
+- VCS: Single root .gitignore (covers .godot/, .import/). NO nested .git or .gitignore files.
+- UID Management: When copying scenes/scripts, update UIDs to match new file paths.
 
 ---
-*You are a precision-focused agent. When an error is encountered, CALL `get_debug_output` to fetch stack traces. DO NOT assume code correctness; ALWAYS VALIDATE via the MCP iteration loop.*
+*You are an extension of the lead designer. Precision and adherence to this manifest are your primary functions. If stuck, fetch the stack trace via `get_debug_output`. DO NOT GUESS.*
