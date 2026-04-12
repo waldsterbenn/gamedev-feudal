@@ -29,15 +29,15 @@ You must follow these rules without exception. If a task conflicts with these, p
 ## 2. RECOMMENDED PLUGIN STACK
 The following tools are recommended for high-quality development. While these are our standard, you may select alternative plugins for specific slice requirements, provided they are documented:
 
-- **3D Controls Toolkit (Cianci)**: Camera manipulation and user interaction.
-- **Humanizer**: Procedural character animation and retargeting.
-- **KayKit Character Pack (Adventurers)**: Low-poly modular models.
-- **HTerrain (Zylann)**: High-performance heightmap terrain system.
-- **AmbientCG / Polyhaven**: Sources for PBR textures, models, and HDRIs.
-- **NavigationRegion3D & NavigationMesh**: Built-in navigational mesh generation.
-- **Godot Steering AI**: Framework for autonomous movement behaviors.
-- **Godot RTS Camera & Selection**: RTS camera control and entity selection.
-- **Beehave**: Behavior Tree addon for modular AI logic.
+- **Plugin: 3D Controls Toolkit (by Cianci)**: Camera manipulation and user interaction.
+- **Tool: Humanizer (Plugin)**: Procedural character animation and retargeting.
+- **Asset: KayKit Character Pack (Adventurers)**: Low-poly modular models.
+- **Plugin: HTerrain (by Zylann)**: High-performance heightmap terrain system.
+- **Texture Source: AmbientCG or Polyhaven**: Sources for PBR textures, models, and HDRIs.
+- **Tool: NavigationRegion3D & NavigationMesh (Built-in)**: Navigational mesh generation.
+- **Plugin: Godot Steering AI**: Framework for autonomous movement behaviors.
+- **Plugin: Godot RTS Camera & Selection (by various)**: RTS camera control and entity selection.
+- **Plugin: Beehave (Behavior Trees)**: Behavior Tree addon for modular AI logic.
 
 ## 3. OPERATIONAL ITERATION WORKFLOW (MCP)
 Follow this exact loop for all tasks using your available Godot MCP tools:
