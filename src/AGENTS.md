@@ -26,8 +26,8 @@ You must follow these rules without exception. If a task conflicts with these, p
 - Optimization: Use `VisibleOnScreenNotifier3D` to disable off-screen processing.
 - Orientation: Godot Y-Up. Verify import scales match.
 
-## 2. MANDATORY PLUGIN STACK
-Use the following plugins. Do not introduce alternatives without explicit approval:
+## 2. RECOMMENDED PLUGIN STACK
+The following tools are recommended for high-quality development. While these are our standard, you may select alternative plugins for specific slice requirements, provided they are documented:
 - 3D Controls Toolkit (Cianci)
 - Humanizer (Plugin)
 - KayKit Character Pack (Adventurers)
