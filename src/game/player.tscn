@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[node name="root" type="CharacterBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = ExtResource("1_mesh")
+
+[ext_resource name="CapsuleMesh" type="Mesh" path="res://path_to_your_mesh.tres" id="1_mesh"]

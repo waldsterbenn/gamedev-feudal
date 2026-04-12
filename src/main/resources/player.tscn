@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[subresource type="CapsuleShape3D" id="CapsuleShape3D_0"]
+radius = 0.5
+height = 2.0
+
+[subresource type="CapsuleMesh" id="CapsuleMesh_0"]
+radius = 0.5
+height = 2.0
+
+[node name="root" type="Node3D"]
+
+[node name="Player" type="CharacterBody3D" parent="."]
+	<script class="PlayerScript" />
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+	shape = SubResource("CapsuleShape3D_xxxx")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Player"]
+	mesh = SubResource("CapsuleMesh_xxxx")
