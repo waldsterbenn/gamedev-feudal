@@ -49,7 +49,7 @@ Follow this exact loop for all tasks using your available Godot MCP tools:
    - Analyze: Fetch logs immediately via `get_debug_output`.
    - Headless Test: Run `godot --path ./src/feudal-age/ --headless --quit` before committing. If exit code != 0, capture logs and fix immediately.
 4. **Integration**: If working in a slice, migrate validated code to `src/feudal-age/`.
-5. **Documentation**: Log architectural decisions in `docs/project/design-decisions.md`.
+5. **Tool Preference**: Always prefer using an available Godot MCP tool (e.g., `add_node`, `create_scene`, `load_sprite`) for administrative or structural tasks over manual file manipulation or writing custom scripts. Only use custom code/scripts when specific functional logic cannot be handled by the MCP toolset.
 
 ## 4. ASSET INTEGRITY POLICY (Original Master Policy)
 - `/assets/original/` is READ-ONLY.
