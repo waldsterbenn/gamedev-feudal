@@ -5,6 +5,7 @@ A feudal-themed game built from the ground up by first-time developers. The desi
 ## Collaborators
 
 - **woodlive** — Project lead, developer
+- **waldsterbenn** - Project lead, AI developer
 
 ## Structure
 
