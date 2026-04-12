@@ -1,1 +1,19 @@
-[gd_resource type="ProjectSettings" load_steps=2 format=3]\n\n[application]\nconfig/name="Slice 1 - Blue Ball"\nrun/main_scene="res://moving_demo.tscn"\n
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+run/main_scene="uid://cbar2nidj8bs7"
+config/features=PackedStringArray("4.6")
+
+[gd_resource type="ProjectSettings" load_steps=2 format=3]
+
+"\\n\\n[application]\\nconfig/name"="Slice 1 - Blue Ball"
+\nrun/main_scene="res://moving_demo.tscn"
