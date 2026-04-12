@@ -126,7 +126,7 @@ The `log.md` is append-only. New entries go at the top. Format:
 *Append-only. Newest entries at top.*
 
 ## [2026-04-07] ingest | Feudal System Deep Research Report
-- Processed: docs/research/feudal-system.md
+- Processed: raw/feudal-system.md
 - Created: 12 pages (8 topics, 3 entities, 1 synthesis)
 - Updated: 4 existing pages
 - Contradictions: 0
@@ -141,4 +141,3 @@ The `log.md` is append-only. New entries go at the top. Format:
 5. **Always check** for contradictions when adding new information
 6. **File valuable outputs** back into the wiki as `queries/` pages
 7. **Use frontmatter** consistently on every page
-

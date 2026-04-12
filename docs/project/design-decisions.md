@@ -40,7 +40,7 @@ When the team makes a decision (chooses Godot over Unity, picks a camera perspec
 
 ## Decisions
 
-### ADR-001: Use Godot 4.x as the Game Engine
+### ADR-001: Use Godot 4.6 as the Game Engine
 
 - **Date:** 2026-04-05
 - **Status:** Accepted
