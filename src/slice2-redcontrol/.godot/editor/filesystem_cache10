@@ -1,8 +1,0 @@
-63f7b34db8d8cdea90c76aacccf841ec
-::res://::1775671430
-icon.svg::CompressedTexture2D::5655919377368734914::1775669529::1775671433::1::::<><><>0<>0<>9d5ac0d7d946af5ecdc414a3fedeb063<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
-moving_demo.tscn::PackedScene::-1::1775669658::0::1::::<><><>0<>0<><>::res://scripts/red_ball_control.gd
-::res://scripts/::1775669690
-red_ball_control.gd::GDScript::1725726844248923372::1775669593::0::1::::<>MeshInstance3D<><>0<>0<><>::
-simple_movement.gd::GDScript::500962295033041900::1775669529::0::1::::<>MeshInstance3D<><>0<>0<><>::
-terrain_heightmap.gd::GDScript::629454829288823698::1775669529::0::1::::<>MeshInstance3D<><>0<>1<><>::
