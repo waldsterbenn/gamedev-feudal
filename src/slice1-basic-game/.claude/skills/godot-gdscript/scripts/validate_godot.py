@@ -229,8 +229,8 @@ def validate_gdscript(path: Path):
         (r'\byield\s*\(', "yield() is Godot 3 — use 'await' instead"),
         (r'\.connect\s*\(\s*"[^"]+"\s*,\s*self\s*,\s*"', "Old connect() syntax — use signal.connect(callable)"),
         (r'\bemit_signal\s*\(', "emit_signal() is Godot 3 — use signal_name.emit()"),
-        (r'\bonready\s+var\b', "'onready var' is Godot 3 — use '@onready var'"),
-        (r'\bexport\s+var\b', "'export var' is Godot 3 — use '@export var'"),
+        (r'(?<!@)\bonready\s+var\b', "'onready var' is Godot 3 — use '@onready var'"),
+        (r'(?<!@)\bexport\s+var\b', "'export var' is Godot 3 — use '@export var'"),
         (r'get_node\s*\(\s*"[^"]*"\s*\)', "Prefer @onready over get_node() string paths"),
         (r'\bOS\.get_ticks_msec\b', "Consider Time.get_ticks_msec() in Godot 4"),
     ]

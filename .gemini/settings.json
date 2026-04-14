@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "godot": {
+      "command": "godot-mcp",
+      "args": [
+        "serve"
+      ],
+      "trust": true
+    }
+  }
+}
