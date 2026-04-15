@@ -9,9 +9,8 @@ func enter(data: Dictionary = {}) -> void:
 	# For simplicity, we'll let MovementController handle the jump.
 	pass
 
-func physics_update(delta: float) -> void:
+func physics_update(_delta: float) -> void:
 	var input_dir: Vector2 = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
-	player.movement_controller.move(input_dir, delta)
 	
 	if player.is_on_floor():
 		if input_dir:
