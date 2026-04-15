@@ -7,7 +7,7 @@ signal health_changed(current_health: float, max_health: float)
 
 # 2. onready
 @onready var state_machine: StateMachine = $StateMachine
-@onready var movement_controller: MovementController = $MovementController
+@onready var movement_controller: ThirdPersonControler3D = $ThirdPersonControler3D
 @onready var health_component: HealthComponent = $HealthComponent
 
 # 3. built-in callbacks

@@ -10,7 +10,9 @@ var state_machine: StateMachine
 
 # 3. built-in callbacks
 func _ready() -> void:
-	await owner.ready
+	if owner and not owner.is_node_ready():
+		await owner.ready
+	
 	state_machine = get_parent() as StateMachine
 	if not state_machine:
 		push_error("State node must be a child of a StateMachine")
