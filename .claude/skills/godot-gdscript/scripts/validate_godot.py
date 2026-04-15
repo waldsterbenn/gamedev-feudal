@@ -37,12 +37,22 @@ def ok(msg: str):
 
 # ─── TSCN / TRES validator ────────────────────────────────────────────────────
 
+def get_project_root(path: Path) -> Path:
+    """Finds the directory containing project.godot by walking up from path."""
+    curr = path.absolute().parent
+    while curr != curr.parent:
+        if (curr / "project.godot").exists():
+            return curr
+        curr = curr.parent
+    return Path(".")
+
 def validate_scene_resource(path: Path):
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines()
 
     is_tscn = path.suffix == ".tscn"
     is_tres = path.suffix == ".tres"
+    project_root = get_project_root(path)
 
     print(f"\n{'Scene' if is_tscn else 'Resource'}: {path}")
 
@@ -61,28 +71,51 @@ def validate_scene_resource(path: Path):
             error("format=2 detected — this is a Godot 3 file. Must be format=3 for Godot 4")
         else:
             warn("No format=3 in header — Godot 4 files should have format=3")
-    else:
-        ok("format=3 present (Godot 4)")
 
-    # 3. Collect declared ext_resource IDs
+    # 3. UID check
+    if "uid=\"" not in header:
+        warn("Resource missing UID in header")
+    uid_file = path.with_suffix(path.suffix + ".uid")
+    if not uid_file.exists():
+        warn(f"Missing .uid file: {uid_file.name}")
+
+    # 4. Collect and validate ext_resource
     ext_ids: dict[str, str] = {}
     ext_resource_count = 0
-    for line in lines:
-        m = re.match(r'\[ext_resource\s+.*?id="([^"]+)"', line)
+    for i, line in enumerate(lines, 1):
+        m = re.match(r'\[ext_resource\s+.*?path="([^"]+)"\s+.*?id="([^"]+)"', line)
         if m:
-            ext_ids[m.group(1)] = line.strip()
+            path_val = m.group(1)
+            id_val = m.group(2)
+            
+            if id_val in ext_ids:
+                error(f"Line {i}: Duplicate ext_resource ID '{id_val}'")
+            
+            ext_ids[id_val] = path_val
             ext_resource_count += 1
+            
+            # File existence check
+            if path_val.startswith("res://"):
+                rel_path = path_val.replace("res://", "")
+                abs_path = project_root / rel_path
+                if not abs_path.exists():
+                    error(f"Line {i}: Referenced file does not exist: {path_val}")
+            else:
+                warn(f"Line {i}: ext_resource path should use res:// protocol: {path_val}")
 
-    # 4. Collect declared sub_resource IDs
+    # 5. Collect declared sub_resource IDs
     sub_ids: dict[str, str] = {}
     sub_resource_count = 0
-    for line in lines:
+    for i, line in enumerate(lines, 1):
         m = re.match(r'\[sub_resource\s+.*?id="([^"]+)"', line)
         if m:
-            sub_ids[m.group(1)] = line.strip()
+            id_val = m.group(1)
+            if id_val in sub_ids:
+                error(f"Line {i}: Duplicate sub_resource ID '{id_val}'")
+            sub_ids[id_val] = line.strip()
             sub_resource_count += 1
 
-    # 5. load_steps check
+    # 6. load_steps check
     m_steps = re.search(r'load_steps=(\d+)', header)
     if m_steps:
         declared = int(m_steps.group(1))
@@ -93,26 +126,19 @@ def validate_scene_resource(path: Path):
                 f"+ {sub_resource_count} sub_resource + 1 = {expected}. "
                 f"Fix: load_steps={expected}"
             )
-        else:
-            ok(f"load_steps={declared} matches resource count")
     else:
         warn("No load_steps in header")
 
-    # 6. ExtResource references match declared IDs
+    # 7. Resource references match declared IDs
     used_ext: list[str] = re.findall(r'ExtResource\("([^"]+)"\)', text)
     for used_id in used_ext:
         if used_id not in ext_ids:
             error(f'ExtResource("{used_id}") used but never declared as [ext_resource]')
-    if ext_ids:
-        ok(f"{len(ext_ids)} ext_resource(s) declared, all references valid")
 
-    # 7. SubResource references match declared IDs
     used_sub: list[str] = re.findall(r'SubResource\("([^"]+)"\)', text)
     for used_id in used_sub:
         if used_id not in sub_ids:
             error(f'SubResource("{used_id}") used but never declared as [sub_resource]')
-    if sub_ids:
-        ok(f"{len(sub_ids)} sub_resource(s) declared, all references valid")
 
     # 8. Forbidden GDScript syntax inside .tscn / .tres
     gdscript_patterns = [
@@ -121,60 +147,80 @@ def validate_scene_resource(path: Path):
         (r'^\s*@export\b', "@export is GDScript — not valid in .tscn/.tres"),
         (r'^\s*@onready\b', "@onready is GDScript — not valid in .tscn/.tres"),
     ]
-    found_gdscript = False
     for i, line in enumerate(lines, 1):
         for pattern, msg in gdscript_patterns:
             if re.search(pattern, line):
                 error(f"Line {i}: {msg}\n    → {line.strip()}")
-                found_gdscript = True
-    if not found_gdscript:
-        ok("No forbidden GDScript syntax found")
 
-    # 9. TSCN-specific: root node has no parent, parenting structure
+    # 9. TSCN-specific: root node, parenting, connections
     if is_tscn:
         node_lines = [(i+1, l) for i, l in enumerate(lines) if l.startswith("[node")]
         if not node_lines:
             error("No [node] entries found — scene has no nodes")
         else:
-            # Root node check
             first_node_line = node_lines[0][1]
             if "parent=" in first_node_line:
-                error(
-                    f"Root node must NOT have a parent= attribute\n"
-                    f"    → {first_node_line.strip()}"
-                )
-            else:
-                ok("Root node has no parent (correct)")
+                error(f"Root node must NOT have a parent= attribute: {first_node_line.strip()}")
 
-            # Collect all node names and parents for path validation
-            declared_nodes: set[str] = set()
-            root_name = re.search(r'name="([^"]+)"', first_node_line)
-            if root_name:
-                declared_nodes.add(root_name.group(1))
+            root_name_match = re.search(r'name="([^"]+)"', first_node_line)
+            root_name = root_name_match.group(1) if root_name_match else None
 
             for lineno, nline in node_lines[1:]:
-                nm = re.search(r'name="([^"]+)"', nline)
                 pm = re.search(r'parent="([^"]+)"', nline)
-                if nm:
-                    declared_nodes.add(nm.group(1))
                 if pm:
                     parent_path = pm.group(1)
-                    # Check root name is not embedded in parent path
-                    if root_name and parent_path.startswith(root_name.group(1) + "/"):
+                    if root_name and parent_path.startswith(root_name + "/"):
                         error(
                             f"Line {lineno}: parent path must NOT include root node name\n"
                             f"    → {nline.strip()}\n"
-                            f"    Fix: remove '{root_name.group(1)}/' prefix from parent"
+                            f"    Fix: remove '{root_name}/' prefix from parent"
                         )
 
-            ok(f"{len(node_lines)} node(s) found")
+    # 10. Connection (Signal) Validation
+    # Map node paths to scripts
+    node_to_script: dict[str, Path] = {}
+    current_node = None
+    for line in lines:
+        nm = re.search(r'\[node name="([^"]+)"', line)
+        pm = re.search(r'parent="([^"]+)"', line)
+        if nm:
+            name = nm.group(1)
+            # Basic path: . for root, Name for children
+            path_in_scene = "." if not pm else (pm.group(1) + "/" + name if pm.group(1) != "." else name)
+            current_node = path_in_scene
+        
+        sm = re.search(r'script = ExtResource\("([^"]+)"\)', line)
+        if sm and current_node and sm.group(1) in ext_ids:
+            script_res_path = ext_ids[sm.group(1)]
+            if script_res_path.startswith("res://"):
+                script_abs_path = project_root / script_res_path.replace("res://", "")
+                node_to_script[current_node] = script_abs_path
 
-    # 10. Godot 3 connect() syntax (old-style)
+    # Validate connections
+    connections = re.findall(r'\[connection\s+signal="([^"]+)"\s+from="([^"]+)"\s+to="([^"]+)"\s+method="([^"]+)"', text)
+    for sig, src, dest, method in connections:
+        if dest in node_to_script:
+            script_path = node_to_script[dest]
+            if script_path.exists():
+                script_text = script_path.read_text(encoding="utf-8")
+                # Very basic check: does the function definition exist?
+                if f"func {method}" not in script_text:
+                    error(f"Signal '{sig}' from '{src}' connects to non-existent method '{method}' in {script_path}")
+                else:
+                    ok(f"Signal '{sig}' -> {dest}.{method}() validated")
+            else:
+                warn(f"Cannot validate signal '{sig}': script {script_path} not found")
+        elif dest == ".":
+            # Root node check (already handled by node_to_script if current_node was ".")
+            pass
+
+    if connections:
+        ok(f"Validated {len(connections)} signal connection(s)")
+
+    # 11. Godot 3 connect() syntax (old-style)
     old_connect = re.findall(r'connect\s*\(\s*"[^"]+"\s*,\s*self\s*,\s*"', text)
     if old_connect:
         error(f"Godot 3 connect() syntax detected ({len(old_connect)} occurrence(s)) — use signal.connect(callable)")
-    else:
-        ok("No Godot 3 connect() syntax")
 
 
 # ─── GDScript validator ───────────────────────────────────────────────────────
@@ -189,75 +235,82 @@ def validate_gdscript(path: Path):
     has_extends = any(l.startswith("extends ") for l in lines)
     if not has_extends:
         warn("No 'extends' found — is this a standalone script?")
-    else:
-        ok("'extends' found")
 
-    # 2. Untyped variable declarations
+    # 2. Typing checks
     untyped_vars = []
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
-        # var x = ... without type hint (not @export, not @onready, not typed)
         if re.match(r'^var\s+\w+\s*=', stripped) and not re.match(r'^var\s+\w+\s*:', stripped):
-            # skip dictionary/array literals that are hard to type inline
             untyped_vars.append((i, stripped))
     if untyped_vars:
-        for lineno, l in untyped_vars[:5]:  # show first 5
-            warn(f"Line {lineno}: Untyped var — add type hint\n    → {l}")
-        if len(untyped_vars) > 5:
-            warn(f"... and {len(untyped_vars) - 5} more untyped vars")
-    else:
-        ok("All var declarations appear typed")
+        for lineno, l in untyped_vars[:3]:
+            warn(f"Line {lineno}: Untyped var — add type hint: {l}")
+        if len(untyped_vars) > 3:
+            warn(f"... and {len(untyped_vars) - 3} more untyped vars")
 
-    # 3. Untyped function signatures
     untyped_funcs = []
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
-        if re.match(r'^func\s+\w+\s*\(', stripped):
-            # no return type arrow
-            if "->" not in stripped:
-                untyped_funcs.append((i, stripped))
+        if re.match(r'^func\s+\w+\s*\(', stripped) and "->" not in stripped:
+            untyped_funcs.append((i, stripped))
     if untyped_funcs:
-        for lineno, l in untyped_funcs[:5]:
-            warn(f"Line {lineno}: Function missing return type\n    → {l}")
-        if len(untyped_funcs) > 5:
-            warn(f"... and {len(untyped_funcs) - 5} more untyped functions")
-    else:
-        ok("All functions have return types")
+        for lineno, l in untyped_funcs[:3]:
+            warn(f"Line {lineno}: Function missing return type: {l}")
 
-    # 4. Godot 3 patterns
+    # 3. Godot 3 patterns
     godot3_patterns = [
         (r'\byield\s*\(', "yield() is Godot 3 — use 'await' instead"),
         (r'\.connect\s*\(\s*"[^"]+"\s*,\s*self\s*,\s*"', "Old connect() syntax — use signal.connect(callable)"),
         (r'\bemit_signal\s*\(', "emit_signal() is Godot 3 — use signal_name.emit()"),
-        (r'\bonready\s+var\b', "'onready var' is Godot 3 — use '@onready var'"),
-        (r'\bexport\s+var\b', "'export var' is Godot 3 — use '@export var'"),
+        (r'(?<!@)\bonready\s+var\b', "'onready var' is Godot 3 — use '@onready var'"),
+        (r'(?<!@)\bexport\s+var\b', "'export var' is Godot 3 — use '@export var'"),
         (r'get_node\s*\(\s*"[^"]*"\s*\)', "Prefer @onready over get_node() string paths"),
-        (r'\bOS\.get_ticks_msec\b', "Consider Time.get_ticks_msec() in Godot 4"),
     ]
-    found_g3 = False
     for i, line in enumerate(lines, 1):
         for pattern, msg in godot3_patterns:
             if re.search(pattern, line):
                 error(f"Line {i}: {msg}\n    → {line.strip()}")
-                found_g3 = True
-    if not found_g3:
-        ok("No Godot 3 syntax patterns found")
 
-    # 5. Ungated free() (dangerous mid-physics)
+    # 4. Expensive Operations Audit
+    project_root = get_project_root(path)
+    expensive_funcs = ["_process", "_physics_process", "_input", "_unhandled_input", "_draw"]
+    current_func = None
+    for i, line in enumerate(lines, 1):
+        stripped = line.strip()
+        
+        # res:// path existence check
+        res_paths = re.findall(r'res://[^\s"\'\)]+', line)
+        for rp in res_paths:
+            # Clean up potential trailing chars from regex match
+            clean_rp = rp.rstrip(".,;)]")
+            rel_path = clean_rp.replace("res://", "")
+            if not (project_root / rel_path).exists():
+                error(f"Line {i}: Referenced file does not exist: {clean_rp}")
+
+        m_func = re.match(r'^func\s+([a-zA-Z0-9_]+)', stripped)
+        if m_func:
+            current_func = m_func.group(1)
+        elif line and not line[0].isspace():
+            current_func = None
+        
+        if current_func in expensive_funcs:
+            if re.search(r'(?<![\w])(?:\$|get_node\()', stripped):
+                if not stripped.startswith("#"):
+                    warn(f"Line {i}: Expensive operation '$' or 'get_node' inside {current_func}. Use @onready instead.")
+
+    # 5. Check @onready has explicit type
+    onready_lines = [(i+1, l.strip()) for i, l in enumerate(lines) if "@onready" in l]
+    for lineno, l in onready_lines:
+        if ":" not in l:
+            warn(f"Line {lineno}: @onready missing type hint: {l}")
+
+    # 6. Ungated free() (dangerous mid-physics)
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
         if re.search(r'(?<!\.)free\(\)', stripped) and "call_deferred" not in stripped:
             if "_physics_process" in "\n".join(lines[max(0,i-10):i]):
                 warn(f"Line {i}: free() near physics_process — prefer queue_free() or call_deferred")
 
-    # 6. Check @onready has explicit type
-    onready_lines = [(i+1, l.strip()) for i, l in enumerate(lines) if "@onready" in l]
-    untyped_onready = [(n, l) for n, l in onready_lines if ":" not in l]
-    if untyped_onready:
-        for lineno, l in untyped_onready:
-            warn(f"Line {lineno}: @onready missing type hint\n    → {l}")
-    elif onready_lines:
-        ok(f"{len(onready_lines)} @onready declaration(s) all typed")
 
 
 # ─── Entry point ─────────────────────────────────────────────────────────────
