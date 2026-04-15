@@ -35,8 +35,9 @@ enabled = true
 target_position = Vector3(0, 0, -3)
 script = ExtResource("8")
 
-[node name="MovementController" type="Node" parent="."]
+[node name="MovementController" type="Node" parent="." node_paths=PackedStringArray("spring_arm")]
 script = ExtResource("2")
+spring_arm = NodePath("../SpringArm3D")
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("3")
