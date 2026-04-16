@@ -9,15 +9,14 @@ This document governs all development for the gamedev-feudal project. All agents
 ### 1. Plugins & Assets (Recommended Stack)
 The following tools are recommended for high-quality project development. While these are currently our standard, teams may select alternative plugins for specific slice requirements, provided they are documented.
 
-*   **3D Controls Toolkit** (by Cianci): Tools for enhanced camera manipulation and user interaction in 3D.
-*   **Humanizer**: Plugin for procedural character animation and animation retargeting.
-*   **KayKit Character Pack (Adventurers)**: Low-poly asset pack providing modular character models.
-*   **HTerrain** (by Zylann): High-performance heightmap terrain system with support for texture painting and foliage.
-*   **AmbientCG / Polyhaven**: Primary sources for high-quality, PBR-ready 3D textures, models, and HDRI environments.
+*   [**3D Controls Toolkit**](https://github.com/CiaNCI-Studio/3D-Controls-Toolkit) (by Cianci): Tools for enhanced camera manipulation and user interaction in 3D.
+*   [**Humanizer**](https://github.com/NitroxNova/humanizer/wiki): Plugin for procedural character animation and animation retargeting.
+*   [**HTerrain**](https://github.com/Zylann/godot_heightmap_plugin?tab=readme-ov-file) (by Zylann): High-performance heightmap terrain system with support for texture painting and foliage.
+*   **[AmbientCG](https://ambientcg.com/) / [Polyhaven](https://polyhaven.com/)**: Primary sources for high-quality, PBR-ready 3D textures, models, and HDRI environments.
 *   **NavigationRegion3D & NavigationMesh**: Built-in Godot tools for generating, baking, and managing navigation meshes in 3D space.
-*   **Godot Steering AI**: Framework for implementing autonomous movement behaviors and flocking.
+*   [**Godot Steering AI**](https://gdquest.gitbook.io/godot-3-steering-ai-framework-reference): Framework for implementing autonomous movement behaviors and flocking.
 *   **Godot RTS Camera & Selection**: Set of tools/plugins for controlling cameras in top-down/RTS perspective and managing entity selection.
-*   **Beehave**: Behavior Tree addon designed for visual, modular AI logic and decision-making.
+*   [**Beehave**](https://github.com/bitbrain/beehave): Behavior Tree addon designed for visual, modular AI logic and decision-making.
 
 ---
 

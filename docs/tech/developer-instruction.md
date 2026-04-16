@@ -9,15 +9,17 @@ This document governs all development for the gamedev-feudal project. All agents
 ### 1. Plugins & Assets (Recommended Stack)
 The following tools are recommended for high-quality project development. While these are currently our standard, teams may select alternative plugins for specific slice requirements, provided they are documented.
 
-*   **3D Controls Toolkit** (by Cianci): Tools for enhanced camera manipulation and user interaction in 3D.
-*   **Humanizer**: Plugin for procedural character animation and animation retargeting.
-*   **KayKit Character Pack (Adventurers)**: Low-poly asset pack providing modular character models.
-*   **HTerrain** (by Zylann): High-performance heightmap terrain system with support for texture painting and foliage.
-*   **AmbientCG / Polyhaven**: Primary sources for high-quality, PBR-ready 3D textures, models, and HDRI environments.
-*   **NavigationRegion3D & NavigationMesh**: Built-in Godot tools for generating, baking, and managing navigation meshes in 3D space.
-*   **Godot Steering AI**: Framework for implementing autonomous movement behaviors and flocking.
-*   **Godot RTS Camera & Selection**: Set of tools/plugins for controlling cameras in top-down/RTS perspective and managing entity selection.
-*   **Beehave**: Behavior Tree addon designed for visual, modular AI logic and decision-making.
+*   **3D Controls Toolkit**: Tools for enhanced camera manipulation and user interaction in 3D. [Skill Documentation](/docs/skills/3d-controls-toolkit/SKILL.md)
+*   **Humanizer**: Plugin for procedural character animation and animation retargeting. [Skill Documentation](/docs/skills/humanizer/SKILL.md)
+*   **KayKit Character Pack (Adventurers)**: Low-poly asset pack providing modular character models. (Note: This plugin is currently under evaluation)
+*   **HTerrain**: High-performance heightmap terrain system with support for texture painting and foliage. [Skill Documentation](/docs/skills/hterrain/SKILL.md)
+*   **AmbientCG / Polyhaven**: Primary sources for high-quality, PBR-ready 3D textures, models, and HDRI environments. [Skill Documentation](/docs/skills/ambientcg-polyhaven/SKILL.md)
+*   **NavigationRegion3D & NavigationMesh**: Built-in Godot tools for generating, baking, and managing navigation meshes in 3D space. [Skill Documentation](/docs/skills/navigation-region3d/SKILL.md)
+*   **Godot Steering AI**: Framework for implementing autonomous movement behaviors and flocking. [Skill Documentation](/docs/skills/godot-steering-ai/SKILL.md)
+*   **Godot RTS Camera & Selection**: Set of tools/plugins for controlling cameras in top-down/RTS perspective and managing entity selection. [Skill Documentation](/docs/skills/rts-camera-selection/SKILL.md)
+*   **Beehave**: Behavior Tree addon designed for visual, modular AI logic and decision-making. [Skill Documentation](/docs/skills/beehave-behavior-trees/SKILL.md)
+
+**Skill-Based Development**: Each plugin has a corresponding skill file in `/docs/skills/` that provides installation, configuration, and usage patterns. These skills are also mirrored to the Hermes assistant profile for AI-assisted development. When implementing plugin features, consult the relevant skill first.
 
 ---
 
