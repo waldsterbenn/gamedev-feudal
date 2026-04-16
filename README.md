@@ -17,6 +17,23 @@ config/     ← Build and engine configuration
 build/      ← Compiled outputs (gitignored)
 ```
 
+## Skills
+
+This project maintains a set of Hermes skills for AI-assisted development, located in `/docs/skills/`. These skills provide detailed guidance for integrating third‑party plugins, assets, and tools used in the project:
+
+- **3D Controls Toolkit** (`3d-controls-toolkit/`)
+- **Humanizer** (`humanizer/`)
+- **HTerrain** (`hterrain/`)
+- **AmbientCG & Polyhaven** (`ambientcg-polyhaven/`)
+- **NavigationRegion3D & NavigationMesh** (`navigation-region3d/`)
+- **Godot Steering AI** (`godot-steering-ai/`)
+- **Godot RTS Camera & Selection** (`rts-camera-selection/`)
+- **Beehave Behavior Trees** (`beehave-behavior-trees/`)
+
+Each skill includes installation steps, configuration examples, and integration patterns. The skills are mirrored to the Hermes assistant profile (`~/.hermes/profiles/gamedev/skills/gamedev/`) for immediate use.
+
+For the full technical mandate, see `docs/tech/developer-instruction.md`.
+
 ## Getting Started
 
 1. Clone this repo
