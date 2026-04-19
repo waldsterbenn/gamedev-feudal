@@ -1,0 +1,34 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://addons/zylann.hterrain/hterrain.gd" id="1_hterrain"]
+[ext_resource type="Resource" path="res://assets/terrain/data/terrain_data/data.hterrain" id="2_data"]
+[ext_resource type="Script" path="res://addons/zylann.hterrain/hterrain_texture_set.gd" id="3_texture_set_script"]
+[ext_resource type="Texture2D" path="res://assets/terrain/Grass_Texture_01.png" id="4_grass_albedo"]
+[ext_resource type="Texture2D" path="res://assets/terrain/Ground_Normals_01.png" id="5_grass_normal"]
+[ext_resource type="Texture2D" path="res://assets/terrain/Dirt_Texture_01.png" id="6_dirt_albedo"]
+[ext_resource type="Texture2D" path="res://assets/terrain/Dirt_Normals_01.png" id="7_dirt_normal"]
+[ext_resource type="Texture2D" path="res://assets/terrain/Rock_Texture_01.png" id="8_rock_albedo"]
+[ext_resource type="Texture2D" path="res://assets/terrain/Rock_Normals_01.png" id="9_rock_normal"]
+[ext_resource type="Texture2D" path="res://assets/terrain/Moss_Rock_Texture_01.png" id="10_moss_rock_albedo"]
+[ext_resource type="Texture2D" path="res://assets/terrain/Moss_Rock_Normals_01.png" id="11_moss_rock_normal"]
+
+[sub_resource type="Resource" id="Resource_texture_set"]
+script = ExtResource("3_texture_set_script")
+mode = 0
+textures = [[ExtResource("4_grass_albedo"), ExtResource("6_dirt_albedo"), ExtResource("8_rock_albedo"), ExtResource("10_moss_rock_albedo")], [ExtResource("5_grass_normal"), ExtResource("7_dirt_normal"), ExtResource("9_rock_normal"), ExtResource("11_moss_rock_normal")]]
+
+[node name="TerrainTile" type="Node3D"]
+script = ExtResource("1_hterrain")
+_terrain_data = ExtResource("2_data")
+chunk_size = 32
+collision_enabled = true
+collision_layer = 1
+collision_mask = 1
+shader_type = "Classic4"
+custom_shader = null
+custom_globalmap_shader = null
+texture_set = SubResource("Resource_texture_set")
+render_layers = 1
+cast_shadow = 1
+lod_scale = 2.0
+viewport_override = NodePath("")
