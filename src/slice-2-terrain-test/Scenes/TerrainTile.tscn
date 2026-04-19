@@ -1,34 +1,62 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene format=3 uid="uid://qivqk66sm2i5"]
 
-[ext_resource type="Script" path="res://addons/zylann.hterrain/hterrain.gd" id="1_hterrain"]
-[ext_resource type="Resource" path="res://assets/terrain/data/terrain_data/data.hterrain" id="2_data"]
-[ext_resource type="Script" path="res://addons/zylann.hterrain/hterrain_texture_set.gd" id="3_texture_set_script"]
-[ext_resource type="Texture2D" path="res://assets/terrain/Grass_Texture_01.png" id="4_grass_albedo"]
-[ext_resource type="Texture2D" path="res://assets/terrain/Ground_Normals_01.png" id="5_grass_normal"]
-[ext_resource type="Texture2D" path="res://assets/terrain/Dirt_Texture_01.png" id="6_dirt_albedo"]
-[ext_resource type="Texture2D" path="res://assets/terrain/Dirt_Normals_01.png" id="7_dirt_normal"]
-[ext_resource type="Texture2D" path="res://assets/terrain/Rock_Texture_01.png" id="8_rock_albedo"]
-[ext_resource type="Texture2D" path="res://assets/terrain/Rock_Normals_01.png" id="9_rock_normal"]
-[ext_resource type="Texture2D" path="res://assets/terrain/Moss_Rock_Texture_01.png" id="10_moss_rock_albedo"]
-[ext_resource type="Texture2D" path="res://assets/terrain/Moss_Rock_Normals_01.png" id="11_moss_rock_normal"]
+[ext_resource type="Script" uid="uid://wigx2u0cqien" path="res://addons/zylann.hterrain/hterrain.gd" id="1_hterrain"]
+[ext_resource type="Resource" uid="uid://d34eecqs2itac" path="res://assets/terrain/data/terrain_data/data.hterrain" id="2_data"]
+[ext_resource type="Script" uid="uid://8hp1x6deav0v" path="res://addons/zylann.hterrain/hterrain_texture_set.gd" id="3_texture_set_script"]
+[ext_resource type="Texture2D" uid="uid://copq7lo2k7kat" path="res://assets/terrain/Grass_Texture_01.png" id="4_grass_albedo"]
+[ext_resource type="Texture2D" uid="uid://dgqjq80xss1n7" path="res://assets/terrain/Ground_Normals_01.png" id="5_grass_normal"]
+[ext_resource type="Texture2D" uid="uid://daiqg2y7g8d8y" path="res://assets/terrain/Dirt_Texture_01.png" id="6_dirt_albedo"]
+[ext_resource type="Texture2D" uid="uid://uydjptd8homf" path="res://assets/terrain/Dirt_Normals_01.png" id="7_dirt_normal"]
+[ext_resource type="Texture2D" uid="uid://6dh64d2g7yyh" path="res://assets/terrain/Rock_Texture_01.png" id="8_rock_albedo"]
+[ext_resource type="Texture2D" uid="uid://ban5laartxyjg" path="res://assets/terrain/Rock_Normals_01.png" id="9_rock_normal"]
+[ext_resource type="Texture2D" uid="uid://bl0hu8gv6j4jh" path="res://assets/terrain/Moss_Rock_Texture_01.png" id="10_moss_rock_albedo"]
+[ext_resource type="Texture2D" uid="uid://bba05jac771d7" path="res://assets/terrain/Moss_Rock_Normals_01.png" id="11_moss_rock_normal"]
+[ext_resource type="Script" uid="uid://cexbbxvc0faxh" path="res://addons/zylann.hterrain/hterrain_detail_layer.gd" id="12_sms8d"]
+[ext_resource type="Texture2D" uid="uid://6jmdwj3vn6m0" path="res://addons/zylann.hterrain/tools/icons/icon_detail_layer_node.svg" id="13_hhi1j"]
 
 [sub_resource type="Resource" id="Resource_texture_set"]
 script = ExtResource("3_texture_set_script")
 mode = 0
 textures = [[ExtResource("4_grass_albedo"), ExtResource("6_dirt_albedo"), ExtResource("8_rock_albedo"), ExtResource("10_moss_rock_albedo")], [ExtResource("5_grass_normal"), ExtResource("7_dirt_normal"), ExtResource("9_rock_normal"), ExtResource("11_moss_rock_normal")]]
 
-[node name="TerrainTile" type="Node3D"]
+[node name="TerrainTile" type="Node3D" unique_id=266179983]
 script = ExtResource("1_hterrain")
 _terrain_data = ExtResource("2_data")
 chunk_size = 32
 collision_enabled = true
 collision_layer = 1
 collision_mask = 1
+physics_material = null
 shader_type = "Classic4"
 custom_shader = null
 custom_globalmap_shader = null
 texture_set = SubResource("Resource_texture_set")
-render_layers = 1
+render_layers = 3
 cast_shadow = 1
-lod_scale = 2.0
-viewport_override = NodePath("")
+shader_params/u_ground_uv_scale_per_texture = Vector4(20, 20, 20, 20)
+shader_params/u_depth_blending = true
+shader_params/u_triplanar = false
+shader_params/u_tile_reduction = Vector4(0, 0, 0, 0)
+shader_params/u_globalmap_blend_start = 0.0
+shader_params/u_globalmap_blend_distance = 0.0
+shader_params/u_colormap_opacity_per_texture = Vector4(1, 1, 1, 1)
+shader_params/u_specular = 0.5
+
+[node name="HTerrainDetailLayer" type="Node3D" parent="." unique_id=1228134827]
+script = ExtResource("12_sms8d")
+shader_params/u_globalmap_tint_bottom = 0.0
+shader_params/u_globalmap_tint_top = 0.0
+shader_params/u_bottom_ao = 0.0
+shader_params/u_instance_scale = Vector3(1, 1, 1)
+shader_params/u_roughness = 0.9
+metadata/_editor_icon = ExtResource("13_hhi1j")
+
+[node name="HTerrainDetailLayer2" type="Node3D" parent="." unique_id=1880089923]
+script = ExtResource("12_sms8d")
+layer_index = 1
+shader_params/u_globalmap_tint_bottom = 0.0
+shader_params/u_globalmap_tint_top = 0.0
+shader_params/u_bottom_ao = 0.0
+shader_params/u_instance_scale = Vector3(1, 1, 1)
+shader_params/u_roughness = 0.9
+metadata/_editor_icon = ExtResource("13_hhi1j")
