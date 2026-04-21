@@ -1,0 +1,149 @@
+[gd_scene format=3 uid="uid://bhy1801ohtbto"]
+
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1"]
+[ext_resource type="Script" uid="uid://bhgl4fuashutm" path="res://scripts/world/GoldChest.gd" id="2"]
+[ext_resource type="Script" uid="uid://ceavjnxpol8x7" path="res://scripts/components/InteractableComponent.gd" id="3"]
+[ext_resource type="PackedScene" uid="uid://cv160mnvdnpe0" path="res://scenes/ui/HUD.tscn" id="4"]
+[ext_resource type="Script" uid="uid://bikrpgmgfrupf" path="res://addons/zylann.hterrain/hterrain_detail_layer.gd" id="4_yr1n6"]
+[ext_resource type="Script" uid="uid://cxxjh71c50mm5" path="res://addons/zylann.hterrain/hterrain.gd" id="5"]
+[ext_resource type="Texture2D" uid="uid://6jmdwj3vn6m0" path="res://addons/zylann.hterrain/tools/icons/icon_detail_layer_node.svg" id="5_l5ull"]
+[ext_resource type="Resource" path="res://terrain_data/data.hterrain" id="6"]
+[ext_resource type="Resource" path="res://assets/textures/terrain_textures.tres" id="7"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("ProceduralSkyMaterial_1")
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_Gold"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_Gold"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_NS"]
+size = Vector3(50, 5, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_NS"]
+size = Vector3(50, 5, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_EW"]
+size = Vector3(1, 5, 50)
+
+[sub_resource type="BoxMesh" id="BoxMesh_EW"]
+size = Vector3(1, 5, 50)
+
+[node name="World" type="Node3D" unique_id=840505826]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1718230800]
+environment = SubResource("Environment_1")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1902243387]
+transform = Transform3D(-0.8660253, -0.4330129, 0.2500001, 0, 0.49999994, 0.86602545, -0.50000024, 0.74999994, -0.43301257, 25.420067, 9.829201, 25.903784)
+shadow_enabled = true
+
+[node name="Terrain" type="Node3D" parent="." unique_id=654754443]
+script = ExtResource("5")
+_terrain_data = ExtResource("6")
+chunk_size = 32
+collision_enabled = true
+collision_layer = 1
+collision_mask = 1
+physics_material = null
+shader_type = "Classic4Lite"
+custom_shader = null
+custom_globalmap_shader = null
+texture_set = ExtResource("7")
+render_layers = 1
+cast_shadow = 1
+shader_params/u_ground_uv_scale = 20
+shader_params/u_depth_blending = true
+shader_params/u_triplanar = false
+shader_params/u_tile_reduction = Vector4(0, 0, 0, 0)
+shader_params/u_specular = 0.5
+
+[node name="HTerrainDetailLayer" type="Node3D" parent="Terrain" unique_id=2042164372]
+script = ExtResource("4_yr1n6")
+shader_params/u_globalmap_tint_bottom = 0.0
+shader_params/u_globalmap_tint_top = 0.0
+shader_params/u_bottom_ao = 0.0
+shader_params/u_instance_scale = Vector3(1, 1, 1)
+shader_params/u_roughness = 0.9
+metadata/_editor_icon = ExtResource("5_l5ull")
+
+[node name="Player" parent="." unique_id=126559303 instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.420067, 2, 25.903784)
+
+[node name="GoldChest" type="StaticBody3D" parent="." unique_id=809957411]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.5, -2)
+script = ExtResource("2")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="GoldChest" unique_id=429062182]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.420067, 0, 25.903784)
+mesh = SubResource("BoxMesh_Gold")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GoldChest" unique_id=935559142]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.420067, 0, 25.903784)
+shape = SubResource("BoxShape3D_Gold")
+
+[node name="InteractableComponent" type="Area3D" parent="GoldChest" unique_id=1206467872]
+script = ExtResource("3")
+interaction_name = "Gold Chest"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GoldChest/InteractableComponent" unique_id=30914751]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.420067, 0, 25.903784)
+shape = SubResource("BoxShape3D_Gold")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1608090410]
+
+[node name="HUD" parent="UI" unique_id=1134255929 instance=ExtResource("4")]
+
+[node name="NorthWall" type="StaticBody3D" parent="." unique_id=169433447]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 25)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NorthWall" unique_id=80515252]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.420067, 0, 25.903786)
+shape = SubResource("BoxShape3D_NS")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NorthWall" unique_id=1291965473]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.420067, 0, 25.903786)
+mesh = SubResource("BoxMesh_NS")
+
+[node name="SouthWall" type="StaticBody3D" parent="." unique_id=166188970]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -25)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SouthWall" unique_id=715525698]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.420067, 0, 25.903784)
+shape = SubResource("BoxShape3D_NS")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SouthWall" unique_id=688981053]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.420067, 0, 25.903784)
+mesh = SubResource("BoxMesh_NS")
+
+[node name="EastWall" type="StaticBody3D" parent="." unique_id=1985569682]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 2.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="EastWall" unique_id=115508590]
+transform = Transform3D(0.92487156, 0, 0.38027957, 0, 1, 0, -0.38027957, 0, 0.92487156, 34.152042, 0, 23.889246)
+shape = SubResource("BoxShape3D_EW")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="EastWall" unique_id=1275539082]
+transform = Transform3D(0.92487156, 0, 0.38027957, 0, 1, 0, -0.38027957, 0, 0.92487156, 34.152042, 0, 23.889246)
+mesh = SubResource("BoxMesh_EW")
+
+[node name="WestWall" type="StaticBody3D" parent="." unique_id=1944799060]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 2.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WestWall" unique_id=1299899787]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.420067, 0, 25.903784)
+shape = SubResource("BoxShape3D_EW")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WestWall" unique_id=551009628]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.420067, 0, 25.903784)
+mesh = SubResource("BoxMesh_EW")

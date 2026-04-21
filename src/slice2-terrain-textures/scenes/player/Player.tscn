@@ -1,0 +1,47 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/player/Player.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/components/StateMachine.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/player/states/PlayerIdleState.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/player/states/PlayerMoveState.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/player/states/PlayerJumpState.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/components/InteractorComponent.gd" id="8"]
+[ext_resource type="Script" path="res://addons/3d_controls_toolkit/ThirdPersonControler3D.gd" id="8_phhfy"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_1"]
+[node name="Player" type="CharacterBody3D" unique_id=343547387 groups=["player"]]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2030211079]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1442556969]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_1")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=334843788]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 3)
+
+[node name="InteractorComponent" type="RayCast3D" parent="Camera3D" unique_id=1320598957]
+target_position = Vector3(0, 0, -3)
+script = ExtResource("8")
+interaction_action = "interact"
+
+[node name="ThirdPersonControler3D" type="Node3D" parent="." unique_id=839121241 node_paths=PackedStringArray("Custom_Camera", "Geometry")]
+script = ExtResource("8_phhfy")
+Input_Up = "move_forward"
+Input_Down = "move_backward"
+Input_Left = "move_left"
+Input_Right = "move_right"
+Input_Sprint = "sprint"
+Input_Jump = "jump"
+Input_Dash = "dash"
+Custom_Camera = NodePath("../Camera3D")
+Geometry = NodePath("../MeshInstance3D")
+
+[node name="HealthComponent" type="Node" parent="." unique_id=146285142]
+script = ExtResource("3")
+

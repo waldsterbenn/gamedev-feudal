@@ -1,0 +1,263 @@
+[gd_scene format=3 uid="uid://bhy1801ohtbto"]
+
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1"]
+[ext_resource type="Script" uid="uid://bhgl4fuashutm" path="res://scripts/world/GoldChest.gd" id="2"]
+[ext_resource type="Script" uid="uid://ceavjnxpol8x7" path="res://scripts/components/InteractableComponent.gd" id="3"]
+[ext_resource type="PackedScene" uid="uid://cv160mnvdnpe0" path="res://scenes/ui/HUD.tscn" id="4"]
+[ext_resource type="PackedScene" uid="uid://dnunq0siwo4sb" path="res://assets/models/props/SM_Prop_Chest_01.fbx" id="5"]
+[ext_resource type="PackedScene" uid="uid://04emvsq1iui1" path="res://assets/models/buildings/SM_Bld_Base_01.fbx" id="6"]
+[ext_resource type="PackedScene" uid="uid://dr5mvbr2rljkt" path="res://assets/models/environment/SM_Env_Rock_01.fbx" id="7"]
+[ext_resource type="PackedScene" uid="uid://brfajc476urd1" path="res://assets/models/buildings/SM_Bld_Guard_Tower_01.fbx" id="8"]
+[ext_resource type="PackedScene" uid="uid://bwsf104l5q8j3" path="res://assets/models/buildings/SM_Bld_BoatHouse_01.fbx" id="9"]
+[ext_resource type="PackedScene" uid="uid://btt2vmhnsjx7r" path="res://assets/models/buildings/SM_Bld_Tower_01.fbx" id="10"]
+[ext_resource type="PackedScene" uid="uid://co5r7waf360kx" path="res://assets/models/environment/SM_Env_GrassPatch_01.fbx" id="11"]
+[ext_resource type="PackedScene" uid="uid://bvtanqayr140g" path="res://assets/models/environment/SM_Env_GrassPatch_02.fbx" id="12"]
+[ext_resource type="PackedScene" uid="uid://c5etw5jdxjqmh" path="res://assets/models/environment/SM_Env_Grass_01.fbx" id="13"]
+[ext_resource type="PackedScene" uid="uid://blfagsaw1krgf" path="res://assets/models/environment/SM_Env_Tree_Pine_01.fbx" id="14"]
+[ext_resource type="PackedScene" uid="uid://bokfphrujc743" path="res://assets/models/environment/SM_Env_Tree_Pine_02.fbx" id="15"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("ProceduralSkyMaterial_1")
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(50, 1, 50)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(50, 1, 50)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_Gold"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_Longhouse"]
+size = Vector3(5, 3, 4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_GuardTower"]
+size = Vector3(3, 5, 3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_BoatHouse"]
+size = Vector3(5, 3, 4)
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_Tower"]
+height = 4.0
+radius = 1.5
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_Tree"]
+height = 3.0
+radius = 0.4
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_Rock"]
+radius = 0.6
+
+[node name="World" type="Node3D" unique_id=840505826]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1718230800]
+environment = SubResource("Environment_1")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1902243387]
+transform = Transform3D(-0.8660253, -0.4330129, 0.2500001, 0, 0.49999994, 0.86602545, -0.50000024, 0.74999994, -0.43301257, 0, 9.829201, 0)
+shadow_enabled = true
+
+[node name="Floor" type="StaticBody3D" parent="." unique_id=1991755071]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.56086576, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=308802835]
+shape = SubResource("BoxShape3D_1")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=340360537]
+mesh = SubResource("BoxMesh_1")
+
+[node name="Player" parent="." unique_id=126559303 instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="GoldChest" type="StaticBody3D" parent="." unique_id=809957411]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.5, -2)
+script = ExtResource("2")
+
+[node name="ChestMesh" parent="GoldChest" unique_id=342087186 instance=ExtResource("5")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GoldChest" unique_id=935559142]
+shape = SubResource("BoxShape3D_Gold")
+
+[node name="InteractableComponent" type="Area3D" parent="GoldChest" unique_id=1206467872]
+script = ExtResource("3")
+interaction_name = "Chest"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GoldChest/InteractableComponent" unique_id=30914751]
+shape = SubResource("BoxShape3D_Gold")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1608090410]
+
+[node name="HUD" parent="UI" unique_id=1134255929 instance=ExtResource("4")]
+
+[node name="Buildings" type="Node3D" parent="." unique_id=1957152594]
+
+[node name="Longhouse" type="StaticBody3D" parent="Buildings" unique_id=467393405]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -8)
+
+[node name="LonghouseMesh" parent="Buildings/Longhouse" unique_id=1386041806 instance=ExtResource("6")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Buildings/Longhouse" unique_id=259993504]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("BoxShape3D_Longhouse")
+
+[node name="GuardTower" type="StaticBody3D" parent="Buildings" unique_id=832336622]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -12)
+
+[node name="GuardTowerMesh" parent="Buildings/GuardTower" unique_id=1831745958 instance=ExtResource("8")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Buildings/GuardTower" unique_id=688740914]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+shape = SubResource("BoxShape3D_GuardTower")
+
+[node name="BoatHouse" type="StaticBody3D" parent="Buildings" unique_id=1811927566]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, -15, 0, -15)
+
+[node name="BoatHouseMesh" parent="Buildings/BoatHouse" unique_id=560885741 instance=ExtResource("9")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Buildings/BoatHouse" unique_id=1261141055]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("BoxShape3D_BoatHouse")
+
+[node name="StoneTower" type="StaticBody3D" parent="Buildings" unique_id=2079198381]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 8)
+
+[node name="StoneTowerMesh" parent="Buildings/StoneTower" unique_id=2091615617 instance=ExtResource("10")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Buildings/StoneTower" unique_id=179695392]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+shape = SubResource("CylinderShape3D_Tower")
+
+[node name="Trees" type="Node3D" parent="." unique_id=1088162028]
+
+[node name="Tree01" type="StaticBody3D" parent="Trees" unique_id=576165892]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 15, 0, 0)
+
+[node name="TreeMesh" parent="Trees/Tree01" unique_id=1658648549 instance=ExtResource("14")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Trees/Tree01" unique_id=1033008914]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("CylinderShape3D_Tree")
+
+[node name="Tree02" type="StaticBody3D" parent="Trees" unique_id=1331986969]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, -15, 0, -5)
+
+[node name="TreeMesh" parent="Trees/Tree02" unique_id=1223015381 instance=ExtResource("15")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Trees/Tree02" unique_id=2043357645]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("CylinderShape3D_Tree")
+
+[node name="Tree03" type="StaticBody3D" parent="Trees" unique_id=790129055]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 0, 0, 15)
+
+[node name="TreeMesh" parent="Trees/Tree03" unique_id=192024704 instance=ExtResource("14")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Trees/Tree03" unique_id=1035551879]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("CylinderShape3D_Tree")
+
+[node name="Tree04" type="StaticBody3D" parent="Trees" unique_id=1807701779]
+transform = Transform3D(1.3, 0, 0, 0, 1.3, 0, 0, 0, 1.3, -8, 0, 12)
+
+[node name="TreeMesh" parent="Trees/Tree04" unique_id=1528836237 instance=ExtResource("15")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Trees/Tree04" unique_id=712963229]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("CylinderShape3D_Tree")
+
+[node name="EnvironmentProps" type="Node3D" parent="." unique_id=392869854]
+
+[node name="Rock01" type="StaticBody3D" parent="EnvironmentProps" unique_id=2004812292]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 10, 0, 5)
+
+[node name="RockMesh" parent="EnvironmentProps/Rock01" unique_id=1488938867 instance=ExtResource("7")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="EnvironmentProps/Rock01" unique_id=1082540716]
+shape = SubResource("SphereShape3D_Rock")
+
+[node name="Rock02" type="StaticBody3D" parent="EnvironmentProps" unique_id=961601356]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, -12, 0, 8)
+
+[node name="RockMesh" parent="EnvironmentProps/Rock02" unique_id=130629469 instance=ExtResource("7")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="EnvironmentProps/Rock02" unique_id=1179774976]
+shape = SubResource("SphereShape3D_Rock")
+
+[node name="Rock03" type="StaticBody3D" parent="EnvironmentProps" unique_id=273514715]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 5, 0, -12)
+
+[node name="RockMesh" parent="EnvironmentProps/Rock03" unique_id=1532004883 instance=ExtResource("7")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="EnvironmentProps/Rock03" unique_id=1613773765]
+shape = SubResource("SphereShape3D_Rock")
+
+[node name="Grass" type="Node3D" parent="." unique_id=2042017286]
+
+[node name="GrassPatch01" type="Node3D" parent="Grass" unique_id=870302067]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 3)
+
+[node name="GrassPatchMesh" parent="Grass/GrassPatch01" unique_id=121687574 instance=ExtResource("11")]
+
+[node name="GrassPatch02" type="Node3D" parent="Grass" unique_id=967056678]
+transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, -3, 0, 4)
+
+[node name="GrassPatchMesh" parent="Grass/GrassPatch02" unique_id=1404423526 instance=ExtResource("12")]
+
+[node name="GrassPatch03" type="Node3D" parent="Grass" unique_id=694269314]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, 6, 0, -5)
+
+[node name="GrassPatchMesh" parent="Grass/GrassPatch03" unique_id=861719684 instance=ExtResource("11")]
+
+[node name="GrassPatch04" type="Node3D" parent="Grass" unique_id=309170469]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -3)
+
+[node name="GrassPatchMesh" parent="Grass/GrassPatch04" unique_id=2084885586 instance=ExtResource("12")]
+
+[node name="GrassPatch05" type="Node3D" parent="Grass" unique_id=1687638921]
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, 1, 0, 8)
+
+[node name="GrassPatchMesh" parent="Grass/GrassPatch05" unique_id=1516786938 instance=ExtResource("11")]
+
+[node name="GrassPatch06" type="Node3D" parent="Grass" unique_id=1057217931]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, -10, 0, 2)
+
+[node name="GrassPatchMesh" parent="Grass/GrassPatch06" unique_id=1971036055 instance=ExtResource("12")]
+
+[node name="GrassPatch07" type="Node3D" parent="Grass" unique_id=563884291]
+transform = Transform3D(0.819152, 0, -0.573576, 0, 1, 0, 0.573576, 0, 0.819152, 14, 0, -8)
+
+[node name="GrassPatchMesh" parent="Grass/GrassPatch07" unique_id=912937042 instance=ExtResource("11")]
+
+[node name="GrassPatch08" type="Node3D" parent="Grass" unique_id=545650910]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0, 10)
+
+[node name="GrassPatchMesh" parent="Grass/GrassPatch08" unique_id=1398261127 instance=ExtResource("12")]
+
+[node name="GrassClump01" type="Node3D" parent="Grass" unique_id=2045196671]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0, 0)
+
+[node name="GrassClumpMesh" parent="Grass/GrassClump01" unique_id=311355766 instance=ExtResource("13")]
+
+[node name="GrassClump02" type="Node3D" parent="Grass" unique_id=1049994881]
+transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, -2, 0, 6)
+
+[node name="GrassClumpMesh" parent="Grass/GrassClump02" unique_id=1457710658 instance=ExtResource("13")]
+
+[node name="GrassClump03" type="Node3D" parent="Grass" unique_id=1919402843]
+transform = Transform3D(0.5, 0, -0.866025, 0, 1, 0, 0.866025, 0, 0.5, 8, 0, 3)
+
+[node name="GrassClumpMesh" parent="Grass/GrassClump03" unique_id=1301734743 instance=ExtResource("13")]
+
+[node name="GrassClump04" type="Node3D" parent="Grass" unique_id=1221781762]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, -5, 0, -7)
+
+[node name="GrassClumpMesh" parent="Grass/GrassClump04" unique_id=892886643 instance=ExtResource("13")]
