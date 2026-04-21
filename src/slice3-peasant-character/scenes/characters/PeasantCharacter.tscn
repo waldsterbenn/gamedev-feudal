@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bk8kolhg71p60" path="res://assets/characters/peasant/SK_Character_Human_Peasant.fbx" id="1"]
+[ext_resource type="Script" path="res://scripts/characters/PeasantCharacter.gd" id="2"]
+
+[node name="PeasantCharacter" type="Node3D"]
+script = ExtResource("2")
+
+[node name="SK_Character_Human_Peasant" parent="." instance=ExtResource("1")]

@@ -218,6 +218,79 @@ func get_instance() -> Node:
 
 ---
 
+## Project Copying & Slice Workflow
+
+When duplicating a Godot project (e.g., `cp -r slice1 slice2`), the `.godot/` folder **must be deleted** before the copy is opened or run. The `.godot/global_script_class_cache.cfg` caches absolute paths from the source project, causing class-resolution errors such as:
+
+```
+SCRIPT ERROR: Parse Error: Class "ThirdPersonControler3D" hides a global script class.
+```
+
+Fix:
+```bash
+rm -rf src/new-slice/.godot
+```
+
+Then run a headless import pass:
+```bash
+godot --path ./src/new-slice --editor --quit --headless
+```
+
+## 3D Asset Import (FBX) Pitfalls
+
+### Texture path mismatches
+FBX files often embed hard-coded texture filenames. If the copied texture does not match exactly, Godot logs:
+
+```
+ERROR: Can't open file from path 'res://.../TEX_Characters_White.png'.
+```
+
+Fix: rename the texture on disk to match the embedded name, or update the FBX import settings to point to the correct file.
+
+### Animations may be bind pose only
+Use a headless `SceneTree` debug script to inspect imported FBX content before assuming animations are usable:
+
+```gdscript
+extends SceneTree
+
+func _init() -> void:
+    var scene: PackedScene = load("res://assets/char/model.fbx")
+    var instance: Node = scene.instantiate()
+    _inspect(instance, 0)
+    instance.queue_free()
+    quit()
+
+func _inspect(node: Node, depth: int) -> void:
+    var indent: String = "  ".repeat(depth)
+    print(indent + node.name + " (" + node.get_class() + ")")
+    if node is AnimationPlayer:
+        var anim_player: AnimationPlayer = node as AnimationPlayer
+        var anims: PackedStringArray = anim_player.get_animation_list()
+        print(indent + "  Animations [" + str(anims.size()) + "]: " + str(anims))
+        for anim_name in anims:
+            var anim: Animation = anim_player.get_animation(anim_name)
+            print(indent + "    '" + anim_name + "': length=" + str(anim.length)
+                  + ", tracks=" + str(anim.get_track_count()))
+    for child in node.get_children():
+        _inspect(child, depth + 1)
+```
+
+### Looping imported animations
+Imported FBX animations do not loop by default. Set the loop mode in `_ready()`:
+
+```gdscript
+var anim: Animation = _animation_player.get_animation("Take 001")
+if anim:
+    anim.loop_mode = Animation.LOOP_LINEAR
+```
+
+### Triggering asset reimport headlessly
+After adding new FBX/PNG assets, force Godot to generate `.import` files without opening the GUI:
+
+```bash
+godot --path ./src/my-project --editor --quit --headless
+```
+
 ## Validation Checks Reference (validate_godot.py)
 - Ensures `format=3` (Godot 4).
 - Matches `load_steps` to resource count.
@@ -225,3 +298,4 @@ func get_instance() -> Node:
 - Blocks GDScript keywords in TSCN/TRES files.
 - Enforces strict typing and return arrows `->` in GDScript.
 - Blocks Godot 3 patterns (`yield`, `connect("string")`).
+- Script location: `docs/skills/godot-gdscript/scripts/validate_godot.py`
