@@ -13,6 +13,10 @@
 [ext_resource type="Texture2D" uid="uid://bba05jac771d7" path="res://assets/terrain/Moss_Rock_Normals_01.png" id="11_moss_rock_normal"]
 [ext_resource type="Script" uid="uid://cexbbxvc0faxh" path="res://addons/zylann.hterrain/hterrain_detail_layer.gd" id="12_sms8d"]
 [ext_resource type="Texture2D" uid="uid://6jmdwj3vn6m0" path="res://addons/zylann.hterrain/tools/icons/icon_detail_layer_node.svg" id="13_hhi1j"]
+[ext_resource type="Script" path="res://scripts/terrain_generator.gd" id="14_generator"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_generator"]
+frequency = 0.01
 
 [sub_resource type="Resource" id="Resource_texture_set"]
 script = ExtResource("3_texture_set_script")
@@ -60,3 +64,8 @@ shader_params/u_bottom_ao = 0.0
 shader_params/u_instance_scale = Vector3(1, 1, 1)
 shader_params/u_roughness = 0.9
 metadata/_editor_icon = ExtResource("13_hhi1j")
+
+[node name="HeightmapGenerator" type="Node" parent="."]
+script = ExtResource("14_generator")
+terrain = NodePath("..")
+noise = SubResource("FastNoiseLite_generator")
