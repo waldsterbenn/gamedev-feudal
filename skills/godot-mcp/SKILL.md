@@ -1,6 +1,6 @@
 ---
 name: godot-mcp
-description: Guide for using the Godot MCP (Model Context Protocol) server to interact with Godot 4.x projects programmatically via Hermes Agent. Covers setup, available tools, workflows, and troubleshooting.
+description: Guide for using the Godot MCP (Model Context Protocol) server to interact with Godot 4.x projects programmatically via Coding Agent. Covers setup, available tools, workflows, and troubleshooting.
 version: 1.0.0
 author: Hermes Agent
 license: MIT
@@ -13,7 +13,7 @@ metadata:
 
 ## What is godot-mcp?
 
-`godot-mcp` is a Model Context Protocol server that exposes Godot 4.x engine operations as callable tools. It allows AI agents (like Hermes) to create scenes, add nodes, run projects, and inspect debug output without manual GUI interaction.
+`godot-mcp` is a Model Context Protocol server that exposes Godot 4.x engine operations as callable tools. It allows AI agents (like Hermes or Gemini or Claude) to create scenes, add nodes, run projects, and inspect debug output without manual GUI interaction.
 
 ## Prerequisites
 
@@ -148,3 +148,6 @@ mcp_godot_save_scene(
 - `godot-gdscript` — Validation rules for `.gd`, `.tscn`, `.tres` files
 - `godot-slice-modification` — Copying and modifying vertical slices
 - `godot-mcp-workflow` — Scene creation and validation workflow
+
+## References
+- [godot-mcp GitHub](https://github.com/Coding-Solo/godot-mcp)
