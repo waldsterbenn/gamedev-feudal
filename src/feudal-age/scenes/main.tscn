@@ -1,0 +1,19 @@
+[gd_scene load_steps=1 format=3 uid="uid://main"]
+
+[node name="Main" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1936862128]
+shadow_enabled = true
+directional_shadow_mode = 0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1489681185]
+
+[node name="Camera" type="Camera3D" parent="." unique_id=1915464811]
+fov = 60.0
+far = 1000.0
+
+[node name="Domain" type="Node3D" parent="." unique_id=1657295447]
+
+[node name="FeudalMap" type="SubViewport" parent="." unique_id=1173323048]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=324622254]

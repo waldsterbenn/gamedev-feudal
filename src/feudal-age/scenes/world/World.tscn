@@ -1,0 +1,69 @@
+[gd_scene load_steps=13 format=3 uid="uid://ccncyrxopvdi6"]
+
+[ext_resource type="Script" path="res://addons/zylann.hterrain/hterrain_detail_layer.gd" id="2"]
+[ext_resource type="Script" path="res://addons/zylann.hterrain/hterrain.gd" id="3"]
+[ext_resource type="Resource" path="res://terrain_data/data.hterrain" id="5"]
+[ext_resource type="Resource" path="res://assets/textures/terrain_textures.tres" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/characters/NpcPeasant.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/world/Fief.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/SM_Bld_Base_01.fbx" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/world/FeastTable.tscn" id="11"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_world"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_world"]
+sky_material = SubResource("ProceduralSkyMaterial_world")
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 2
+sky = SubResource("Sky_world")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="World" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_world")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 25, 10, 25)
+shadow_enabled = true
+
+[node name="Terrain" type="Node3D" parent="."]
+script = ExtResource("3")
+_terrain_data = ExtResource("5")
+chunk_size = 32
+collision_enabled = true
+collision_layer = 1
+collision_mask = 1
+shader_type = "Classic4Lite"
+texture_set = ExtResource("6")
+render_layers = 1
+cast_shadow = 1
+shader_params/u_ground_uv_scale = 20
+shader_params/u_depth_blending = true
+
+[node name="HTerrainDetailLayer" type="Node3D" parent="Terrain"]
+script = ExtResource("2")
+
+[node name="Fief" parent="." instance=ExtResource("9")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 10)
+fief_name = "Royal Demesne"
+
+[node name="ManorHouse" parent="Fief" instance=ExtResource("10")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 1.5, 0)
+
+[node name="FeastTable" parent="Fief" instance=ExtResource("11")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, 0)
+
+[node name="Player" parent="." instance=ExtResource("7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 5, 25)
+
+[node name="NpcPeasant" parent="." instance=ExtResource("8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 2, 12)
+patrol_points = Array[Vector3]([Vector3(5, 1, 5), Vector3(15, 1, 5), Vector3(15, 1, 15), Vector3(5, 1, 15)])
+
+[node name="UI" type="CanvasLayer" parent="."]
