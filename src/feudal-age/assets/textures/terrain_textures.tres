@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="HTerrainTextureSet" load_steps=8 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/grass/Grass001_2K-JPG_Color.jpg" id="1_grass_color"]
+[ext_resource type="Texture2D" path="res://assets/textures/grass/Grass001_2K-JPG_NormalGL.jpg" id="2_grass_normal"]
+[ext_resource type="Texture2D" path="res://assets/textures/dirt/Ground048_2K-JPG_Color.jpg" id="3_dirt_color"]
+[ext_resource type="Texture2D" path="res://assets/textures/dirt/Ground048_2K-JPG_NormalGL.jpg" id="4_dirt_normal"]
+[ext_resource type="Texture2D" path="res://assets/textures/rock/Rock035_2K-JPG_Color.jpg" id="5_rock_color"]
+[ext_resource type="Texture2D" path="res://assets/textures/rock/Rock035_2K-JPG_NormalGL.jpg" id="6_rock_normal"]
+[ext_resource type="Script" path="res://addons/zylann.hterrain/hterrain_texture_set.gd" id="7_script"]
+
+[resource]
+script = ExtResource("7_script")
+mode = 0
+textures = [[ExtResource("1_grass_color"), ExtResource("3_dirt_color"), ExtResource("5_rock_color")], [ExtResource("2_grass_normal"), ExtResource("4_dirt_normal"), ExtResource("6_rock_normal")]]

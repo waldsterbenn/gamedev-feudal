@@ -83,25 +83,33 @@ def validate_scene_resource(path: Path):
     ext_ids: dict[str, str] = {}
     ext_resource_count = 0
     for i, line in enumerate(lines, 1):
-        m = re.match(r'\[ext_resource\s+.*?path="([^"]+)"\s+.*?id="([^"]+)"', line)
-        if m:
-            path_val = m.group(1)
-            id_val = m.group(2)
+        if line.startswith("[ext_resource"):
+            path_m = re.search(r'\spath="([^"]+)"', line)
+            id_m = re.search(r'\sid="([^"]+)"', line)
+            if path_m and id_m:
+                path_val = path_m.group(1)
+                id_val = id_m.group(1)
+                # print(f"DEBUG: Found ext_resource id={id_val} path={path_val}")
             
-            if id_val in ext_ids:
-                error(f"Line {i}: Duplicate ext_resource ID '{id_val}'")
-            
-            ext_ids[id_val] = path_val
-            ext_resource_count += 1
-            
-            # File existence check
-            if path_val.startswith("res://"):
-                rel_path = path_val.replace("res://", "")
-                abs_path = project_root / rel_path
-                if not abs_path.exists():
-                    error(f"Line {i}: Referenced file does not exist: {path_val}")
-            else:
-                warn(f"Line {i}: ext_resource path should use res:// protocol: {path_val}")
+                if id_val in ext_ids:
+                    error(f"Line {i}: Duplicate ext_resource ID '{id_val}'")
+                
+                ext_ids[id_val] = path_val
+                ext_resource_count += 1
+                
+                # File existence check
+                if path_val.startswith("res://"):
+                    rel_path = path_val.replace("res://", "")
+                    abs_path = project_root / rel_path
+                    if not abs_path.exists():
+                        error(f"Line {i}: Referenced file does not exist: {path_val}")
+                elif path_val.startswith("./"):
+                    # Relative path check
+                    abs_path = path.parent / path_val
+                    if not abs_path.exists():
+                        error(f"Line {i}: Referenced file does not exist: {path_val}")
+                else:
+                    warn(f"Line {i}: ext_resource path should use res:// or relative protocol: {path_val}")
 
     # 5. Collect declared sub_resource IDs
     sub_ids: dict[str, str] = {}
