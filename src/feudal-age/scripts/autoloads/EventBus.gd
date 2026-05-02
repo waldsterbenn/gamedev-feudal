@@ -8,8 +8,13 @@ signal gold_changed(new_amount: int)
 signal prestige_change_requested(delta: int)
 signal prestige_changed(new_prestige: int)
 signal season_changed(season_index: int)
+signal year_changed(new_year: int)
 signal peasant_dispute_started(vassal_a: String, vassal_b: String)
 signal npc_interacted(npc_name: String)
+
+# Succession events
+signal character_died(profile: VassalProfile)
+signal succession_occurred(old_profile: VassalProfile, new_profile: VassalProfile)
 
 # Petition events
 signal petition_started(petitioner: Node3D, title: String, description: String, choices: Array[Dictionary])

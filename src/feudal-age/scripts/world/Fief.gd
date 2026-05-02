@@ -48,14 +48,27 @@ func _process_yield() -> void:
 	if tenants.is_empty():
 		return
 		
-	var cycle_gold: float = tenants.size() * base_yield * (prosperity / 100.0)
+	var season_multiplier: float = 1.0
+	match GameManager.current_season:
+		0: # Spring
+			season_multiplier = 1.0
+		1: # Summer
+			season_multiplier = 1.5
+		2: # Autumn (Harvest)
+			season_multiplier = 2.5
+		3: # Winter
+			season_multiplier = 0.0
+			EventBus.message_logged.emit(fief_name + " production halted by winter", "warn")
+			return
+		
+	var cycle_gold: float = tenants.size() * base_yield * (prosperity / 100.0) * season_multiplier
 	var lords_share: float = cycle_gold * tax_rate
 	
 	accumulated_gold += lords_share
 	
 	if int(accumulated_gold) > 0:
 		gold_yield_ready.emit(int(accumulated_gold))
-		EventBus.message_logged.emit(fief_name + " generated tax revenue", "info")
+		EventBus.message_logged.emit(fief_name + " generated tax revenue (" + GameManager.season_names[GameManager.current_season] + ")", "info")
 
 func collect_taxes() -> void:
 	var total: int = int(accumulated_gold)

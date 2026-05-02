@@ -7,6 +7,9 @@ var current_domain: String = ""
 var gold: int = 0
 var prestige: int = 0
 var current_season: int = 0  # 0=Spring, 1=Summer, 2=Autumn, 3=Winter
+var season_names: Array[String] = ["Spring", "Summer", "Autumn", "Winter"]
+var season_timer: float = 0.0
+@export var season_duration: float = 60.0
 
 var _active_petition_choices: Array = []
 
@@ -15,6 +18,18 @@ func _ready() -> void:
 	EventBus.prestige_change_requested.connect(update_prestige)
 	EventBus.petition_started.connect(_on_petition_started)
 	EventBus.petition_resolved.connect(_on_petition_resolved)
+
+func _process(delta: float) -> void:
+	if current_state == GameState.PLAYING:
+		_update_season(delta)
+
+func _update_season(delta: float) -> void:
+	season_timer += delta
+	if season_timer >= season_duration:
+		season_timer = 0.0
+		current_season = (current_season + 1) % 4
+		EventBus.season_changed.emit(current_season)
+		EventBus.message_logged.emit("A new season has begun: " + season_names[current_season], "info")
 
 func _on_petition_started(_petitioner: Node3D, _title: String, _desc: String, choices: Array[Dictionary]) -> void:
 	_active_petition_choices = choices

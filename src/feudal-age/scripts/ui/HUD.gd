@@ -3,14 +3,19 @@ extends Control
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
 @onready var gold_label: Label = $MarginContainer/VBoxContainer/GoldLabel
 @onready var prestige_label: Label = $MarginContainer/VBoxContainer/PrestigeLabel
+@onready var season_label: Label = $MarginContainer/VBoxContainer/SeasonLabel
 @onready var message_label: Label = $MarginContainer/VBoxContainer/MessageLabel
 @onready var loyalty_label: Label = $MarginContainer/VBoxContainer/LoyaltyLabel
 
 func _ready() -> void:
 	EventBus.gold_changed.connect(_on_gold_changed)
 	EventBus.prestige_changed.connect(_on_prestige_changed)
+	EventBus.season_changed.connect(_on_season_changed)
 	EventBus.message_logged.connect(_on_message_logged)
 	EventBus.vassal_loyalty_changed.connect(_on_loyalty_changed)
+	
+	_on_season_changed(GameManager.current_season)
+	
 	var player: Node = get_tree().get_first_node_in_group("player")
 	if player:
 		_connect_player(player)
@@ -22,6 +27,9 @@ func _on_gold_changed(new_amount: int) -> void:
 
 func _on_prestige_changed(new_amount: int) -> void:
 	prestige_label.text = "Prestige: " + str(new_amount)
+
+func _on_season_changed(season_index: int) -> void:
+	season_label.text = "Season: " + GameManager.season_names[season_index]
 
 func _on_loyalty_changed(vassal_name: String, amount: int) -> void:
 	loyalty_label.text = vassal_name + " Loyalty: " + str(amount)
