@@ -2,11 +2,13 @@ extends Control
 
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
 @onready var gold_label: Label = $MarginContainer/VBoxContainer/GoldLabel
+@onready var prestige_label: Label = $MarginContainer/VBoxContainer/PrestigeLabel
 @onready var message_label: Label = $MarginContainer/VBoxContainer/MessageLabel
 @onready var loyalty_label: Label = $MarginContainer/VBoxContainer/LoyaltyLabel
 
 func _ready() -> void:
 	EventBus.gold_changed.connect(_on_gold_changed)
+	EventBus.prestige_changed.connect(_on_prestige_changed)
 	EventBus.message_logged.connect(_on_message_logged)
 	EventBus.vassal_loyalty_changed.connect(_on_loyalty_changed)
 	var player: Node = get_tree().get_first_node_in_group("player")
@@ -17,6 +19,9 @@ func _ready() -> void:
 
 func _on_gold_changed(new_amount: int) -> void:
 	gold_label.text = "Gold: " + str(new_amount)
+
+func _on_prestige_changed(new_amount: int) -> void:
+	prestige_label.text = "Prestige: " + str(new_amount)
 
 func _on_loyalty_changed(vassal_name: String, amount: int) -> void:
 	loyalty_label.text = vassal_name + " Loyalty: " + str(amount)

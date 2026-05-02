@@ -29,9 +29,20 @@ func physics_update(delta: float) -> void:
 		
 	var direction: Vector3 = (_target_position - npc.global_position).normalized()
 	direction.y = 0.0
-	npc.velocity = direction * work_speed
+	
+	if not npc.is_on_floor():
+		npc.velocity.y += -9.8 * delta
+	else:
+		npc.velocity.y = 0.0
+
 	if direction.length_squared() > 0.001:
 		npc.look_at(npc.global_position + direction, Vector3.UP)
+		var horizontal_vel = direction * work_speed
+		npc.velocity.x = horizontal_vel.x
+		npc.velocity.z = horizontal_vel.z
+	else:
+		npc.velocity.x = 0.0
+		npc.velocity.z = 0.0
 
 func _pick_new_target() -> void:
 	var npc: NpcPeasant = owner as NpcPeasant

@@ -1,11 +1,14 @@
-[gd_scene load_steps=3 format=3 uid="uid://peasant_char"]
+[gd_scene load_steps=4 format=3 uid="uid://peasant_visuals"]
 
-[ext_resource type="Script" path="res://scripts/characters/PeasantCharacter.gd" id="1"]
-[ext_resource type="PackedScene" path="res://assets/characters/peasant/SK_Character_Human_Peasant.fbx" id="2"]
+[ext_resource type="PackedScene" path="res://assets/characters/peasant/SK_Character_Human_Peasant.fbx" id="1"]
+[ext_resource type="Script" path="res://scripts/characters/PeasantCharacter.gd" id="2"]
+[ext_resource type="Material" path="res://assets/characters/peasant/TEX_Characters_White.tres" id="3"]
 
 [node name="PeasantCharacter" type="Node3D"]
-script = ExtResource("1")
+script = ExtResource("2")
 
-[node name="PeasantModel" parent="." instance=ExtResource("2")]
+[node name="Model" parent="." instance=ExtResource("1")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
 
-[node name="AnimationPlayer" parent="."]
+[node name="SK_Character_Human_Peasant" parent="Model/Root/Skeleton3D" index="0"]
+surface_material_override/0 = ExtResource("3")

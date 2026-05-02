@@ -5,7 +5,7 @@ signal prosperity_changed(new_prosperity: float)
 signal gold_yield_ready(amount: int)
 
 @export var fief_name: String = "My Manor"
-@export var base_yield: float = 1.0  # Gold per peasant per cycle
+@export var base_yield: float = 2.0  # Increased base yield
 @export var tax_rate: float = 0.2    # Lord's share
 
 var prosperity: float = 100.0
@@ -23,11 +23,7 @@ func _ready() -> void:
 		interactable.interacted.connect(_on_interacted)
 		interactable.interaction_name = "Collect Taxes"
 	
-	if not yield_timer:
-		yield_timer = Timer.new()
-		add_child(yield_timer)
-		yield_timer.wait_time = 10.0  # Cycle every 10 seconds
-		yield_timer.autostart = true
+	if yield_timer:
 		yield_timer.timeout.connect(_process_yield)
 
 func _on_interacted(_interactor: Node3D) -> void:
@@ -53,12 +49,13 @@ func _process_yield() -> void:
 		return
 		
 	var cycle_gold: float = tenants.size() * base_yield * (prosperity / 100.0)
-	var lords_share: int = int(cycle_gold * tax_rate)
+	var lords_share: float = cycle_gold * tax_rate
 	
-	if lords_share > 0:
-		accumulated_gold += lords_share
+	accumulated_gold += lords_share
+	
+	if int(accumulated_gold) > 0:
 		gold_yield_ready.emit(int(accumulated_gold))
-		EventBus.message_logged.emit(fief_name + " generated " + str(lords_share) + " gold tax", "info")
+		EventBus.message_logged.emit(fief_name + " generated tax revenue", "info")
 
 func collect_taxes() -> void:
 	var total: int = int(accumulated_gold)
@@ -67,4 +64,4 @@ func collect_taxes() -> void:
 		accumulated_gold -= total
 		EventBus.message_logged.emit("Collected " + str(total) + " gold from " + fief_name, "info")
 	else:
-		EventBus.message_logged.emit("No taxes to collect in " + fief_name, "info")
+		EventBus.message_logged.emit("No taxes to collect (Accumulated: " + str(snappedf(accumulated_gold, 0.1)) + ")", "info")

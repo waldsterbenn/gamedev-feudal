@@ -1,50 +1,54 @@
-[gd_scene format=3 uid="uid://player"]
+[gd_scene load_steps=9 format=3 uid="uid://player"]
 
-[ext_resource type="Script" uid="uid://qxctnndncf4q" path="res://scripts/player/Player.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/player/Player.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/PeasantCharacter.tscn" id="2"]
-[ext_resource type="Script" uid="uid://b87cgffgmuavi" path="res://scripts/core/HealthComponent.gd" id="3"]
-[ext_resource type="Script" uid="uid://wcrlpcc8h37g" path="res://scripts/core/StateMachine.gd" id="4"]
-[ext_resource type="Script" uid="uid://dr4wjlsdg1n1k" path="res://addons/3d_controls_toolkit/ThirdPersonControler3D.gd" id="5"]
-[ext_resource type="Script" uid="uid://dy0svtnfp5f7y" path="res://scripts/player/states/PlayerIdleState.gd" id="6"]
-[ext_resource type="Script" uid="uid://cgrckg0cms6d3" path="res://scripts/player/states/PlayerMoveState.gd" id="7"]
-[ext_resource type="Script" uid="uid://m26mmpw8phja" path="res://scripts/player/states/PlayerJumpState.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/core/HealthComponent.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/core/StateMachine.gd" id="4"]
+[ext_resource type="Script" path="res://addons/3d_controls_toolkit/ThirdPersonControler3D.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/core/InteractorComponent.gd" id="6"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_Player"]
-height = 2.5
+height = 2.0
 
-[node name="Player" type="CharacterBody3D" unique_id=1748368200 groups=["player"]]
+[node name="Player" type="CharacterBody3D" groups=["player"]]
+collision_layer = 2
+collision_mask = 1
 script = ExtResource("1")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=194212581]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_Player")
 
-[node name="PeasantCharacter" parent="." unique_id=1906081646 instance=ExtResource("2")]
-transform = Transform3D(0.99939084, 0, 0.034899496, 0, 1, 0, -0.034899496, 0, 0.99939084, 0, 0, 0)
+[node name="PeasantCharacter" parent="." instance=ExtResource("2")]
 
-[node name="Camera3D" type="Camera3D" parent="." unique_id=69669831]
+[node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 3)
 
-[node name="ThirdPersonControler3D" type="Node3D" parent="." unique_id=1565679890 node_paths=PackedStringArray("Custom_Camera", "Geometry")]
+[node name="InteractorComponent" type="RayCast3D" parent="Camera3D"]
+target_position = Vector3(0, 0, -4)
+collision_mask = 8
+collide_with_areas = true
+collide_with_bodies = false
+script = ExtResource("6")
+
+[node name="ThirdPersonControler3D" type="Node3D" parent="." node_paths=PackedStringArray("Custom_Camera", "Geometry")]
 script = ExtResource("5")
-Custom_Camera = NodePath("../Camera3D")
 Input_Up = "move_forward"
 Input_Down = "move_back"
 Input_Left = "move_left"
 Input_Right = "move_right"
+Input_Jump = "jump"
+Input_Sprint = "sprint"
+Custom_Camera = NodePath("../Camera3D")
 Geometry = NodePath("../PeasantCharacter")
 
-[node name="HealthComponent" type="Node" parent="." unique_id=234467774]
+[node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("3")
 
-[node name="StateMachine" type="Node" parent="." unique_id=1154281885]
+[node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("initial_state")]
 script = ExtResource("4")
+initial_state = NodePath("Idle")
 
-[node name="Idle" type="Node" parent="StateMachine" unique_id=1025104009]
-script = ExtResource("6")
-
-[node name="Moving" type="Node" parent="StateMachine" unique_id=1287392559]
-script = ExtResource("7")
-
-[node name="Jumping" type="Node" parent="StateMachine" unique_id=1522648658]
-script = ExtResource("8")
+[node name="Idle" type="Node" parent="StateMachine"]
+[node name="Moving" type="Node" parent="StateMachine"]
+[node name="Jumping" type="Node" parent="StateMachine"]

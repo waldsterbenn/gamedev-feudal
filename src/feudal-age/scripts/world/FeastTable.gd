@@ -3,7 +3,7 @@ extends StaticBody3D
 
 @export var feast_cost: int = 50
 @export var opinion_boost: int = 20
-@export var effect_radius: float = 10.0
+@export var effect_radius: float = 15.0 # Increased radius
 
 @onready var interactable: InteractableComponent = $InteractableComponent
 
@@ -18,7 +18,7 @@ func _on_interacted(_interactor: Node3D) -> void:
 		GameManager.update_gold(-feast_cost)
 		_hold_feast()
 	else:
-		EventBus.message_logged.emit("Not enough gold for a feast!", "warn")
+		EventBus.message_logged.emit("Not enough gold for a feast! (Need " + str(feast_cost) + ")", "warn")
 
 func _hold_feast() -> void:
 	EventBus.message_logged.emit("You held a grand feast!", "info")
@@ -29,13 +29,18 @@ func _hold_feast() -> void:
 	shape.radius = effect_radius
 	query.shape = shape
 	query.transform = global_transform
-	query.collision_mask = 2 # Player/Enemies/NPCs layer if set correctly
+	query.collision_mask = 4 # NPC layer (Layer 3)
 	
 	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
 	var results: Array[Dictionary] = space_state.intersect_shape(query)
 	
+	var count: int = 0
 	for result in results:
 		var collider: Node = result.collider
 		if collider is NpcPeasant:
 			collider.change_opinion(opinion_boost)
 			EventBus.message_logged.emit(collider.npc_name + " enjoyed the feast", "info")
+			count += 1
+	
+	if count == 0:
+		EventBus.message_logged.emit("No peasants were nearby to enjoy the feast...", "warn")

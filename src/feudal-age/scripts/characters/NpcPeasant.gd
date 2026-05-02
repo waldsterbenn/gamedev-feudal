@@ -14,6 +14,7 @@ var current_fief: Fief = null
 @onready var visuals: PeasantCharacter = $PeasantCharacter
 @onready var interactable_component: InteractableComponent = $InteractableComponent
 @onready var health_comp: HealthComponent = $HealthComponent
+@onready var status_label: Label3D = $StatusLabel
 
 func _ready() -> void:
 	if not profile:
@@ -22,20 +23,36 @@ func _ready() -> void:
 	
 	if interactable_component:
 		interactable_component.interacted.connect(_on_interacted)
-	EventBus.message_logged.emit("NPC initialized: " + name, "info")
+	
+	if state_m:
+		state_m.state_changed.connect(_on_state_changed)
+		_on_state_changed(state_m.initial_state.name if state_m.initial_state else "None")
+	
+	EventBus.message_logged.emit("NPC initialized: " + npc_name, "info")
 
 func _physics_process(_delta: float) -> void:
+	# Base gravity is handled in states by setting velocity.y
+	# We just perform the move here
 	move_and_slide()
+
+func _on_state_changed(state_name: String) -> void:
+	if status_label:
+		var loyalty_text = ""
+		if profile:
+			loyalty_text = "\nLoyalty: " + str(profile.loyalty)
+		status_label.text = npc_name + " (" + state_name + ")" + loyalty_text
 
 func change_opinion(delta: int) -> void:
 	if profile:
 		profile.change_opinion(delta)
 		EventBus.vassal_loyalty_changed.emit(npc_name, profile.loyalty)
+		_on_state_changed(state_m.current_state.name if state_m.current_state else "None")
 
 func change_fear(delta: int) -> void:
 	if profile:
 		profile.change_fear(delta)
 		EventBus.vassal_loyalty_changed.emit(npc_name, profile.loyalty)
+		_on_state_changed(state_m.current_state.name if state_m.current_state else "None")
 
 func _on_interacted(_interactor: Node3D) -> void:
 	state_m.change_state_by_path("Interact")

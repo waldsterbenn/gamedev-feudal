@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://hud"]
+[gd_scene load_steps=4 format=3 uid="uid://hud"]
 
 [ext_resource type="Script" path="res://scripts/ui/HUD.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/ui/PetitionUI.tscn" id="2"]
 
 [sub_resource type="Theme" id="Theme_hud"]
 Label/colors/font_color = Color(1, 1, 1, 1)
@@ -22,22 +23,29 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
 theme = SubResource("Theme_hud")
 
 [node name="HealthBar" type="ProgressBar" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(250, 25)
 layout_mode = 2
-custom_minimum_size = Vector2(200, 20)
+value = 100.0
 
 [node name="GoldLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Gold: 0"
+
+[node name="PrestigeLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Prestige: 0"
 
 [node name="LoyaltyLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -45,4 +53,7 @@ text = ""
 
 [node name="MessageLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = ""
+text = "Welcome to Feudal Age"
+
+[node name="PetitionUI" parent="." instance=ExtResource("2")]
+layout_mode = 1
