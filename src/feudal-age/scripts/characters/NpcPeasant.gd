@@ -37,7 +37,7 @@ func _physics_process(_delta: float) -> void:
 
 func _on_state_changed(state_name: String) -> void:
 	if status_label:
-		var loyalty_text = ""
+		var loyalty_text: String = ""
 		if profile:
 			loyalty_text = "\nLoyalty: " + str(profile.loyalty)
 		status_label.text = npc_name + " (" + state_name + ")" + loyalty_text

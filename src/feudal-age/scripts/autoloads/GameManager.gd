@@ -14,6 +14,8 @@ var season_timer: float = 0.0
 var _active_petition_choices: Array = []
 
 func _ready() -> void:
+	current_state = GameState.PLAYING
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	EventBus.gold_change_requested.connect(update_gold)
 	EventBus.prestige_change_requested.connect(update_prestige)
 	EventBus.petition_started.connect(_on_petition_started)
@@ -34,10 +36,11 @@ func _update_season(delta: float) -> void:
 func _on_petition_started(_petitioner: Node3D, _title: String, _desc: String, choices: Array[Dictionary]) -> void:
 	_active_petition_choices = choices
 	set_pause_state(true)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _on_petition_resolved(petitioner: Node3D, choice_index: int) -> void:
 	if choice_index >= 0 and choice_index < _active_petition_choices.size():
-		var choice = _active_petition_choices[choice_index]
+		var choice: Dictionary = _active_petition_choices[choice_index]
 		
 		if choice.has("gold_delta"):
 			update_gold(choice.get("gold_delta", 0))
@@ -52,6 +55,7 @@ func _on_petition_resolved(petitioner: Node3D, choice_index: int) -> void:
 	
 	_active_petition_choices = []
 	set_pause_state(false)
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func change_scene(scene_path: String) -> void:
 	get_tree().change_scene_to_file(scene_path)
