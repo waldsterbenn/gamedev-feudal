@@ -37,7 +37,7 @@ func physics_update(delta: float) -> void:
 
 	if direction.length_squared() > 0.001:
 		npc.look_at(npc.global_position + direction, Vector3.UP)
-		var horizontal_vel = direction * work_speed
+		var horizontal_vel: Vector3 = direction * work_speed
 		npc.velocity.x = horizontal_vel.x
 		npc.velocity.z = horizontal_vel.z
 	else:

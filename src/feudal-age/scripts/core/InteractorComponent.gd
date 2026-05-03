@@ -25,7 +25,7 @@ func _check_interaction() -> void:
 			interactable = collider.find_child("InteractableComponent", true, false) as InteractableComponent
 			# If still not found, look in parent (e.g. if the RayCast hit a mesh child)
 			if not interactable:
-				var parent = collider.get_parent()
+				var parent: Node = collider.get_parent()
 				if parent:
 					interactable = parent.find_child("InteractableComponent", true, false) as InteractableComponent
 			

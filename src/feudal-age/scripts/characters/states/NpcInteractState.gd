@@ -13,7 +13,7 @@ func enter(_data: Dictionary = {}) -> void:
 			npc.visuals.play_animation("Take 001")
 		
 		# Sample Petition
-		var choices = [
+		var choices: Array[Dictionary] = [
 			{
 				"text": "Forgive taxes",
 				"gold_delta": -20,

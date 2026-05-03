@@ -9,6 +9,11 @@ extends Resource
 
 @export var traits: Array[String] = []
 
+@export_group("Dynasty")
+@export var birth_year: int = 1200
+@export var dynasty: DynastyProfile
+@export var heir: VassalProfile
+
 func change_opinion(delta: int) -> void:
 	opinion = clampi(opinion + delta, -100, 100)
 	_update_loyalty()

@@ -21,8 +21,8 @@ func _on_petition_started(petitioner: Node3D, title: String, description: String
 	
 	# Add new choices
 	for i in range(choices.size()):
-		var choice = choices[i]
-		var btn = Button.new()
+		var choice: Dictionary = choices[i]
+		var btn: Button = Button.new()
 		btn.text = choice["text"]
 		btn.pressed.connect(_on_choice_selected.bind(i))
 		choices_container.add_child(btn)

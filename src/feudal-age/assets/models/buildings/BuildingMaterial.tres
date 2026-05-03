@@ -1,6 +1,6 @@
 [gd_resource type="StandardMaterial3D" load_steps=2 format=3]
 
-[ext_resource type="Texture2D" path="res://assets/Synthy/SynthyKnightsPackage/POLYGON_Knights_Source_Files_v3/Source_Files/Textures/Texture_01.png" id="1"]
+[ext_resource type="Texture2D" path="res://assets/textures/Texture_01.png" id="1"]
 
 [resource]
 albedo_texture = ExtResource("1")
