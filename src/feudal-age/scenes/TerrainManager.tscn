@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://terrain_manager"]
+
+[ext_resource type="Script" path="res://scripts/TerrainManager.gd" id="1_script"]
+
+[node name="TerrainManager" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Terrain3D" type="Terrain3D" parent="."]
+data_directory = "res://terrain_data"
+collision_enabled = true
