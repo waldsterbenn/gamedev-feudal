@@ -51,11 +51,49 @@ var height = terrain.data.get_height(global_pos)
 # Get normal at global position
 var normal = terrain.data.get_normal(global_pos)
 
-# Runtime editing
+# Runtime surgical editing
 terrain.data.set_height(global_pos, 10.0)
 terrain.data.set_color(global_pos, Color.GREEN)
 terrain.data.force_update_maps() # Sync changes to GPU
 ```
+
+### Heightmap Generation & Import
+Terrain3D uses a region-based system (default 1024x1024). For large updates or noise-based generation, use `import_images`.
+
+#### Recommended Formats
+- **OpenEXR (.exr):** **Best Choice.** Use 16-bit or 32-bit float. Godot imports these as high-precision data, avoiding "stairs" artifacts.
+- **RAW (.r16):** 16-bit unsigned integer. Standard export from tools like WorldMachine/Gaea.
+- **Avoid PNG:** Standard 8-bit PNGs lack resolution (256 levels), causing visible stepping.
+
+#### Runtime Noise Generation
+Use `Image.FORMAT_RF` (32-bit Red channel float) for heightmaps.
+```gdscript
+func generate_noise_terrain(terrain: Terrain3D):
+    var noise := FastNoiseLite.new()
+    noise.frequency = 0.0005
+    
+    # Create a 2048x2048 image for two 1024 regions
+    var img: Image = Image.create_empty(2048, 2048, false, Image.FORMAT_RF)
+    for x in img.get_width():
+        for y in img.get_height():
+            var val = noise.get_noise_2d(x, y)
+            img.set_pixel(x, y, Color(val, 0, 0, 1))
+            
+    # Import into storage
+    # [height_map, control_map, color_map]
+    # offset: where to place the top-left corner
+    # scale: vertical multiplier for the height data
+    terrain.data.import_images([img, null, null], Vector3(-1024, 0, -1024), 0.0, 150.0)
+```
+
+### Tips & Best Practices
+- **Region Stitching:** Terrain3D uses a 1025x1025 internal mesh for 1024x1024 regions to ensure perfect stitching. When importing, ensure your data covers the full range.
+- **Performance:** Use `import_images` for bulk changes (e.g., initial generation or massive terraforming). Use `set_height` for continuous local edits (e.g., character footsteps, small craters).
+- **Collision:** For runtime generated terrain, ensure collision is updated. In Godot 4, you may need to toggle `collision_enabled` or use `terrain.collision.mode = Terrain3DCollision.DYNAMIC_EDITOR` for immediate updates.
+- **Texture Packing:** 
+    - **Albedo + Height:** Height data for textures should be in the Alpha channel of the Albedo map.
+    - **Normal + Roughness:** Roughness should be in the Alpha channel of the Normal map.
+- **Precision:** Always use 16-bit or 32-bit floats for heightmaps to maintain smooth slopes.
 
 ### Advanced: Runtime Navigation
 Terrain3D provides specialized functions to generate geometry for navigation baking.
