@@ -1,5 +1,7 @@
 @tool
 extends Node
+
+## LEGACY: This script is for HTerrain which is being replaced by Terrain3D.
 ## Autoload that registers HTerrain resource format loaders at runtime.
 ## This is required for .hterrain files to load properly outside the editor.
 

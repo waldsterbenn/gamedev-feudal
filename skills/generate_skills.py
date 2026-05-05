@@ -18,7 +18,7 @@ from pathlib import Path
 import sys
 
 # Paths
-PROJECT_ROOT = Path(__file__).parent.parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent
 RESEARCH_FILE = PROJECT_ROOT / "docs" / "research" / "plugin-deep-research.md"
 SKILLS_DIR = PROJECT_ROOT / "docs" / "skills"
 
@@ -33,6 +33,7 @@ PLUGINS = [
     ("Godot Steering AI Framework", "godot-steering-ai"),
     ("Godot RTS Camera & Selection", "rts-camera-selection"),
     ("Beehave (Behavior Trees)", "beehave-behavior-trees"),
+    ("Terrain3D", "terrain3d"),
 ]
 
 def clean_content(text: str) -> str:
@@ -125,11 +126,11 @@ def parse_research_file() -> tuple[list[tuple[str, str, str, dict]], str]:
     plugin1_start = re.search(r'## 1\. 3D Controls Toolkit', section0).start()
     plugin1_content = section0[plugin1_start:]
     
-    # Plugins 2–9 are in sections[1]–sections[8]
-    plugin_contents = [plugin1_content] + sections[1:9]
+    # All plugins are in sections[0] (partially) and sections[1:]
+    plugin_contents = [plugin1_content] + sections[1:len(PLUGINS)]
     
-    # Research gaps section
-    gaps_section = sections[9] if len(sections) > 9 else ""
+    # Research gaps section is the last section
+    gaps_section = sections[len(PLUGINS)] if len(sections) > len(PLUGINS) else ""
     
     result = []
     for (title, skill_name), raw_content in zip(PLUGINS, plugin_contents):

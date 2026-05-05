@@ -10,7 +10,8 @@ Each skill provides detailed, self‑contained knowledge about a specific plugin
 |-------|-------------|---------|
 | [3d‑controls‑toolkit](3d-controls-toolkit/SKILL.md) | 3D camera/controller plugin with four control schemes (first‑person, third‑person, side‑scrolling, top‑down) | Unknown |
 | [humanizer](humanizer/SKILL.md) | 3D character creation system based on MakeHuman, with procedural generation, rigging, and animation retargeting | Likely CC0 (assets) |
-| [hterrain](hterrain/SKILL.md) | Heightmap‑based terrain system with sculpting, texture painting, LOD, and detail layers | MIT (assumed) |
+| [terrain3d](terrain3d/SKILL.md) | High-performance, GDExtension-based terrain system with GPU-driven mesh processing | MIT |
+| [hterrain](hterrain/SKILL.md) | **LEGACY:** Heightmap‑based terrain system (Project migrated to Terrain3D) | MIT (assumed) |
 | [ambientcg‑polyhaven](ambientcg-polyhaven/SKILL.md) | CC0‑licensed PBR material, HDRI, and 3D‑model libraries | CC0 |
 | [navigation‑region3d](navigation-region3d/SKILL.md) | Godot’s built‑in 3D navigation system (navmesh baking, pathfinding, obstacle avoidance) | Built‑in (MIT) |
 | [godot‑steering‑ai](godot-steering-ai/SKILL.md) | Steering‑behavior framework (seek, flee, flock, etc.) – **note:** Godot 3.x, outdated | MIT (assumed) |

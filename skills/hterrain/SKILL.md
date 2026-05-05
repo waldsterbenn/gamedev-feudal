@@ -16,7 +16,10 @@ tags:
 - feudal-game
 ---
 
-# HTerrain (Heightmap Terrain Plugin)
+# HTerrain (Heightmap Terrain Plugin) [LEGACY]
+
+> **IMPORTANT:** This plugin is considered LEGACY for this project. We have migrated to **Terrain3D**. Use this documentation for reference when working with older slices or migrating existing terrain data.
+
 **Repository:** https://github.com/Zylann/godot_heightmap_plugin
 **Documentation:** https://hterrain-plugin.readthedocs.io/
 **Maintainer:** Zylann

@@ -59,7 +59,7 @@ src/feudal-age/
 │   │   ├── music/
 │   │   └── sfx/
 │   └── fonts/
-└── addons/                            # Editor plugins (Beehave, HTerrain, etc.)
+└── addons/                            # Editor plugins (Beehave, Terrain3D, etc.)
 ```
 
 **Rules enforced**:
