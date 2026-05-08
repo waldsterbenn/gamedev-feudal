@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://main"]
 
-[ext_resource type="PackedScene" path="res://scenes/TerrainManager.tscn" id="1_terrain_manager"]
+[ext_resource type="PackedScene" uid="uid://dp33gcy2sd5q" path="res://scenes/TerrainManager.tscn" id="1_terrain_manager"]
 
 [node name="Main" type="Node3D" unique_id=1895880821]
 

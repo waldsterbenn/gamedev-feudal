@@ -133,54 +133,69 @@ func _calc_slope(height_img: Image, x: int, y: int, vertex_spacing: float) -> fl
 
 ## Internal: Determine texture assignments and blending based on height and slope.
 func _encode_control_pixel(height: float, slope_deg: float, sorted_zones: Array[HeightZone]) -> int:
-	# Check slope first
+	# 1. Slope Check (Autoshader wins)
 	if slope_deg >= slope_threshold:
 		var base: int = _get_nearest_zone_id(height, sorted_zones)
 		return Terrain3DUtil.enc_base(base) \
 			| Terrain3DUtil.enc_overlay(base) \
 			| Terrain3DUtil.enc_auto(true)
 	
-	# Height-based blending
+	# 2. Height-based blending
 	var zone_info: Dictionary = _find_zones_and_blend(height, sorted_zones)
 	var zone_a: HeightZone = zone_info["zone_a"]
 	var zone_b: HeightZone = zone_info["zone_b"]
 	var blend_t: float = zone_info["blend_t"]
 	
-	var blend_byte: int = int(blend_t * 255)
-	var overlay_id: int = zone_b.texture_id if zone_b else zone_a.texture_id
+	var base_id: int = zone_a.texture_id
+	var overlay_id: int = zone_b.texture_id if zone_b else base_id
+	var blend_byte: int = int(blend_t * 255.0)
 	
-	return Terrain3DUtil.enc_base(zone_a.texture_id) \
+	return Terrain3DUtil.enc_base(base_id) \
 		| Terrain3DUtil.enc_overlay(overlay_id) \
 		| Terrain3DUtil.enc_blend(blend_byte)
 
 
 ## Internal: Find the two zones for blending and the blend factor.
+## Prioritizes natural overlaps between zones.
 func _find_zones_and_blend(height: float, sorted_zones: Array[HeightZone]) -> Dictionary:
-	# Default to the first zone if height is below everything
-	if height <= sorted_zones[0].max_height - (blend_width * 0.5):
+	# Check if we are below the first zone's range
+	if height < sorted_zones[0].min_height:
 		return {"zone_a": sorted_zones[0], "zone_b": null, "blend_t": 0.0}
-	
+
 	for i in range(sorted_zones.size() - 1):
 		var zone_a: HeightZone = sorted_zones[i]
 		var zone_b: HeightZone = sorted_zones[i+1]
-		var boundary: float = zone_a.max_height # Transition point
 		
-		var lower_edge: float = boundary - blend_width * 0.5
-		var upper_edge: float = boundary + blend_width * 0.5
+		# Define the transition window
+		var t_start: float
+		var t_end: float
 		
-		if height < lower_edge:
-			# Fully in zone_a (if it was the first iteration, handled above)
-			# or we haven't reached the transition yet.
-			continue
+		if zone_b.min_height < zone_a.max_height:
+			# Overlap: use the overlap itself as the blend region
+			t_start = zone_b.min_height
+			t_end = zone_a.max_height
+		else:
+			# Gap or Abutting: use blend_width around the midpoint
+			var midpoint: float = (zone_a.max_height + zone_b.min_height) * 0.5
+			t_start = midpoint - blend_width * 0.5
+			t_end = midpoint + blend_width * 0.5
 			
-		if height <= upper_edge:
-			# In the blend region
-			var t: float = (height - lower_edge) / blend_width
+		# Guard against division by zero if t_start == t_end
+		if is_equal_approx(t_start, t_end):
+			t_end += 0.001
+			
+		if height < t_start:
+			# If we are below the next transition, and we are above the first zone's min,
+			# then we are strictly in zone_a (or a previous transition already handled).
+			# Since we iterate upwards, the first zone_a that satisfies height < t_start wins.
+			return {"zone_a": zone_a, "zone_b": null, "blend_t": 0.0}
+			
+		if height <= t_end:
+			# In transition!
+			var t: float = (height - t_start) / (t_end - t_start)
 			return {"zone_a": zone_a, "zone_b": zone_b, "blend_t": clamp(t, 0.0, 1.0)}
-			
-		# If height > upper_edge, we check the next pair
-		
-	# Height is fully inside or above the last zone
+
+	# Above all transitions
 	return {"zone_a": sorted_zones.back(), "zone_b": null, "blend_t": 0.0}
 
 
