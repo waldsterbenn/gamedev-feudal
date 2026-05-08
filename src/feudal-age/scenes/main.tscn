@@ -1,10 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://main"]
+[gd_scene format=3 uid="uid://main"]
 
-[ext_resource type="PackedScene" uid="uid://terrain_manager" path="res://scenes/TerrainManager.tscn" id="1_terrain_manager"]
+[ext_resource type="PackedScene" path="res://scenes/TerrainManager.tscn" id="1_terrain_manager"]
 
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node3D" unique_id=1895880821]
 
-[node name="TerrainManager" parent="." instance=ExtResource("1_terrain_manager")]
+[node name="TerrainManager" parent="." unique_id=1546164046 instance=ExtResource("1_terrain_manager")]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1936862128]
 shadow_enabled = true
@@ -13,6 +13,7 @@ directional_shadow_mode = 0
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1489681185]
 
 [node name="Camera" type="Camera3D" parent="." unique_id=1915464811]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 144.26428, 0)
 fov = 60.0
 far = 1000.0
 

@@ -43,6 +43,17 @@ A high-performance, GDExtension-based terrain system designed for large-scale en
 - **`Terrain3DMeshAsset`**: Foliage mesh definition for the instancer.
 - **`Terrain3DStorage`**: Container for all terrain data (Height, Control, Color).
 
+### Asset Management & .tres Files (Project Standard)
+All Terrain3D resources must be consolidated in `res://assets/terrain3d/`.
+- **Assets Resource:** `res://assets/terrain3d/terrain_assets.tres`
+- **Material Resource:** `res://assets/terrain3d/terrain_material.tres`
+- **Data Directory:** `res://assets/terrain3d/data/`
+- **Textures Hub:** `res://assets/terrain3d/textures/`
+
+- **No Auto-Scanning:** Terrain3D does not automatically find assets in your project. You must explicitly add them to the Asset Dock or assign them via code.
+- **Standalone Resources:** It is highly recommended to save your resources as standalone `.tres` files in the hub to avoid scene file bloat.
+- **Binary Bloat Warning:** If a scene file becomes extremely large, it often indicates that texture files have become unlinked and are being serialized as text. Ensure all `Terrain3DTextureAsset` entries point to valid files on disk.
+
 ### Programmatic Usage (GDScript)
 ```gdscript
 # Get height at global position

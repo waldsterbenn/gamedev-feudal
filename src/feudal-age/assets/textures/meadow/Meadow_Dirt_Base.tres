@@ -1,0 +1,11 @@
+[gd_resource type="Terrain3DTextureAsset" load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/meadow/Dirt_Texture_01.png" id="1_tex"]
+[ext_resource type="Texture2D" path="res://assets/textures/meadow/Dirt_Normals_01.png" id="2_norm"]
+
+[resource]
+name = "Meadow Dirt Base"
+albedo_texture = ExtResource("1_tex")
+normal_texture = ExtResource("2_norm")
+uv_scale = 0.1
+detiling = 0.2
