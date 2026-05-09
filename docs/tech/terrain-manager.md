@@ -98,18 +98,113 @@ The `TextureMapGenerator` is a modular child node responsible for automatically 
 ### Parameters
 
 -   **Height Zones:** An array of `HeightZone` resources. Each zone defines a texture to apply within a specific elevation range.
-    -   **Label:** A descriptive name for the zone (e.g., "Deep Water", "Meadow").
-    -   **Texture ID:** The slot index (0–31) in the `Terrain3DAssets` library.
-    -   **Min Height / Max Height:** The elevation range in meters where this texture is applied.
+```gdscript
+class_name HeightZone
+extends Resource
+
+@export var label: String = "Zone"
+@export var texture_id: int = 0        # slot index in Terrain3DAssets (0–31)
+@export var min_height: float = 0.0
+@export var max_height: float = 50.0
+```
 -   **Blend Width:** The width of the cross-fade region (in meters) between adjacent height zones. Transitions are centered on the zone boundaries.
 -   **Slope Threshold:** The angle (in degrees from vertical) above which the terrain is automatically marked for the **Autoshader**. This allows for steep cliffs to use a different shading path (e.g., rock faces).
 
+### Control Map Encoding
+
+Each pixel in the Terrain3D control map is a packed `uint32` stored as `FORMAT_RF`. Relevant fields for this feature:
+
+| Field | Bits | Set by this script |
+|---|---|---|
+| Base texture ID | 5 | Yes — primary zone texture |
+| Overlay texture ID | 5 | Yes — adjacent zone texture for blending |
+| Texture blend | 8 | Yes — 0 = 100 % base, 255 = 100 % overlay |
+| Autoshader flag | 1 | Yes — set on steep slopes |
+| UV angle/scale | 7 | Left at current value (not overwritten) |
+| Hole / Nav flags | 2 | Overwritten (cleared to 0) |
+
+`Terrain3DUtil` provides `enc_*` helpers (GDScript-accessible) and `as_float` / `as_uint` converters to build the packed value without manual bit arithmetic.
+
 ### Technical Implementation
 
--   **Algorithm:** Iterates through all active terrain regions. For each vertex, it reads the height, calculates the local slope (central difference), and determines the appropriate texture indices and blend factor.
--   **Data Format:** Writes directly to the `Terrain3D` **control map** using packed `uint32` values. It utilizes `Terrain3DUtil` for bitwise encoding of base textures, overlay textures, and blend weights.
+-   **Algorithm:** Iterates through all active terrain regions. For each vertex, it reads the height and calculates the local slope using a **central difference** algorithm:
+    ```gdscript
+    # Slope calculation (simplified)
+    var h_l = height_img.get_pixel(x-1, y).r
+    var h_r = height_img.get_pixel(x+1, y).r
+    var h_d = height_img.get_pixel(x, y-1).r
+    var h_u = height_img.get_pixel(x, y+1).r
+    var dx = (h_r - h_l) / (2.0 * vertex_spacing)
+    var dy = (h_u - h_d) / (2.0 * vertex_spacing)
+    var normal = Vector3(-dx, 1.0, -dy).normalized()
+    var slope_deg = rad_to_deg(acos(normal.dot(Vector3.UP)))
+    ```
+-   **Data Format:** Writes directly to the `Terrain3D` **control map** using packed `uint32` values. It utilizes `Terrain3DUtil` for bitwise encoding:
+    ```gdscript
+    # Bit encoding example
+    var bits: int = Terrain3DUtil.enc_base(base_id) \
+                  | Terrain3DUtil.enc_overlay(overlay_id) \
+                  | Terrain3DUtil.enc_blend(blend_0_255)
+    ```
 -   **Performance:** Uses direct `Image` pixel access for bulk generation, significantly faster than point-by-point API calls.
 -   **API:** Provides `generate_at(world_pos)` for targeted updates of a single terrain region.
+
+## Terrain3D Technical Reference
+
+This section provides a quick reference for the low-level `Terrain3D` API calls used by the generators.
+
+### Terrain3DData (`terrain.data`)
+
+| Call | Returns | Purpose |
+|---|---|---|
+| `get_regions_active()` | `Array[Terrain3DRegion]` | Iterate all active (non-deleted) regions |
+| `update_maps(TYPE, bool)` | `void` | Rebuild GPU texture arrays; `false` = only edited regions |
+| `get_height(pos)` | `float` | Returns world height; `NAN` outside regions |
+| `get_normal(pos)` | `Vector3` | Returns interpolated terrain normal |
+
+### Terrain3DRegion
+
+| Call | Returns | Purpose |
+|---|---|---|
+| `get_map(TYPE)` | `Image` | Direct reference to the map image (HEIGHT, CONTROL, COLOR) |
+| `region_size` | `int` | Pixel dimensions of the region (e.g., 1024) |
+| `vertex_spacing` | `float` | World units per pixel |
+| `set_modified(true)` | `void` | Marks region for disk save |
+| `set_edited(true)` | `void` | Flags region for selective `update_maps` rebuild |
+
+### Terrain3DUtil (Static Helpers)
+
+**Type Conversion (Memory Reinterpretation):**
+- `as_uint(float)`: Reinterpret float (from `image.get_pixel().r`) as `uint32`.
+- `as_float(int)`: Reinterpret `uint32` as float (to store in `Color.r`).
+
+**Bit Encoding (`enc_*`):**
+Used to build the packed `uint32` control pixel. OR the results together.
+- `enc_base(id)` / `enc_overlay(id)` (0–31)
+- `enc_blend(0-255)`
+- `enc_auto(bool)` / `enc_hole(bool)` / `enc_nav(bool)`
+
+### Concrete Implementation Pattern
+
+The most performant way to batch-update the terrain is via direct Image access:
+
+```gdscript
+for region in terrain.data.get_regions_active():
+    var ctrl_img: Image = region.get_map(Terrain3DRegion.TYPE_CONTROL)
+    var h_img:    Image = region.get_map(Terrain3DRegion.TYPE_HEIGHT)
+    
+    for x in region.region_size:
+        for y in region.region_size:
+            var h: float = h_img.get_pixel(x, y).r
+            # ... logic to determine base, overlay, blend ...
+            var bits: int = Terrain3DUtil.enc_base(b) | Terrain3DUtil.enc_blend(bl)
+            ctrl_img.set_pixel(x, y, Color(Terrain3DUtil.as_float(bits), 0, 0, 1))
+
+    region.set_modified(true)
+    region.set_edited(true)
+
+terrain.data.update_maps(Terrain3DRegion.TYPE_CONTROL, false)
+```
 
 ### How to Use
 
@@ -221,5 +316,6 @@ This plan outlines the phased approach for implementing the terrain system. Each
     - Use Voronoi diagrams to partition terrain regions.
     - Designate regions (e.g., forests) and trigger vegetation generation within them.
     - Inspector controls for region counts and forest density.
- vegetation generation within them.
-    - Inspector controls for region counts and forest density.
+### Phase 9: terrain-manager script revisit
+- The the length and width of the terrain chunk must be exported to the inspector.
+- Terrain3D has a setting for rendering of undefined terrain chunks, this setting must also be exported (via the terrain-manager script).

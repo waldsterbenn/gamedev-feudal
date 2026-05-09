@@ -25,6 +25,7 @@ All Terrain3D-related files must be consolidated within the `assets/terrain3d/` 
 
 | File Type | Recommended Path | Purpose |
 | :--- | :--- | :--- |
+| **Manager Scene** | `res://scenes/TerrainManager.tscn` | Central architectural hub for terrain ops |
 | **Assets Resource** | `res://assets/terrain3d/terrain_assets.tres` | Stores texture and mesh library slots |
 | **Material Resource** | `res://assets/terrain3d/terrain_material.tres` | Manages shader parameters and debug views |
 | **Packed Textures** | `res://assets/terrain3d/textures/` | RGBA packed PNGs (e.g., `grass_alb_ht.png`) |
@@ -69,6 +70,13 @@ Terrain3D separates visual representation from data storage through several prim
 - **`Terrain3DAssets`**: A library resource (container) for **Textures** and **Meshes**.
 - **`Terrain3DTextureAsset`**: Individual texture definition.
 - **`Terrain3DMeshAsset`**: Foliage mesh definition for the instancer.
+
+### TerrainManager Architecture
+The project uses a `TerrainManager` node to encapsulate terrain logic:
+- **`TerrainManager`**: Root Node3D; manages high-level lifecycle.
+- **`Terrain3D`**: Primary plugin node.
+- **`HeightMapGenerator`**: Procedural sculpting via noise.
+- **`TextureMapGenerator`**: Elevation/slope-based auto-painting.
 
 ## 5. Map & Storage System
 
@@ -140,6 +148,10 @@ All textures within an array must match perfectly:
 | `get_min_max(image)` | `Vector2` | Min and max R channel values; for height normalization. |
 | `as_uint(float)` | `int` | Reinterpret `FORMAT_RF` pixel (float) as `uint32`. |
 | `as_float(int)` | `float` | Reinterpret `uint32` as float for storage. |
+| `enc_base(id)` | `int` | Bitwise encode base texture ID (0–31). |
+| `enc_overlay(id)` | `int` | Bitwise encode overlay texture ID (0–31). |
+| `enc_blend(val)` | `int` | Bitwise encode blend value (0–255). |
+| `enc_auto(bool)` | `int` | Bitwise encode autoshader flag. |
 
 **`pack_image` parameter detail:**
 - `inv_g`: `true` to convert DirectX normals -> OpenGL.
@@ -192,3 +204,56 @@ if not region:
 - **Unused Slots:** Empty texture slots consume VRAM (~1k each). Remove if not needed.
 - **Normal Map Setting:** Always set `Normal Map` to **Disabled** in Godot's Import tab for terrain textures.
 - **Sentinel Constants:** Do NOT assume constants like `INVALID_LOCATION` exist in `Terrain3DData`. Always check `get_region()` results for `null`.
+
+### Direct Image Access (Bulk Updates)
+For procedural generation or bulk painting, avoid point-by-point API calls. Instead, use direct Image pixel access:
+
+```gdscript
+for region in terrain.data.get_regions_active():
+    var ctrl_img: Image = region.get_map(Terrain3DRegion.TYPE_CONTROL)
+    var h_img:    Image = region.get_map(Terrain3DRegion.TYPE_HEIGHT)
+    
+    for x in region.region_size:
+        for y in region.region_size:
+            var h: float = h_img.get_pixel(x, y).r
+            # ... compute logic ...
+            var bits: int = Terrain3DUtil.enc_base(id) | Terrain3DUtil.enc_auto(true)
+            ctrl_img.set_pixel(x, y, Color(Terrain3DUtil.as_float(bits), 0, 0, 1))
+
+    region.set_modified(true)
+    region.set_edited(true)
+
+terrain.data.update_maps(Terrain3DRegion.TYPE_CONTROL, false)
+```
+
+### Runtime Noise Generation
+Use `Image.FORMAT_RF` (32-bit Red channel float) for heightmaps.
+```gdscript
+func generate_noise_terrain(terrain: Terrain3D):
+    var noise := FastNoiseLite.new()
+    noise.frequency = 0.0005
+    
+    # Create a 2048x2048 image for two 1024 regions
+    var img: Image = Image.create_empty(2048, 2048, false, Image.FORMAT_RF)
+    for x in img.get_width():
+        for y in img.get_height():
+            var val = noise.get_noise_2d(x, y)
+            img.set_pixel(x, y, Color(val, 0, 0, 1))
+            
+    # Import into storage
+    # [height_map, control_map, color_map]
+    # offset: where to place the top-left corner
+    # scale: vertical multiplier for the height data
+    terrain.data.import_images([img, null, null], Vector3(-1024, 0, -1024), 0.0, 150.0)
+```
+
+### Runtime Navigation
+Terrain3D provides specialized functions to generate geometry for navigation baking.
+```gdscript
+func bake_nav_mesh(nav_mesh: NavigationMesh, terrain: Terrain3D, aabb: AABB):
+    var source_geometry = NavigationMeshSourceGeometryData3D.new()
+    # Generate faces from terrain for the given AABB
+    var faces: PackedVector3Array = terrain.generate_nav_mesh_source_geometry(aabb, false)
+    source_geometry.add_faces(faces, Transform3D.IDENTITY)
+    NavigationServer3D.bake_from_source_geometry_data(nav_mesh, source_geometry)
+```
