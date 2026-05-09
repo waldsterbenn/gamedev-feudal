@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/ManorHouse.tscn" id="10"]
 [ext_resource type="PackedScene" path="res://scenes/world/FeastTable.tscn" id="11"]
 [ext_resource type="PackedScene" uid="uid://hud" path="res://scenes/ui/HUD.tscn" id="12"]
-[ext_resource type="Terrain3DAssets" uid="uid://dal3jhw6241qg" path="res://assets/terrain3d/terrain_assets.tres" id="13"]
+[ext_resource type="Terrain3DAssets" uid="uid://terrain_assets_custom" path="res://assets/terrain3d/terrain_assets.tres" id="13"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_world"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)

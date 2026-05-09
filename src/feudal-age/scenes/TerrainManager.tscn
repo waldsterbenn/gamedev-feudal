@@ -3,52 +3,9 @@
 [ext_resource type="Script" uid="uid://c54fwpre2y6ts" path="res://scripts/TerrainManager.gd" id="1_script"]
 [ext_resource type="Script" uid="uid://cxldjiskk4kh1" path="res://scripts/HeightMapGenerator.gd" id="2_hgen"]
 [ext_resource type="Script" uid="uid://b4melafwv451c" path="res://scripts/TextureMapGenerator.gd" id="3_tgen"]
-[ext_resource type="Terrain3DAssets" uid="uid://dal3jhw6241qg" path="res://assets/terrain3d/terrain_assets.tres" id="4_assets"]
+[ext_resource type="Terrain3DAssets" uid="uid://cou8bxbpcx88y" path="res://assets/terrain3d/terrain_assets.tres" id="4_assets"]
 [ext_resource type="Script" uid="uid://cbu47s3yidnao" path="res://scripts/HeightZone.gd" id="5_l44wq"]
-
-[sub_resource type="Gradient" id="Gradient_1jfd1"]
-offsets = PackedFloat32Array(0.2, 1)
-colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_3innl"]
-noise_type = 2
-frequency = 0.03
-cellular_jitter = 3.0
-cellular_return_type = 0
-domain_warp_enabled = true
-domain_warp_type = 1
-domain_warp_amplitude = 50.0
-domain_warp_fractal_type = 2
-domain_warp_fractal_lacunarity = 1.5
-domain_warp_fractal_gain = 1.0
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_eemvr"]
-noise = SubResource("FastNoiseLite_3innl")
-color_ramp = SubResource("Gradient_1jfd1")
-seamless = true
-
-[sub_resource type="Terrain3DMaterial" id="Terrain3DMaterial_l44wq"]
-_shader_parameters = {
-&"bias_distance": 512.0,
-&"blend_sharpness": 0.87,
-&"depth_blur": 0.0,
-&"enable_macro_variation": true,
-&"enable_projection": true,
-&"height_blending": true,
-&"macro_variation1": Color(1, 1, 1, 1),
-&"macro_variation2": Color(1, 1, 1, 1),
-&"macro_variation_slope": 0.333,
-&"mipmap_bias": 1.0,
-&"noise1_angle": 0.0,
-&"noise1_offset": Vector2(0.5, 0.5),
-&"noise1_scale": 0.04,
-&"noise2_scale": 0.076,
-&"noise3_scale": 0.225,
-&"noise_texture": SubResource("NoiseTexture2D_eemvr"),
-&"projection_angular_division": 2.0,
-&"projection_threshold": 0.8,
-&"world_space_normal_blend": true
-}
+[ext_resource type="Terrain3DMaterial" uid="uid://b8y4q4w2x8k6j" path="res://assets/terrain3d/terrain_material.tres" id="6_material"]
 
 [sub_resource type="Resource" id="Resource_83mhj"]
 script = ExtResource("5_l44wq")
@@ -60,30 +17,30 @@ metadata/_custom_type_script = "uid://cbu47s3yidnao"
 [sub_resource type="Resource" id="Resource_tds1e"]
 script = ExtResource("5_l44wq")
 label = "Meadow Grass"
-min_height = 60.0
-max_height = 120.0
+min_height = 56.0
+max_height = 70.0
 
 [sub_resource type="Resource" id="Resource_w2dpo"]
 script = ExtResource("5_l44wq")
 label = "Medow clovers"
 texture_id = 1
-min_height = 50.0
-max_height = 80.0
+min_height = 60.0
+max_height = 95.0
 metadata/_custom_type_script = "uid://cbu47s3yidnao"
 
 [sub_resource type="Resource" id="Resource_l44wq"]
 script = ExtResource("5_l44wq")
 label = "Rocky Moss"
 texture_id = 5
-min_height = 100.0
-max_height = 120.0
+min_height = 75.0
+max_height = 110.0
 metadata/_custom_type_script = "uid://cbu47s3yidnao"
 
 [sub_resource type="Resource" id="Resource_wpufh"]
 script = ExtResource("5_l44wq")
 label = "Rocks"
 texture_id = 4
-min_height = 110.0
+min_height = 90.0
 max_height = 200.0
 metadata/_custom_type_script = "uid://cbu47s3yidnao"
 
@@ -92,7 +49,7 @@ script = ExtResource("1_script")
 
 [node name="Terrain3D" type="Terrain3D" parent="." unique_id=147221544]
 data_directory = "res://assets/terrain3d/data"
-material = SubResource("Terrain3DMaterial_l44wq")
+material = ExtResource("6_material")
 assets = ExtResource("4_assets")
 vertex_spacing = 0.25
 top_level = true
@@ -105,3 +62,5 @@ script = ExtResource("2_hgen")
 script = ExtResource("3_tgen")
 terrain = NodePath("../Terrain3D")
 height_zones = Array[ExtResource("5_l44wq")]([SubResource("Resource_83mhj"), SubResource("Resource_tds1e"), SubResource("Resource_w2dpo"), SubResource("Resource_l44wq"), SubResource("Resource_wpufh")])
+use_autoshader_for_slopes = null
+slope_texture_id = null

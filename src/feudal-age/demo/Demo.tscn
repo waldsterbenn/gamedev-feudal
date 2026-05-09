@@ -1,11 +1,12 @@
-[gd_scene load_steps=12 format=3 uid="uid://chol2xlfbq7cu"]
+[gd_scene load_steps=13 format=3 uid="uid://chol2xlfbq7cu"]
 
-[ext_resource type="Script" path="res://demo/src/DemoScene.gd" id="1_k7qca"]
+[ext_resource type="Script" uid="uid://chstoagn42gbr" path="res://demo/src/DemoScene.gd" id="1_k7qca"]
 [ext_resource type="PackedScene" uid="uid://d2jihfohphuue" path="res://demo/components/UI.tscn" id="2_nqak5"]
 [ext_resource type="PackedScene" uid="uid://dwnhqfjq7v1pq" path="res://demo/components/Borders.tscn" id="3_cw38j"]
 [ext_resource type="PackedScene" uid="uid://domhm87hbhbg1" path="res://demo/components/Player.tscn" id="3_ht63y"]
 [ext_resource type="PackedScene" uid="uid://djhl3foqkj4e2" path="res://demo/components/Tunnel.tscn" id="3_kdh0b"]
 [ext_resource type="PackedScene" uid="uid://bb2lp50sjndus" path="res://demo/components/Environment.tscn" id="3_yqldq"]
+[ext_resource type="PackedScene" uid="uid://d3sr0a7dxfkr8" path="res://addons/terrain_3d/extras/particle_example/Terrain3DParticles.tscn" id="8_fwrtk"]
 [ext_resource type="Terrain3DAssets" uid="uid://dal3jhw6241qg" path="res://demo/data/assets.tres" id="8_g2of2"]
 
 [sub_resource type="Gradient" id="Gradient_vr1m7"]
@@ -33,11 +34,11 @@ noise = SubResource("FastNoiseLite_d8lcj")
 _shader_parameters = {
 "_mouse_layer": 2147483648,
 "auto_base_texture": 0,
-"auto_height_reduction": 0.0,
+"auto_height_reduction": 0.05,
 "auto_overlay_texture": 1,
-"auto_slope": 1.0,
+"auto_slope": 0.45,
 "bias_distance": 512.0,
-"blend_sharpness": 0.87,
+"blend_sharpness": 0.5,
 "depth_blur": 0.0,
 "dual_scale_far": 170.0,
 "dual_scale_near": 100.0,
@@ -45,7 +46,7 @@ _shader_parameters = {
 "dual_scale_texture": 0,
 "enable_macro_variation": true,
 "enable_projection": true,
-"height_blending": true,
+&"flat_terrain_normals": false,
 "macro_variation1": Color(0.855, 0.8625, 0.9, 1),
 "macro_variation2": Color(0.9, 0.885, 0.81, 1),
 "macro_variation_slope": 0.333,
@@ -54,10 +55,8 @@ _shader_parameters = {
 "noise1_offset": Vector2(0.5, 0.5),
 "noise1_scale": 0.04,
 "noise2_scale": 0.076,
-"noise3_scale": 0.225,
 "noise_texture": SubResource("NoiseTexture2D_bov7h"),
-"projection_angular_division": 1.0,
-"projection_threshold": 0.8,
+"projection_threshold": 0.87,
 "tri_scale_reduction": 0.3,
 "world_noise_fragment_normals": false,
 "world_noise_height": 34.0,
@@ -66,8 +65,7 @@ _shader_parameters = {
 "world_noise_min_octaves": 2,
 "world_noise_offset": Vector3(2.17, -1.225, 1.9),
 "world_noise_region_blend": 0.33,
-"world_noise_scale": 9.85,
-"world_space_normal_blend": true
+"world_noise_scale": 9.85
 }
 world_background = 2
 auto_shader = true
@@ -96,3 +94,6 @@ assets = ExtResource("8_g2of2")
 collision_mask = 3
 top_level = true
 metadata/_edit_lock_ = true
+
+[node name="Terrain3DParticles" parent="Terrain3D" node_paths=PackedStringArray("terrain") instance=ExtResource("8_fwrtk")]
+terrain = NodePath("..")
