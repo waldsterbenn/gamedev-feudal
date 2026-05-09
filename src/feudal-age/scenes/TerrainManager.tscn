@@ -54,36 +54,36 @@ _shader_parameters = {
 script = ExtResource("5_l44wq")
 label = "Medow Flowers"
 texture_id = 2
-max_height = 80.0
-metadata/_custom_type_script = "uid://cbu47s3yidnao"
-
-[sub_resource type="Resource" id="Resource_w2dpo"]
-script = ExtResource("5_l44wq")
-label = "Medow clovers"
-texture_id = 1
-min_height = 60.0
-max_height = 100.0
+max_height = 60.0
 metadata/_custom_type_script = "uid://cbu47s3yidnao"
 
 [sub_resource type="Resource" id="Resource_tds1e"]
 script = ExtResource("5_l44wq")
 label = "Meadow Grass"
-min_height = 80.0
-max_height = 1200.0
+min_height = 60.0
+max_height = 120.0
+
+[sub_resource type="Resource" id="Resource_w2dpo"]
+script = ExtResource("5_l44wq")
+label = "Medow clovers"
+texture_id = 1
+min_height = 50.0
+max_height = 80.0
+metadata/_custom_type_script = "uid://cbu47s3yidnao"
 
 [sub_resource type="Resource" id="Resource_l44wq"]
 script = ExtResource("5_l44wq")
 label = "Rocky Moss"
 texture_id = 5
 min_height = 100.0
-max_height = 140.0
+max_height = 120.0
 metadata/_custom_type_script = "uid://cbu47s3yidnao"
 
 [sub_resource type="Resource" id="Resource_wpufh"]
 script = ExtResource("5_l44wq")
 label = "Rocks"
 texture_id = 4
-min_height = 120.0
+min_height = 110.0
 max_height = 200.0
 metadata/_custom_type_script = "uid://cbu47s3yidnao"
 
@@ -104,4 +104,4 @@ script = ExtResource("2_hgen")
 [node name="TextureMapGenerator" type="Node" parent="." unique_id=1525087108 node_paths=PackedStringArray("terrain")]
 script = ExtResource("3_tgen")
 terrain = NodePath("../Terrain3D")
-height_zones = Array[ExtResource("5_l44wq")]([SubResource("Resource_83mhj"), SubResource("Resource_w2dpo"), SubResource("Resource_tds1e"), SubResource("Resource_l44wq"), SubResource("Resource_wpufh")])
+height_zones = Array[ExtResource("5_l44wq")]([SubResource("Resource_83mhj"), SubResource("Resource_tds1e"), SubResource("Resource_w2dpo"), SubResource("Resource_l44wq"), SubResource("Resource_wpufh")])

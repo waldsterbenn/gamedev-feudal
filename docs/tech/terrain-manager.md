@@ -121,6 +121,10 @@ The `TextureMapGenerator` is a modular child node responsible for automatically 
 6.  Click the **Generate Texture Map** button. (The `terrain` property is automatically discovered if the node is a child of `TerrainManager`).
 7.  Alternatively, click **Generate Terrain** on the root **TerrainManager** node to trigger both height and texture generation.
 
+### TODOs
+
+- The Terrain3D node refrence is exported. It should be programmatically set by the script just like it is in the `HeightMapGenerator`.
+
 ## Programmatic Usage
 
 To interact with the terrain, other systems should reference the `TerrainManager` instance.
@@ -185,6 +189,9 @@ This plan outlines the phased approach for implementing the terrain system. Each
     - Implement a script to create splatmaps based on heightmap data.
     - Support smoothing/blending between height zones.
     - Expose editor and programmatic triggers.
+
+### Phase 4.5: helper scripts
+- Write a helper script that can instantiate a terrain-manager scene in another scene heirachy
 
 ### Phase 5: Mesh Asset Configuration
 - **Goal:** Vegetation and foliage asset definition.
