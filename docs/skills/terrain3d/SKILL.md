@@ -50,7 +50,9 @@ All Terrain3D resources must be consolidated in `res://assets/terrain3d/`.
 - **Data Directory:** `res://assets/terrain3d/data/`
 - **Textures Hub:** `res://assets/terrain3d/textures/`
 
-- **No Auto-Scanning:** Terrain3D does not automatically find assets in your project. You must explicitly add them to the Asset Dock or assign them via code.
+-   **Resolution:** The default target resolution for terrain is **1.0 meters per vertex**, matching the performance standards of the `CodeGeneratedDemo`. Avoid higher densities (e.g., 0.25) unless strictly necessary for small scenes.
+-   **Performance Guideline:** Disable Triplanar Mapping (`enable_projection`) and Macro Variation globally if GPU performance or overheating is an issue. These features significantly increase texture sampling costs.
+-   **No Auto-Scanning:** Terrain3D does not automatically find assets in your project. You must explicitly add them to the Asset Dock or assign them via code.
 - **Standalone Resources:** It is highly recommended to save your resources as standalone `.tres` files in the hub to avoid scene file bloat.
 - **Binary Bloat Warning:** If a scene file becomes extremely large, it often indicates that texture files have become unlinked and are being serialized as text. Ensure all `Terrain3DTextureAsset` entries point to valid files on disk.
 

@@ -55,7 +55,8 @@ When the AI Agent is asked to import a texture, it follows these steps:
 
 -   **World Scale:** The project follows a **1 unit = 1 meter** convention. All terrain dimensions, heightmap scales, and asset sizes are based on this metric.
 -   **Coordinate System:** Uses Godot's standard Y-up, right-handed coordinate system.
--   **Resolution:** The default target resolution for terrain is **0.25 meters per vertex**, achieved by adjusting the `mesh_scale` or vertex spacing of the `Terrain3D` node.
+-   **Resolution:** The default target resolution for terrain is **1.0 meters per vertex**, matching the performance standards of the `CodeGeneratedDemo`.
+-   **Performance Guideline:** Avoid enabling Triplanar Mapping (`enable_projection`) and Macro Variation globally, as these significantly increase GPU load.
 -   **Demo Folder Policy:** The `demo/` folder is a self-contained plugin example. Do NOT modify it or reference its assets from the main project. Use `res://assets/terrain3d/` for all game-related resources.
 
 ## Inspector Interface
@@ -82,7 +83,7 @@ The `HeightMapGenerator` is a modular child node responsible for procedurally sc
 -   **Algorithm:** Uses `FastNoiseLite` with the `PERLIN` noise type.
 -   **Data Format:** Generates height data into a Godot `Image` using the `FORMAT_RF` (32-bit Red-only float) format. This ensures maximum precision and prevents "terracing" or "stepping" artifacts.
 -   **Integration:** Updates the terrain using the `terrain.data.import_images()` method, which is the most performant way to apply large-scale height changes.
--   **Spatial Alignment:** Currently generates a 2048x2048 vertex area. At 0.25m resolution, this produces a **512m x 512m** terrain area, centered at `Vector3(-256, 0, -256)`. This spans four Terrain3D regions (each 1024x1024 vertices).
+-   **Spatial Alignment:** At 1.0m resolution, a 2048x2048 vertex area produces a **2048m x 2048m** terrain area, centered at `Vector3(-1024, 0, -1024)`. This spans four Terrain3D regions (each 1024x1024 vertices). Ensure any region files outside this area in `res://assets/terrain3d/data/` are removed to prevent unnecessary GPU load.
 
 ### How to Use
 
@@ -108,9 +109,13 @@ extends Resource
 @export var max_height: float = 50.0
 ```
 -   **Blend Width:** The width of the cross-fade region (in meters) between adjacent height zones. Transitions are centered on the zone boundaries.
--   **Slope Threshold:** The angle (in degrees from vertical) above which the terrain is automatically marked for the **Autoshader**. This allows for steep cliffs to use a different shading path (e.g., rock faces).
+- **Slope Threshold:** The angle (in degrees from vertical) above which the terrain is automatically marked for the **Autoshader**. This allows for steep cliffs to use a different shading path (e.g., rock faces).
+
+#### Cliff-Only Autoshading Strategy
+The generator tags steep slopes with the "Auto" flag bit. When the `Terrain3DMaterial` has `auto_shader` enabled, these areas ignore height-zone textures and instead use the global `auto_base_texture` (Grass) and `auto_overlay_texture` (Rock) blend. This ensures high-fidelity cliff faces without sacrificing artistic control over flat land. See [Texture Map Generator Documentation](terrain3d-texture-map-generator.md) for details.
 
 ### Control Map Encoding
+
 
 Each pixel in the Terrain3D control map is a packed `uint32` stored as `FORMAT_RF`. Relevant fields for this feature:
 

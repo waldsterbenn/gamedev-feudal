@@ -226,8 +226,38 @@ for region in terrain.data.get_regions_active():
 terrain.data.update_maps(Terrain3DRegion.TYPE_CONTROL, false)
 ```
 
-### Runtime Noise Generation
-Use `Image.FORMAT_RF` (32-bit Red channel float) for heightmaps.
+## 11. Cliff-Only Autoshading
+
+This advanced technique delegates cliff texturing to the GPU while keeping manual or height-based control over flat terrain. It is the primary strategy for the `TerrainManager`.
+
+### How it Works
+1. **Generator Logic**: The `TextureMapGenerator` calculates the slope for every pixel.
+2. **Tagging**: If the slope exceeds the `slope_threshold`, the generator sets the **"Auto" flag** bit on that pixel in the Control Map.
+3. **GPU Rendering**: When the shader sees the "Auto" flag is `ON`, it ignores the specific texture IDs assigned by the generator and instead uses the global slope-blending rules defined in the material.
+
+### Configuration Steps
+To enable this in your project:
+
+1. **Material Setup**: Open `res://assets/terrain3d/terrain_material.tres`:
+   - Set **Auto Shader** = `Enabled`.
+   - Set **Auto Base Texture** = `4` (Rock / Steep).
+   - Set **Auto Overlay Texture** = `0` (Grass / Flat).
+   - Set **Auto Slope** = `0.5` (Adjusts the blend sharpness on the cliff face).
+
+2. **Generator Setup**: In the `TerrainManager` scene:
+   - Ensure the `TextureMapGenerator` has a `slope_threshold` (e.g., `35.0`).
+   - Run the generator via the **"Generate Texture Map"** tool button.
+
+3. **Validation**: 
+   - Areas flatter than the threshold will respect your `HeightZones`.
+   - Areas steeper than the threshold will automatically transition into the cliff rock texture.
+
+### Runtime Generation & Region Management
+Terrain3D allows for dynamic world expansion. Since it is region-based (default 1024x1024 chunks), you can add and populate terrain as the player moves.
+
+#### Automatic Creation
+If `import_images()` is called with a position where no region currently exists, **Terrain3D will automatically create the required regions** to accommodate the image data.
+
 ```gdscript
 func generate_noise_terrain(terrain: Terrain3D):
     var noise := FastNoiseLite.new()
@@ -240,11 +270,26 @@ func generate_noise_terrain(terrain: Terrain3D):
             var val = noise.get_noise_2d(x, y)
             img.set_pixel(x, y, Color(val, 0, 0, 1))
             
-    # Import into storage
-    # [height_map, control_map, color_map]
-    # offset: where to place the top-left corner
-    # scale: vertical multiplier for the height data
+    # This call automatically creates regions if they don't exist
+    # [height_map, control_map, color_map], global_pos, offset, scale
     terrain.data.import_images([img, null, null], Vector3(-1024, 0, -1024), 0.0, 150.0)
+```
+
+#### Manual Region Management (Streaming)
+For infinite or streamed worlds, use the following methods to manage regions explicitly:
+
+- **`terrain.data.has_region(location: Vector2i)`**: Checks if a region exists at the grid coordinate.
+- **`terrain.data.add_region(world_pos: Vector3)`**: Snaps to the grid and creates a blank region.
+- **`terrain.data.remove_region(region: Terrain3DRegion)`**: Unloads a region from memory.
+
+**Streaming Pattern Example:**
+```gdscript
+func update_streaming(player_pos: Vector3):
+    var loc: Vector2i = terrain.data.get_region_location(player_pos)
+    if not terrain.data.has_region(loc):
+        terrain.data.add_region(player_pos)
+        # Populate new region...
+        terrain.data.update_maps(Terrain3DRegion.TYPE_MAX, false)
 ```
 
 ### Runtime Navigation

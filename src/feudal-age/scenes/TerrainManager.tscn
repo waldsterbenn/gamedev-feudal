@@ -51,7 +51,7 @@ script = ExtResource("1_script")
 data_directory = "res://assets/terrain3d/data"
 material = ExtResource("6_material")
 assets = ExtResource("4_assets")
-vertex_spacing = 0.25
+vertex_spacing = 1.0
 top_level = true
 metadata/_edit_lock_ = true
 
@@ -62,5 +62,3 @@ script = ExtResource("2_hgen")
 script = ExtResource("3_tgen")
 terrain = NodePath("../Terrain3D")
 height_zones = Array[ExtResource("5_l44wq")]([SubResource("Resource_83mhj"), SubResource("Resource_tds1e"), SubResource("Resource_w2dpo"), SubResource("Resource_l44wq"), SubResource("Resource_wpufh")])
-use_autoshader_for_slopes = null
-slope_texture_id = null

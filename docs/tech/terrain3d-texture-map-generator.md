@@ -189,6 +189,29 @@ Border pixels clamp to the nearest valid sample (no out-of-bounds sampling acros
 
 ---
 
+## Cliff-Only Autoshading Strategy
+
+A powerful feature of this generator is the ability to delegate cliff texturing to the GPU while keeping manual or height-based control over flat terrain.
+
+### 1. How it Works
+The `TextureMapGenerator` identifies steep slopes (based on `slope_threshold`) and sets the **"Auto" bit** on those pixels in the control map.
+- **Flat Ground**: The "Auto" bit is **OFF**. The shader uses the specific textures assigned by your `HeightZones`.
+- **Cliffs**: The "Auto" bit is **ON**. The shader ignores the specific textures from the generator and instead uses the global slope-blending rules defined in the `Terrain3DMaterial`.
+
+### 2. Required Material Configuration
+For this to work, the `Terrain3DMaterial` on the `Terrain3D` node must be configured as follows:
+- **Auto Shader**: `Enabled`
+- **Auto Base Texture**: Set to your cliff/rock texture index (e.g., `4` for Rock). *Note: In Terrain3D, the "Base" texture is applied to steep slopes.*
+- **Auto Overlay Texture**: Set to your primary ground texture index (e.g., `0` for Grass). *Note: In Terrain3D, the "Overlay" texture is applied to flat ground.*
+- **Auto Slope**: Set the blend sharpness (e.g., `0.5`).
+
+### 3. Benefits
+- **Artistic Control**: You can still paint paths or height-based biomes (flowers vs. grass) on flat land.
+- **Visual Fidelity**: The GPU handles the complex triplanar blending and steep-slope stretching for cliffs automatically.
+- **Consistency**: All cliffs across the entire terrain will use a consistent rock texture and blend logic.
+
+---
+
 ## Concrete API Reference (confirmed from docs)
 
 These are the exact calls to use — the plan's pseudocode above maps to these.
