@@ -133,12 +133,15 @@ func _calc_slope(height_img: Image, x: int, y: int, vertex_spacing: float) -> fl
 
 ## Internal: Determine texture assignments and blending based on height and slope.
 func _encode_control_pixel(height: float, slope_deg: float, sorted_zones: Array[HeightZone]) -> int:
-	# 1. Slope Check (Autoshader wins)
+	# Default UV bits (Scale 0, Rotation 0) - Setting these explicitly helps ensure 
+	# the bit pattern represents a "Normal" float to avoid GPU subnormal penalties.
+	# Most Terrain3D editors use Scale index 4 (1.0x) as a safe default.
+	var uv_bits: int = Terrain3DUtil.enc_uv_scale(4) | Terrain3DUtil.enc_uv_rotation(0)
+	
+	# 1. Slope Check (Hard-coded rock for steep slopes to avoid expensive GPU Autoshader)
 	if slope_deg >= slope_threshold:
-		var base: int = _get_nearest_zone_id(height, sorted_zones)
-		return Terrain3DUtil.enc_base(base) \
-			| Terrain3DUtil.enc_overlay(base) \
-			| Terrain3DUtil.enc_auto(true)
+		var rock_id: int = 4 # Index of Meadow_Rock_Base in terrain_assets.tres
+		return Terrain3DUtil.enc_base(rock_id) | uv_bits
 	
 	# 2. Height-based blending
 	var zone_info: Dictionary = _find_zones_and_blend(height, sorted_zones)
@@ -147,12 +150,18 @@ func _encode_control_pixel(height: float, slope_deg: float, sorted_zones: Array[
 	var blend_t: float = zone_info["blend_t"]
 	
 	var base_id: int = zone_a.texture_id
-	var overlay_id: int = zone_b.texture_id if zone_b else base_id
+	
+	# Optimization: If no blend is needed, only set the base texture
+	if zone_b == null or blend_t <= 0.01:
+		return Terrain3DUtil.enc_base(base_id) | uv_bits
+	
+	var overlay_id: int = zone_b.texture_id
 	var blend_byte: int = int(blend_t * 255.0)
 	
 	return Terrain3DUtil.enc_base(base_id) \
 		| Terrain3DUtil.enc_overlay(overlay_id) \
-		| Terrain3DUtil.enc_blend(blend_byte)
+		| Terrain3DUtil.enc_blend(blend_byte) \
+		| uv_bits
 
 
 ## Internal: Find the two zones for blending and the blend factor.

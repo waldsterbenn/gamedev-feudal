@@ -53,7 +53,7 @@ func generate() -> void:
 	if not noise:
 		_setup_noise()
 	
-	# 2048x2048 vertices at 0.25 spacing = 512m x 512m
+	# 2048x2048 vertices at 1.0 spacing = 2048m x 2048m
 	var size: int = 2048
 	var img: Image = Image.create_empty(size, size, false, Image.FORMAT_RF)
 	
@@ -73,8 +73,8 @@ func generate() -> void:
 	
 	# Import the generated image into Terrain3D
 	# [height_map, control_map, color_map]
-	# Center a 512m area at (0,0,0) requires top-left offset of -256m
-	var offset = Vector3(-256, 0, -256)
+	# Center a 2048m area at (0,0,0) requires top-left offset of -1024m
+	var offset = Vector3(-1024, 0, -1024)
 	
 	terrain.data.import_images([img, null, null], offset, 0.0, 1.0)
 	

@@ -51,7 +51,8 @@ script = ExtResource("1_script")
 data_directory = "res://assets/terrain3d/data"
 material = ExtResource("6_material")
 assets = ExtResource("4_assets")
-vertex_spacing = 1.0
+mesh_lods = 4
+mesh_size = 32
 top_level = true
 metadata/_edit_lock_ = true
 
