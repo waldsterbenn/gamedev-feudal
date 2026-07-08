@@ -12,6 +12,10 @@ extends Node
 ## A value of 5 means ±2.5 units around each zone boundary is blended.
 @export_range(0.0, 50.0, 0.5) var blend_width: float = 5.0
 
+## UV Scale index to use for generated pixels (0-7).
+## 0 = -60%, 3 = 0% (1.0x), 7 = +80%
+@export_range(0, 7) var uv_scale_index: int = 0
+
 ## Slope angle (degrees from vertical) above which autoshader takes over.
 ## 0 = all terrain auto-shaded; 90 = autoshader never used.
 @export_range(0.0, 90.0, 1.0) var slope_threshold: float = 35.0
@@ -133,10 +137,9 @@ func _calc_slope(height_img: Image, x: int, y: int, vertex_spacing: float) -> fl
 
 ## Internal: Determine texture assignments and blending based on height and slope.
 func _encode_control_pixel(height: float, slope_deg: float, sorted_zones: Array[HeightZone]) -> int:
-	# Default UV bits (Scale 0, Rotation 0) - Setting these explicitly helps ensure 
-	# the bit pattern represents a "Normal" float to avoid GPU subnormal penalties.
-	# Most Terrain3D editors use Scale index 4 (1.0x) as a safe default.
-	var uv_bits: int = Terrain3DUtil.enc_uv_scale(4) | Terrain3DUtil.enc_uv_rotation(0)
+	# UV bits set to uv_scale_index.
+	# Index 0 corresponds to -60% in the Terrain3D editor UI.
+	var uv_bits: int = Terrain3DUtil.enc_uv_scale(uv_scale_index) | Terrain3DUtil.enc_uv_rotation(0)
 	
 	# 1. Slope Check (Hard-coded rock for steep slopes to avoid expensive GPU Autoshader)
 	if slope_deg >= slope_threshold:
