@@ -32,7 +32,8 @@ The following tools are recommended for high-quality development. While these ar
 - **Plugin: 3D Controls Toolkit (by Cianci)**: Camera manipulation and user interaction.
 - **Tool: Humanizer (Plugin)**: Procedural character animation and retargeting.
 - **Asset: KayKit Character Pack (Adventurers)**: Low-poly modular models.
-- **Plugin: HTerrain (by Zylann)**: High-performance heightmap terrain system.
+- **Plugin: Terrain3D (by TokisanGames)**: High-performance GDExtension terrain system.
+- **Plugin: HTerrain (by Zylann - LEGACY)**: Heightmap terrain system (Project is migrating to Terrain3D).
 - **Texture Source: AmbientCG or Polyhaven**: Sources for PBR textures, models, and HDRIs.
 - **Tool: NavigationRegion3D & NavigationMesh (Built-in)**: Navigational mesh generation.
 - **Plugin: Godot Steering AI**: Framework for autonomous movement behaviors.

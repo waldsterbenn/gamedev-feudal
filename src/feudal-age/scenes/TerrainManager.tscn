@@ -1,0 +1,66 @@
+[gd_scene format=3 uid="uid://dp33gcy2sd5q"]
+
+[ext_resource type="Script" uid="uid://c54fwpre2y6ts" path="res://scripts/TerrainManager.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cxldjiskk4kh1" path="res://scripts/HeightMapGenerator.gd" id="2_hgen"]
+[ext_resource type="Script" uid="uid://b4melafwv451c" path="res://scripts/TextureMapGenerator.gd" id="3_tgen"]
+[ext_resource type="Terrain3DAssets" uid="uid://cou8bxbpcx88y" path="res://assets/terrain3d/terrain_assets.tres" id="4_assets"]
+[ext_resource type="Script" uid="uid://cbu47s3yidnao" path="res://scripts/HeightZone.gd" id="5_l44wq"]
+[ext_resource type="Terrain3DMaterial" uid="uid://b8y4q4w2x8k6j" path="res://assets/terrain3d/terrain_material.tres" id="6_material"]
+
+[sub_resource type="Resource" id="Resource_83mhj"]
+script = ExtResource("5_l44wq")
+label = "Medow Flowers"
+texture_id = 2
+max_height = 60.0
+metadata/_custom_type_script = "uid://cbu47s3yidnao"
+
+[sub_resource type="Resource" id="Resource_tds1e"]
+script = ExtResource("5_l44wq")
+label = "Meadow Grass"
+min_height = 56.0
+max_height = 70.0
+
+[sub_resource type="Resource" id="Resource_w2dpo"]
+script = ExtResource("5_l44wq")
+label = "Medow clovers"
+texture_id = 1
+min_height = 60.0
+max_height = 95.0
+metadata/_custom_type_script = "uid://cbu47s3yidnao"
+
+[sub_resource type="Resource" id="Resource_l44wq"]
+script = ExtResource("5_l44wq")
+label = "Rocky Moss"
+texture_id = 5
+min_height = 75.0
+max_height = 110.0
+metadata/_custom_type_script = "uid://cbu47s3yidnao"
+
+[sub_resource type="Resource" id="Resource_wpufh"]
+script = ExtResource("5_l44wq")
+label = "Rocks"
+texture_id = 4
+min_height = 90.0
+max_height = 200.0
+metadata/_custom_type_script = "uid://cbu47s3yidnao"
+
+[node name="TerrainManager" type="Node3D" unique_id=277891729]
+script = ExtResource("1_script")
+
+[node name="Terrain3D" type="Terrain3D" parent="." unique_id=147221544]
+data_directory = "res://assets/terrain3d/data"
+material = ExtResource("6_material")
+assets = ExtResource("4_assets")
+mesh_lods = 4
+mesh_size = 32
+top_level = true
+metadata/_edit_lock_ = true
+
+[node name="HeightMapGenerator" type="Node" parent="." unique_id=298515887]
+script = ExtResource("2_hgen")
+
+[node name="TextureMapGenerator" type="Node" parent="." unique_id=1525087108 node_paths=PackedStringArray("terrain")]
+script = ExtResource("3_tgen")
+terrain = NodePath("../Terrain3D")
+height_zones = Array[ExtResource("5_l44wq")]([SubResource("Resource_83mhj"), SubResource("Resource_tds1e"), SubResource("Resource_w2dpo"), SubResource("Resource_l44wq"), SubResource("Resource_wpufh")])
+blend_width = 10.0

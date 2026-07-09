@@ -1,4 +1,5 @@
 # Simple script to initialize HTerrain data
+# LEGACY: This script is for HTerrain which is being replaced by Terrain3D.
 extends SceneTree
 
 func _init():

@@ -19,11 +19,10 @@ config/icon="res://icon.svg"
 
 EventBus="*res://scripts/managers/EventBus.gd"
 GameManager="*res://scripts/managers/GameManager.gd"
-HTerrainInit="*res://scripts/managers/HTerrainInit.gd"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/3d_controls_toolkit/plugin.cfg", "res://addons/zylann.hterrain/plugin.cfg")
+enabled=PackedStringArray("res://addons/3d_controls_toolkit/plugin.cfg")
 
 [input]
 
