@@ -21,6 +21,15 @@ func _ready() -> void:
 		profile = VassalProfile.new()
 		profile.vassal_name = npc_name
 	
+	# Dynamic ManagementPopulantComponent setup for backward-compatibility
+	var populant_comp = get_node_or_null("ManagementPopulantComponent")
+	if not populant_comp:
+		populant_comp = ManagementPopulantComponent.new()
+		# Use hash of name as unique ID
+		populant_comp.character_id = name.hash()
+		populant_comp.name = "ManagementPopulantComponent"
+		add_child(populant_comp)
+	
 	if interactable_component:
 		interactable_component.interacted.connect(_on_interacted)
 	

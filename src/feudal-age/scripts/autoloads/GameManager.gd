@@ -11,6 +11,10 @@ var season_names: Array[String] = ["Spring", "Summer", "Autumn", "Winter"]
 var season_timer: float = 0.0
 @export var season_duration: float = 60.0
 
+var current_day: int = 1
+var day_timer: float = 0.0
+@export var day_duration: float = 15.0
+
 var _active_petition_choices: Array = []
 
 func _ready() -> void:
@@ -23,7 +27,16 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if current_state == GameState.PLAYING:
+		_update_day(delta)
 		_update_season(delta)
+
+func _update_day(delta: float) -> void:
+	day_timer += delta
+	if day_timer >= day_duration:
+		day_timer = 0.0
+		current_day += 1
+		EventBus.day_changed.emit(current_day)
+		EventBus.message_logged.emit("Day " + str(current_day) + " has begun", "info")
 
 func _update_season(delta: float) -> void:
 	season_timer += delta
