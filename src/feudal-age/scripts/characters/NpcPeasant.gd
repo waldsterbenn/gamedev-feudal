@@ -8,6 +8,7 @@ signal waypoint_reached(waypoint_index: int)
 @export var profile: VassalProfile = null
 
 var current_fief: Fief = null
+var management_comp: ManagementPopulantComponent = null
 
 @onready var state_m: StateMachine = $StateMachine
 @onready var nav_agent: NavigationAgent3D = $NavigationAgent3D
@@ -22,13 +23,13 @@ func _ready() -> void:
 		profile.vassal_name = npc_name
 	
 	# Dynamic ManagementPopulantComponent setup for backward-compatibility
-	var populant_comp = get_node_or_null("ManagementPopulantComponent")
-	if not populant_comp:
-		populant_comp = ManagementPopulantComponent.new()
-		# Use hash of name as unique ID
-		populant_comp.character_id = name.hash()
-		populant_comp.name = "ManagementPopulantComponent"
-		add_child(populant_comp)
+	management_comp = get_node_or_null("ManagementPopulantComponent")
+	if not management_comp:
+		management_comp = ManagementPopulantComponent.new()
+		# Use hash of node name as a stable unique ID
+		management_comp.character_id = name.hash()
+		management_comp.name = "ManagementPopulantComponent"
+		add_child(management_comp)
 	
 	if interactable_component:
 		interactable_component.interacted.connect(_on_interacted)
@@ -65,3 +66,8 @@ func change_fear(delta: int) -> void:
 
 func _on_interacted(_interactor: Node3D) -> void:
 	state_m.change_state_by_path("Interact")
+
+## Called by external systems (ManagementAPI, player UI) to put the NPC into assigned work mode.
+func assign_to_work() -> void:
+	if state_m:
+		state_m.change_state_by_path("AssignedWork")

@@ -150,9 +150,21 @@ func assign_populant_to_node(character_id: int, target_node_id: int) -> bool:
 	new_worker_link.qualification = populant_comp.qualification_profile
 	node.local_workers.append(new_worker_link)
 	
+	# Notify the physical NPC actor to enter the AssignedWork state
+	_notify_assignment(character_id)
+	
 	return true
 
 func _on_day_changed(new_day: int) -> void:
 	for node_id in _world_nodes:
 		var node: ZoneNode = _world_nodes[node_id]
 		node.process_management_tick()
+
+## Finds the physical NPC in the scene tree and switches it to the AssignedWork state
+func _notify_assignment(character_id: int) -> void:
+	var comp = _get_npc_management_populant_component(character_id)
+	if not comp:
+		return
+	var actor = comp.get_parent()
+	if actor and actor.has_method("assign_to_work"):
+		actor.assign_to_work()
