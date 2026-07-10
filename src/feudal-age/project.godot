@@ -23,7 +23,6 @@ GameManager="*res://scripts/autoloads/GameManager.gd"
 ServiceLocator="*res://scripts/autoloads/ServiceLocator.gd"
 ManagementAPI="*res://scripts/management/ManagementAPI.gd"
 
-
 [debug]
 
 gdscript/warnings/untyped_declaration=1

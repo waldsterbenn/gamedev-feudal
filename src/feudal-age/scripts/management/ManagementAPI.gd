@@ -1,5 +1,4 @@
 extends Node
-class_name ManagementAPI
 
 signal settlement_tier_changed(node_id: int, new_tier_string: String)
 signal construction_failed_no_resources(node_id: int, building_id: String)
