@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://ccncyrxopvdi6"]
 
 [ext_resource type="Script" uid="uid://bwbjlqen026t" path="res://scripts/world/World.gd" id="1"]
-[ext_resource type="PackedScene" uid="uid://dp33gcy2sd5q" path="res://scenes/TerrainManager.tscn" id="2_qh0kd"]
 [ext_resource type="PackedScene" uid="uid://player" path="res://scenes/player/Player.tscn" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/characters/NpcPeasant.tscn" id="8"]
+[ext_resource type="PackedScene" uid="uid://dp33gcy2sd5q" path="res://scenes/TerrainManager.tscn" id="8_qh0kd"]
 [ext_resource type="PackedScene" path="res://scenes/world/Fief.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/world/ManorHouse.tscn" id="10"]
 [ext_resource type="PackedScene" path="res://scenes/world/FeastTable.tscn" id="11"]
@@ -30,28 +30,29 @@ script = ExtResource("1")
 environment = SubResource("Environment_world")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=189626078]
-transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 25, 10, 25)
+transform = Transform3D(-0.8660253, 0.32732683, -0.37796474, 0, 0.7559292, 0.65465343, -0.50000024, -0.5669464, 0.6546538, 13.035179, 107.66058, 43.7175)
+visible = false
 shadow_enabled = true
 
-[node name="TerrainManager" parent="." unique_id=277891729 instance=ExtResource("2_qh0kd")]
-
 [node name="Fief" parent="." unique_id=1317927159 instance=ExtResource("9")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 78.12351, 10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 83.91206, 18.100346)
 fief_name = "Royal Demesne"
 
 [node name="ManorHouse" parent="Fief" unique_id=1572701969 instance=ExtResource("10")]
-transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, -0.008556128, 7.8111744)
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 2.567628, -2.262535, -2.2261124)
 
 [node name="FeastTable" parent="Fief" unique_id=750344813 instance=ExtResource("11")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2046165, 0.5774267, 25.135956)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2046165, -7.243889, 10.920021)
 
 [node name="Player" parent="." unique_id=1715495869 instance=ExtResource("7")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.66805, 78.06772, 36.80931)
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 6.66805, 82.52156, 36.80931)
 
 [node name="NpcPeasant" parent="." unique_id=209300508 instance=ExtResource("8")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 79.12944, 12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 84.023636, 12)
 patrol_points = Array[Vector3]([Vector3(5, 1, 5), Vector3(15, 1, 5), Vector3(15, 1, 15), Vector3(5, 1, 15)])
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1767430632]
 
 [node name="HUD" parent="UI" unique_id=849268544 instance=ExtResource("12")]
+
+[node name="TerrainManager" parent="." unique_id=277891729 instance=ExtResource("8_qh0kd")]
