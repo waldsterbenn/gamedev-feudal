@@ -9,11 +9,7 @@ var _management_active: bool = false
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("toggle_management"):
 		_management_active = not _management_active
-		EventBus.management_mode_changed.emit(_management_active)
-
-		# If we're turning off management mode, also close any open inspection panel
-		if not _management_active:
-			EventBus.zone_deselected.emit()
+		# TODO(event-system): broadcast management-mode toggle + zone-deselect via the replacement for legacy EventBus
 
 		# Release the mouse when inspecting so the player can click zone anchors,
 		# re-capture when returning to normal play

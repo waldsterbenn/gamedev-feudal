@@ -18,8 +18,6 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-EventBus="*res://scripts/autoloads/EventBus.gd"
-GameManager="*res://scripts/autoloads/GameManager.gd"
 ServiceLocator="*res://scripts/autoloads/ServiceLocator.gd"
 ManagementAPI="*res://scripts/management/ManagementAPI.gd"
 

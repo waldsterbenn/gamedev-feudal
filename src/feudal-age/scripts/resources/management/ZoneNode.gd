@@ -169,7 +169,8 @@ func _enforce_storage_caps() -> void:
 		
 	if total_items > max_storage_capacity:
 		var excess: int = total_items - max_storage_capacity
-		EventBus.message_logged.emit("Node " + str(node_id) + " stockpile exceeded storage capacity! Discarding " + str(excess) + " excess items.", "warn")
+		# TODO(event-system): surface this via the replacement for legacy EventBus.message_logged
+		push_warning("Node " + str(node_id) + " stockpile exceeded storage capacity! Discarding " + str(excess) + " excess items.")
 		
 		for resource in stockpile:
 			if excess <= 0:

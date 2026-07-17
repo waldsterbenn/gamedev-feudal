@@ -1,3 +1,7 @@
+# ============================================================================
+# LEGACY CODE — outside the Management module and Terrain generator.
+# Retained for now; scheduled for refactor or removal. Do not extend.
+# ============================================================================
 extends StateNode
 
 @export var interact_duration: float = 2.0
@@ -11,29 +15,7 @@ func enter(_data: Dictionary = {}) -> void:
 		npc.velocity = Vector3.ZERO
 		if npc.visuals:
 			npc.visuals.play_animation("Take 001")
-		
-		# Sample Petition
-		var choices: Array[Dictionary] = [
-			{
-				"text": "Forgive taxes",
-				"gold_delta": -20,
-				"opinion_delta": 20,
-				"prestige_delta": 5
-			},
-			{
-				"text": "Demand payment",
-				"gold_delta": 0,
-				"opinion_delta": -20,
-				"prestige_delta": -5
-			}
-		]
-		EventBus.petition_started.emit(
-			npc, 
-			"Tax Relief Request", 
-			"The harvest was poor. May we have relief?", 
-			choices
-		)
-		EventBus.npc_interacted.emit(npc.npc_name)
+		# TODO(event-system): raise a petition via replacement for legacy EventBus.petition_started/npc_interacted
 
 func update(delta: float) -> void:
 	_timer -= delta

@@ -1,9 +1,8 @@
-[gd_scene load_steps=11 format=3 uid="uid://npc_peasant"]
+[gd_scene load_steps=10 format=3 uid="uid://npc_peasant"]
 
 [ext_resource type="PackedScene" path="res://scenes/characters/PeasantCharacter.tscn" id="1"]
 [ext_resource type="Script" path="res://scripts/characters/NpcPeasant.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/core/InteractableComponent.gd" id="3"]
-[ext_resource type="Script" path="res://scripts/core/HealthComponent.gd" id="4"]
 [ext_resource type="Script" path="res://scripts/core/StateMachine.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/characters/states/NpcIdleState.gd" id="6"]
 [ext_resource type="Script" path="res://scripts/characters/states/NpcPatrolState.gd" id="7"]
@@ -36,8 +35,6 @@ interaction_name = "Peasant"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
 shape = SubResource("CapsuleShape3D_Npc")
 
-[node name="HealthComponent" type="Node" parent="."]
-script = ExtResource("4")
 
 [node name="StatusLabel" type="Label3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)

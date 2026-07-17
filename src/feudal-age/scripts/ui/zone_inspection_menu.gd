@@ -18,8 +18,7 @@ func _ready() -> void:
 	establish_camp_button.pressed.connect(_on_establish_camp_pressed)
 	build_button.pressed.connect(_on_build_button_pressed)
 	close_button.pressed.connect(_on_close_pressed)
-	# Auto-refresh stocks each day tick while panel is open
-	EventBus.day_changed.connect(_on_day_changed)
+	# TODO(event-system): auto-refresh on day tick via the replacement for legacy EventBus.day_changed
 
 func open_inspection_window(node_id: int) -> void:
 	_active_node_id = node_id
@@ -66,10 +65,17 @@ func _on_build_button_pressed() -> void:
 		if api.order_building(_active_node_id, tent_blueprint):
 			_refresh_display_metrics()
 	else:
-		EventBus.message_logged.emit("No blueprints available yet.", "info")
+		# TODO(event-system): surface this via the replacement for legacy EventBus.message_logged
+		print("No blueprints available yet.")
 
 func _on_close_pressed() -> void:
-	EventBus.zone_deselected.emit()
+	# TODO(event-system): emit zone-deselected via the replacement for legacy EventBus
+	close_menus_fallback()
+
+func close_menus_fallback() -> void:
+	var coordinator := get_parent()
+	if coordinator and coordinator.has_method("close_menus"):
+		coordinator.close_menus()
 
 ## Auto-refresh while the panel is visible on each day change
 func _on_day_changed(_new_day: int) -> void:

@@ -1,3 +1,7 @@
+# ============================================================================
+# LEGACY CODE — outside the Management module and Terrain generator.
+# Retained for now; scheduled for refactor or removal. Do not extend.
+# ============================================================================
 class_name InteractorComponent
 extends RayCast3D
 
@@ -43,7 +47,8 @@ func _update_interactable(interactable: InteractableComponent) -> void:
 	if _current_interactable:
 		_current_interactable.focus(owner)
 		can_interact.emit(_current_interactable)
-		EventBus.message_logged.emit("Near: " + _current_interactable.interaction_name, "info")
+		# TODO(event-system): surface this via the replacement for legacy EventBus.message_logged
+		print("Near: ", _current_interactable.interaction_name)
 	else:
 		cannot_interact.emit()
 

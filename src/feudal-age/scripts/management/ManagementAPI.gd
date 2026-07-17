@@ -12,8 +12,7 @@ var _registered_populants: Dictionary = {}
 
 func _ready() -> void:
 	ServiceLocator.register_management_service(self)
-	if EventBus.has_signal("day_changed"):
-		EventBus.day_changed.connect(_on_day_changed)
+	# TODO(event-system): subscribe to the day tick via the replacement for legacy EventBus.day_changed
 
 func register_populant_component(comp: ManagementPopulantComponent) -> void:
 	_registered_populants[comp.character_id] = comp

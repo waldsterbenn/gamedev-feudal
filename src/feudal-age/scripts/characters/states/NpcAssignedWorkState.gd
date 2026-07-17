@@ -1,3 +1,7 @@
+# ============================================================================
+# LEGACY CODE — outside the Management module and Terrain generator.
+# Retained for now; scheduled for refactor or removal. Do not extend.
+# ============================================================================
 extends StateNode
 class_name NpcAssignedWorkState
 
@@ -15,11 +19,10 @@ func enter(_data: Dictionary = {}) -> void:
 	_arrived = false
 	_management_comp = owner.get_node_or_null("ManagementPopulantComponent")
 	_refresh_target()
-	EventBus.day_changed.connect(_on_day_changed)
+	# TODO(event-system): re-evaluate target on day tick via the replacement for legacy EventBus.day_changed
 
 func exit() -> void:
-	if EventBus.day_changed.is_connected(_on_day_changed):
-		EventBus.day_changed.disconnect(_on_day_changed)
+	pass
 
 func physics_update(delta: float) -> void:
 	var npc: NpcPeasant = owner as NpcPeasant
