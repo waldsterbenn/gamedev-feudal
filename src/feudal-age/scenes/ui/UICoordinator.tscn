@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3 uid="uid://ui_coordinator"]
+
+[ext_resource type="Script" path="res://scripts/ui/ui_coordinator.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://hud" path="res://scenes/ui/HUD.tscn" id="2_hud"]
+[ext_resource type="PackedScene" uid="uid://zone_inspection_menu" path="res://scenes/ui/ZoneInspectionMenu.tscn" id="3_zone_menu"]
+[ext_resource type="Script" path="res://scripts/ui/management_mode_controller.gd" id="4_mgmt_ctrl"]
+
+[node name="UICoordinator" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="StandardHUD" parent="." instance=ExtResource("2_hud")]
+
+[node name="ZoneInspectionMenu" parent="." instance=ExtResource("3_zone_menu")]
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 340.0
+offset_bottom = 440.0
+
+[node name="OptionsMenu" type="PanelContainer" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -100.0
+offset_right = 150.0
+offset_bottom = 100.0
+
+[node name="ManagementModeController" type="Node" parent="."]
+script = ExtResource("4_mgmt_ctrl")

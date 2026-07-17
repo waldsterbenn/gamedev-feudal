@@ -122,6 +122,8 @@ extends "res://addons/goap/action.gd"
 
 @export var base_cost: float = 20.0
 var _cosmetic_timer: float = 0.0
+# Cached reference to the reserved 3D tree node for this action's lifetime
+var _target_node: Node3D = null
 
 func get_labor_classification_tag() -> String:
     return "woodcutting"
@@ -164,10 +166,31 @@ func perform(agent_node: Node, delta: float) -> bool:
     var anim_tree: AnimationTree = agent_node.get_node("AnimationTree")
     var utility = agent_node.get_node("AIUtilityLayer")
     var facts = utility.get_normalized_blackboard_facts()
+    var reservations = ServiceLocator.get_reservation_service()
     
-    # Step A: Spatial Steering Verification
-    var target_tree_pos = facts.get("closest_woodland_coordinate", agent_node.global_position)
-    navigation.target_position = target_tree_pos
+    # Step A: Acquire reservation on first perform() call
+    # FIX 4: Request the reservation, then hand the target node reference back to the
+    # agent. Without this handoff, agent_node.active_target_node stays null and the
+    # heartbeat loop in _process() never fires, guaranteeing a lease timeout every run.
+    if _target_node == null:
+        var _target_pos = facts.get("closest_woodland_coordinate", agent_node.global_position)
+        var api = ServiceLocator.get_management_service()
+        _target_node = api.get_interactive_node_at_position(_target_pos)
+        
+        if _target_node:
+            # Pass priority level (e.g., 1 for generic foraging)
+            var success = reservations.request_slot_reservation(agent_node, _target_node, 1)
+            if not success:
+                _cleanup(agent_node)
+                return false
+            
+            # FIX 4: Hand the target reference back to the agent for heartbeats!
+            agent_node.active_target_node = _target_node
+        else:
+            return false
+    
+    # Step B: Spatial Steering Verification
+    navigation.target_position = _target_node.global_position
     
     if not navigation.is_navigation_finished():
         var next_path_pos = navigation.get_next_path_position()
@@ -181,7 +204,7 @@ func perform(agent_node: Node, delta: float) -> bool:
         anim_tree.set("parameters/conditions/is_chopping", false)
         return false # Action is still RUNNING
         
-    # Step B: Aesthetic Interaction Sequence
+    # Step C: Aesthetic Interaction Sequence
     agent_node.velocity = Vector3.ZERO
     anim_tree.set("parameters/conditions/is_walking", false)
     anim_tree.set("parameters/conditions/is_chopping", true)
@@ -190,8 +213,17 @@ func perform(agent_node: Node, delta: float) -> bool:
     if _cosmetic_timer >= 4.0: # Track a 4-second cosmetic animation loop
         _cosmetic_timer = 0.0
         anim_tree.set("parameters/conditions/is_chopping", false)
+        _cleanup(agent_node)
         return true # Action completed with SUCCESS
         
     return false
+
+## Releases reservation and clears agent's target reference on action end
+func _cleanup(agent_node: Node) -> void:
+    if _target_node:
+        ServiceLocator.get_reservation_service().release_slot_reservation(agent_node, _target_node)
+    agent_node.active_target_node = null
+    _target_node = null
+    _cosmetic_timer = 0.0
 
 ```

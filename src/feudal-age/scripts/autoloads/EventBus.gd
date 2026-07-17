@@ -29,3 +29,8 @@ signal player_died
 
 # UI events
 signal message_logged(message: String, level: String)
+
+# Management UI events
+signal zone_selected(node_id: int)
+signal zone_deselected()
+signal management_mode_changed(is_active: bool)

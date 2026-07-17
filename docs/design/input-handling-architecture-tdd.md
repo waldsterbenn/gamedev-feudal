@@ -1,7 +1,3 @@
-Here is your Technical Design Document formatted beautifully for a markdown (`.md`) file.
-
-This layout utilizes clear syntax highlighting for GDScript, structured tables, visual highlights for core constraints, and a professional layout hierarchy suitable for engineering teams.
-
 # Technical Design Document (TDD) — Input Handling Architecture
 
 | Architecture Tier | Component Category | Primary Interface | Engine Framework |
@@ -118,9 +114,5 @@ static func _serialize_rebinds_to_disk() -> void:
             config.set_value("Keybindings", action, events[0])
             
     config.save("user://input_config.cfg")
-
-```
-
-```
 
 ```
