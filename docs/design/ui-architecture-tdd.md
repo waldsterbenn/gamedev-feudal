@@ -124,5 +124,14 @@ func _make_custom_tooltip(for_text: String) -> Control:
     var tooltip_scene = preload("res://ui/components/fancy_tooltip.tscn").instantiate()
     tooltip_scene.get_node("DescriptionLabel").text = contextual_description
     return tooltip_scene
+```
 
+---
+
+## 4. Design Philosophy (UI Separation & Interface Rules)
+
+The user interface resides inside an isolated, screen-pinned `CanvasLayer` branch managed by the `UICoordinator`.
+
+* **Layout Isolation:** Panels like `ZoneInspectionMenu` or `OptionsMenu` leverage Godot's native spatial container logic (`VBoxContainer`, `GridContainer`, `MarginContainer`) to dynamically scale to player monitors without pixel-shifting glitches.
+* **Read/Write Flow:** The UI screen reads snapshot parameters from the `ManagementAPI` and hooks buttons to API execution triggers (e.g., `order_building()`). It passes parameters downwards but maintains absolutely no local data state, state computation logic, or authoritative simulation variables.
 ```

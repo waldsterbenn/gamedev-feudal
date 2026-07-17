@@ -114,5 +114,14 @@ static func _serialize_rebinds_to_disk() -> void:
             config.set_value("Keybindings", action, events[0])
             
     config.save("user://input_config.cfg")
+```
 
+---
+
+## 4. Design Philosophy (Input & Simulation Separation)
+
+No raw hardware key strings are hardcoded into functional code. All incoming hardware signals flow natively through Godot's built-in Input Map configuration table (the `InputRouter` script intercepts unhandled input and evaluates the player's active state boundaries to route commands contextually):
+
+* **If a menu screen is blocking gameplay:** Input maps exclusively to `UICoordinator` actions (e.g., closing a panel, cycling tabs, or selecting buttons).
+* **If no screens are blocking gameplay:** Input routes directly to simulation triggers (e.g., commanding the 3D camera to pan or triggering raycasts onto `ZoneAnchor3D` nodes).
 ```
