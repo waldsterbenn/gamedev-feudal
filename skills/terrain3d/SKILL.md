@@ -10,7 +10,7 @@ metadata:
 tags:
   - godot
   - plugin
-  - feudal-game
+  - feudal-age
   - terrain
   - shaders
 ---

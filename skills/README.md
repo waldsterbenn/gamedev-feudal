@@ -68,7 +68,7 @@ The conversion preserved the original research content while adding the required
    tags:
      - godot
      - plugin
-     - feudal-game
+     - feudal-age
    ---
 
    # Title
