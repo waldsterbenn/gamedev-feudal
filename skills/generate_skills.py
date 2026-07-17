@@ -102,7 +102,7 @@ def generate_skill(skill_name: str, title: str, content: str, metadata: dict) ->
     frontmatter_lines.append("tags:")
     frontmatter_lines.append("  - godot")
     frontmatter_lines.append("  - plugin")
-    frontmatter_lines.append("  - feudal-game")
+    frontmatter_lines.append("  - feudal-age")
     frontmatter_lines.append("---")
     frontmatter = '\n'.join(frontmatter_lines)
     # Combine
