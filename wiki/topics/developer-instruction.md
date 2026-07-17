@@ -27,7 +27,7 @@ Technical mandate for `gamedev-feudal` development. Governs coding standards, ar
 ## Workflow & Tools
 - **Godot MCP**: Primary tool for engine structural interaction (add_node, launch_editor, etc.).
 - **Headless Testing**: Verify integrity with `godot --headless --quit` before commits.
-- **Asset Integrity**: `/assets/original/` is read-only. Copy to `src/feudal-game/assets/` to modify.
+- **Asset Integrity**: `/assets/original/` is read-only. Copy to `src/feudal-age/assets/` to modify.
 - **VCS**: Root-level `.gitignore` only.
 
 ## See Also

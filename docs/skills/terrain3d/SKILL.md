@@ -11,7 +11,7 @@ metadata:
 tags:
   - godot
   - plugin
-  - feudal-game
+  - feudal-age
 ---
 
 ## 10. Terrain3D

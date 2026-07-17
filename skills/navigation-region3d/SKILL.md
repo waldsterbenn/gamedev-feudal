@@ -9,7 +9,7 @@ metadata:
 tags:
 - godot
 - plugin
-- feudal-game
+- feudal-age
 ---
 
 # NavigationRegion3D & NavigationMesh (Built-in Godot)

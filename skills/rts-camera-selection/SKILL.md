@@ -7,7 +7,7 @@ compatibility: Godot 4.x, Feudal Game project
 tags:
 - godot
 - plugin
-- feudal-game
+- feudal-age
 metadata:
   reference: https://github.com/carmel4a/RTS-Camera2D
 ---
