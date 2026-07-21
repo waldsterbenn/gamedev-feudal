@@ -1,28 +1,50 @@
 # Technical Design Document (TDD) — Game Coordinator Module
-1. Architectural Position & Boundary Rules
-The GameCoordinator is the absolute root node of the active gameplay scene tree. It serves as the master lifecycle anchor for the execution of Wilderness Fief.
-1.1 Structural Constraints
-The Coordination Rule: The GameCoordinator is strictly an orchestration layer. It must possess zero domain-specific knowledge. It does not calculate resource yields, compute combat damage, or manage character relationship trees.
-Direct vs. Indirect Visibility: The GameCoordinator has direct pointer access to its immediate child modules (ManagementModule, WarfareModule, SocialModule). However, it remains completely decoupled from individual entity elements, such as character agents or specific environment props.
-2. Structural Topology & Scene Mapping
-Within the Godot scene tree, the GameCoordinator sits at the top of the local branch. The independent game modules are instantiated as direct children of this coordinator node.
+
+## 1. Architectural Position & Boundary Rules
+The `GameCoordinator` is the absolute root node of the active gameplay scene tree. It serves as the master lifecycle anchor and conductor for execution.
+
+### 1.1 Structural Constraints & Context Passing
+* **The Coordination Rule**: The `GameCoordinator` is strictly an orchestration layer. It possesses master game state containers (`Resource` data objects) and drives execution by explicitly pushing data down into child modules via function arguments (**Context Passing**).
+* **Stateless Modules**: Core modules (e.g., `ManagementModule`, `WarfareModule`, `SocialModule`) are completely stateless frame-to-frame. They store no persistent entity/player data variables. They take the passed context, execute domain calculations or mutations on it, and exit.
+* **Direct vs. Indirect Visibility**: The `GameCoordinator` holds direct, strongly-typed references to its child modules. However, it remains decoupled from domain-specific entity mechanics and never reasons about what a module does with data — only invoking the uniform `GameModule` interface.
+
+### 1.2 The GameModule Contract
+To keep the coordinator generic, every child module conforms to a uniform duck-typed contract:
+- `initialize_module() -> void` — module self-setup.
+- `process_tick(context: Resource) -> void` — process and mutate the passed state context for one simulation step.
+- `get_save_snapshot() -> Dictionary` — return a serializable snapshot of the module's state.
+
+Because the coordinator only ever calls these methods, adding or removing a module requires zero modifications to coordinator code.
+
+---
+
+## 2. Structural Topology & Scene Mapping
+
+```
 [Runtime Scene Tree Root]
  └── GameCoordinator (Node) <--- [Attached: game_coordinator.gd]
-      ├── ManagementModule (Node)
-      ├── SocialModule (Node)
-      └── WarfareModule (Node)
+      ├── ManagementModule (Node)   \  Child modules — all implement
+      ├── SocialModule (Node)        > the GameModule contract (§1.2)
+      └── WarfareModule (Node)      /
+```
 
-3. Core Class & Variable Definitions
-The GameCoordinator handles the master loop timing, file save system interactions, and the operational bootstrapping timeline.
-GDScript
+---
+
+## 3. Core Class & Variable Definitions
+
+```gdscript
 ## game_coordinator.gd
 extends Node
 class_name GameCoordinator
 
-## Explicit, strongly-typed references to core module anchors
-@onready var management_module: Node = $ManagementModule
-@onready var social_module: Node = $SocialModule
-@onready var warfare_module: Node = $WarfareModule
+## Master Game State Context (Resource holding all fief data)
+@export var game_context: FiefStateResource
+
+## Modules are discovered from direct children that implement the GameModule contract
+@onready var modules: Array[Node] = _collect_modules()
+
+## Optional init ordering
+@export var module_init_order: Array[StringName] = ["ManagementModule", "SocialModule", "WarfareModule"]
 
 ## Master Simulation Loop Parameters
 @export var daily_tick_rate_seconds: float = 3.0
@@ -33,55 +55,68 @@ func _ready() -> void:
 	_bootstrap_sequence()
 	_initialize_master_clock()
 
-4. Operational Lifecycles & Execution Flow
-4.1 The Bootstrap Sequence
-To eliminate race conditions and initialization dependencies (e.g., preventing the Social system from trying to reference non-existent map nodes), the coordinator forces an explicit, step-by-step loading timeline during _ready().
-GDScript
-### Dictates the exact order of initialization across the codebase
+func _collect_modules() -> Array[Node]:
+	var result: Array[Node] = []
+	for child in get_children():
+		if child.has_method("initialize_module") \
+		and child.has_method("process_tick") \
+		and child.has_method("get_save_snapshot"):
+			result.append(child)
+	return result
+```
+
+---
+
+## 4. Operational Lifecycles & Execution Flow
+
+### 4.1 The Bootstrap Sequence
+The coordinator forces an explicit loading timeline during `_ready()` to initialize sub-modules in sequence before simulation ticks begin.
+
+```gdscript
 func _bootstrap_sequence() -> void:
 	print("GC: Commencing system bootstrap...")
-	
-	# Step 1: Initialize raw world parameters, resource registers, and node grids
-	if management_module.has_method("initialize_module"):
-		management_module.initialize_module()
-		
-	# Step 2: Initialize human elements, lineages, and emotional state structures
-	if social_module.has_method("initialize_module"):
-		social_module.initialize_module()
-		
-	# Step 3: Initialize tactical, physics-based combat tracking and threat maps
-	if warfare_module.has_method("initialize_module"):
-		warfare_module.initialize_module()
-		
-	# Step 4: Inter-module event wiring via standard Godot signal mapping
-	_wire_cross_module_events()
-	
+
+	var ordered: Array[Node] = []
+	var remaining := modules.duplicate()
+	for name in module_init_order:
+		for m in remaining:
+			if m.name == name:
+				ordered.append(m)
+				remaining.erase(m)
+	ordered.append_array(remaining)
+
+	for module in ordered:
+		module.initialize_module()
+
 	print("GC: Bootstrap sequence executed cleanly.")
+```
 
-4.2 Cross-Module Event Interception (The Routing Layer)
-Following the "Call Down, Signal Up" protocol, modules never communicate horizontally. Instead, they emit blind signals which the GameCoordinator catches and redistributes to the appropriate recipient systems.
-GDScript
-### Binds decoupled modules together at the root level using standard Godot signals
-func _wire_cross_module_events() -> void:
-	# Context: Management reports starvation -> Social drops happiness & GOAP alters behavior
-	if management_module.has_signal("populants_starving"):
-		management_module.populants_starving.connect(_on_management_reported_starvation)
-		
-	# Context: Warfare reports a character casualty -> Social updates family trees/grief
-	if warfare_module.has_signal("character_killed_in_combat"):
-		warfare_module.character_killed_in_combat.connect(_on_warfare_reported_casualty)
+### 4.2 Signal & Data Flow Boundaries
 
-func _on_management_reported_starvation(node_id: int, starving_count: int) -> void:
-	# Safely route management data straight into the social simulation domain
-	social_module.apply_starvation_morale_penalty(node_id, starving_count)
+To keep architectural roles crystal clear:
 
-func _on_warfare_reported_casualty(character_id: int) -> void:
-	# Safely pass physical warfare casualties straight into the lineage data simulation
-	social_module.process_character_death_impact(character_id)
+| Domain Scope | Execution Mechanism | Purpose |
+| :--- | :--- | :--- |
+| **Inside / Between Modules** | `GameCoordinator` (Context Passing) | Master state data is passed down to modules via `process_tick(game_context)`. Modules mutate context directly or hand off via sequential coordinator ticks. Core modules **never** emit signals to trigger other core modules. |
+| **Outside Modules** | Global `EventBus` | Visual, audio, and UI updates. Modules emit signals on `EventBus` (e.g. `EventBus.populants_starving.emit(count)`) as fire-and-forget notifications for UI widgets or SFX players. |
 
-4.3 The Synchronized Game Tick Lifecycle
-To prevent data tearing (where one module reads economic data before another has finished updating it during the same frame), the GameCoordinator drives a single master clock and calls sub-module update routines sequentially.
-GDScript
+#### Example Context & Event Processing inside a Module:
+```gdscript
+## ManagementModule.gd
+func process_tick(context: FiefStateResource) -> void:
+	# 1. Take passed context and perform domain logic (Inside Module)
+	var starving_count = calculate_starvation(context)
+	context.food_supplies -= starving_count
+	
+	# 2. Emit notification for external observers (Outside Module)
+	if starving_count > 0:
+		EventBus.populants_starving.emit(starving_count)
+```
+
+### 4.3 The Synchronized Game Tick Lifecycle
+The `GameCoordinator` drives a single master clock and passes the data context through sub-module update routines sequentially.
+
+```gdscript
 func _initialize_master_clock() -> void:
 	_simulation_timer = Timer.new()
 	_simulation_timer.wait_time = daily_tick_rate_seconds
@@ -89,43 +124,31 @@ func _initialize_master_clock() -> void:
 	_simulation_timer.timeout.connect(_on_simulation_tick_elapsed)
 	add_child(_simulation_timer)
 
-### Controlled sequence of processing loops executed every tick
 func _on_simulation_tick_elapsed() -> void:
 	_current_game_day += 1
 	print("GC: Processing Day Ticks: ", _current_game_day)
-	
-	# 1. Update the economic, consumption, and production ledgers first
-	if management_module.has_method("process_management_tick"):
-		management_module.process_management_tick()
-		
-	# 2. Update relationship shifts, moral decay, or faction splits based on current states
-	if social_module.has_method("process_social_tick"):
-		social_module.process_social_tick()
+	for module in modules:
+		module.process_tick(game_context)
+```
 
-5. Centralized Save/Load Data Persistence Engine
-Because save files are a compilation of states across the entire application, the GameCoordinator operates as the data clearinghouse. It requests data packets from each child module, rolls them up into a centralized configuration file, and writes it to disk.
-GDScript
-### Compiles isolated sub-module snapshots into a unified save profile
+---
+
+## 5. Centralized Save/Load Data Persistence Engine
+The `GameCoordinator` compiles isolated module snapshots into a unified save file.
+
+```gdscript
 func execute_session_save(slot_name: String) -> void:
 	var save_path = "user://saves/" + slot_name + ".tres"
-	
-	# Instantiate a clean global SaveGame Resource (Custom Resource class)
 	var save_file = SaveGameFile.new()
 	save_file.meta_day_count = _current_game_day
 	save_file.meta_save_time = Time.get_datetime_string_from_system()
-	
-	# Query modules for independent snapshot dictionaries
-	if management_module.has_method("get_save_snapshot"):
-		save_file.management_snapshot = management_module.get_save_snapshot()
-		
-	if social_module.has_method("get_save_snapshot"):
-		save_file.social_snapshot = social_module.get_save_snapshot()
-		
-	# Write configuration data to the user's local disk space
+
+	for module in modules:
+		save_file.set_snapshot(module.name, module.get_save_snapshot())
+
 	var error = ResourceSaver.save(save_file, save_path)
 	if error == OK:
 		print("GC: Session saved successfully to: ", save_path)
 	else:
 		print("GC: Critical failure saving session data. Error code: ", error)
-
-
+```

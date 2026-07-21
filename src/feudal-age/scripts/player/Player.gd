@@ -13,8 +13,8 @@ signal health_changed(current_health: float, max_health: float)
 func _ready() -> void:
 	if health_component:
 		health_component.health_changed.connect(_on_health_changed)
-	# TODO(event-system): announce player init via the replacement for legacy EventBus.message_logged
-	print("Player initialized")
+	# Emit player initialization log via EventBus
+	EventBus.ui.message_logged.emit("Player initialized", "info")
 
 func _physics_process(_delta: float) -> void:
 	move_and_slide()

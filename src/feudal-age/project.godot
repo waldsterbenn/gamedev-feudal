@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 
 ServiceLocator="*res://scripts/autoloads/ServiceLocator.gd"
 ManagementAPI="*res://scripts/management/ManagementAPI.gd"
+EventBus="*res://scenes/event_bus/EventBus.tscn"
 
 [debug]
 

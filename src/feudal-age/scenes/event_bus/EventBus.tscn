@@ -1,0 +1,18 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/event_bus/EventBus.gd" id="1_event_bus"]
+[ext_resource type="Script" path="res://scripts/event_bus/EventBusUI.gd" id="2_event_bus_ui"]
+[ext_resource type="Script" path="res://scripts/event_bus/EventBusAudio.gd" id="3_event_bus_audio"]
+[ext_resource type="Script" path="res://scripts/event_bus/EventBusVFX.gd" id="4_event_bus_vfx"]
+
+[node name="EventBus" type="Node"]
+script = ExtResource("1_event_bus")
+
+[node name="UI" type="Node" parent="."]
+script = ExtResource("2_event_bus_ui")
+
+[node name="Audio" type="Node" parent="."]
+script = ExtResource("3_event_bus_audio")
+
+[node name="VFX" type="Node" parent="."]
+script = ExtResource("4_event_bus_vfx")

@@ -14,8 +14,7 @@ signal unfocused(interactor: Node3D)
 
 func interact(interactor: Node3D) -> void:
 	interacted.emit(interactor)
-	# TODO(event-system): surface this via the replacement for legacy EventBus.message_logged
-	print("Interacted with: ", interaction_name)
+	EventBus.ui.message_logged.emit("Interacted with: " + interaction_name, "info")
 
 func focus(interactor: Node3D) -> void:
 	focused.emit(interactor)

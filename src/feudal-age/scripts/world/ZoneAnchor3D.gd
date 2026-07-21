@@ -17,7 +17,7 @@ func _ready() -> void:
 
 		zone_node.building_completed.connect(_on_building_completed)
 
-	# TODO(event-system): subscribe to management-mode changes via the replacement for legacy EventBus.management_mode_changed
+	EventBus.ui.management_mode_changed.connect(_on_management_mode_changed)
 
 	# Connect Area3D input event for click detection
 	input_event.connect(_on_input_event)
@@ -40,15 +40,13 @@ func toggle_management_view(is_active: bool) -> void:
 func _on_input_event(_camera: Node, event: InputEvent, _position: Vector3, _normal: Vector3, _shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if zone_node != null:
-			# TODO(event-system): emit zone-selected via the replacement for legacy EventBus.zone_selected
-			pass
+			EventBus.ui.zone_selected.emit(zone_node)
 
 func _on_management_mode_changed(is_active: bool) -> void:
 	toggle_management_view(is_active)
 
 func _on_building_completed(node_id: int, building_id: String) -> void:
-	# TODO(event-system): surface this via the replacement for legacy EventBus.message_logged
-	print("Building completed in node ", node_id, ": ", building_id)
+	EventBus.ui.message_logged.emit("Building completed in node %d: %s" % [node_id, building_id], "info")
 
 	var path = "res://scenes/world/buildings/" + building_id + ".tscn"
 	if ResourceLoader.exists(path):
