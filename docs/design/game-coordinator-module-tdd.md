@@ -71,11 +71,11 @@ A custom resource class acting as the container for serializing and deserializin
 
 This section details the Godot scene structure representing the game coordinator module.
 
-### 4.1 GameCoordinator Scene (`res://scenes/core/GameCoordinator.tscn`)
+### 4.1 GameCoordinator Scene (`res://scenes/gamecoordinator/GameCoordinator.tscn`)
 The `GameCoordinator` scene is the master gameplay scene that orchestrates the execution flow of all simulation sub-modules and anchors the game world simulation and UI.
 
 * **GameCoordinator** (Node, Scene Root)
-  * Script: `res://scripts/core/game_coordinator.gd`
+  * Script: `res://scripts/gamecoordinator/game_coordinator.gd`
   * Properties:
     * `game_context`: `Resource` (The master game state context container)
     * `module_init_order`: `["ManagementModule", "WarfareModule"]`
@@ -222,8 +222,8 @@ This module consists of the following project files and paths:
 
 | File Type | Project Path | Description |
 | :--- | :--- | :--- |
-| **Scene** | `res://scenes/core/GameCoordinator.tscn` | The primary gameplay scene root containing the coordinator node structure. |
-| **Script** | `res://scripts/core/game_coordinator.gd` | The master simulation lifecycle conductor and clock manager script. |
+| **Scene** | `res://scenes/gamecoordinator/GameCoordinator.tscn` | The primary gameplay scene root containing the coordinator node structure. |
+| **Script** | `res://scripts/gamecoordinator/game_coordinator.gd` | The master simulation lifecycle conductor and clock manager script. |
 | **Resource Script** | `res://scripts/resources/save_game_file.gd` | Registers `SaveGameFile`, storing aggregated serializable data snapshots of the game simulation state. |
 | **Technical Design** | `res://docs/design/game-coordinator-module-tdd.md` | This technical design document. |
 

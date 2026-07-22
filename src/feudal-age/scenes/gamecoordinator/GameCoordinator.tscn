@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://game_coordinator"]
+
+[ext_resource type="Script" path="res://scripts/gamecoordinator/game_coordinator.gd" id="1_gc_script"]
+[ext_resource type="PackedScene" uid="uid://ccncyrxopvdi6" path="res://scenes/world/World.tscn" id="2_world"]
+
+[node name="GameCoordinator" type="Node"]
+script = ExtResource("1_gc_script")
+daily_tick_rate_seconds = 3.0
+module_init_order = []
+
+[node name="WorldSimulation" parent="." instance=ExtResource("2_world")]

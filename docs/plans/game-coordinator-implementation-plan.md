@@ -16,7 +16,7 @@ calls `process_tick()` on any child modules it discovers. No real modules yet.
 
 ### Step 1.1 — Create the `game_coordinator.gd` script
 
-Create `res://scripts/core/game_coordinator.gd`.
+Create `res://scripts/gamecoordinator/game_coordinator.gd`.
 
 Implement:
 - `@export var game_context: Resource` — left unassigned for now.
@@ -40,7 +40,7 @@ Implement:
 
 ### Step 1.2 — Create the `GameCoordinator.tscn` scene
 
-Create `res://scenes/core/GameCoordinator.tscn`.
+Create `res://scenes/gamecoordinator/GameCoordinator.tscn`.
 
 Scene structure:
 ```
