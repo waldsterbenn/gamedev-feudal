@@ -10,11 +10,11 @@ extends Node
 # Exports
 # ---------------------------------------------------------------------------
 
-## The master game state container. Leave unassigned until FiefStateResource is introduced.
+## The master game state container.
 @export var game_context: Resource
 
 ## Node names of child modules, specifying their bootstrap initialization order.
-@export var module_init_order: Array[StringName] = []
+@export var module_init_order: Array[StringName] = ["ManagementModule"]
 
 ## Real-time seconds between each simulated game day tick.
 @export var daily_tick_rate_seconds: float = 3.0

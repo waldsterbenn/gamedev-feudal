@@ -2,10 +2,18 @@
 
 [ext_resource type="Script" path="res://scripts/gamecoordinator/game_coordinator.gd" id="1_gc_script"]
 [ext_resource type="PackedScene" uid="uid://ccncyrxopvdi6" path="res://scenes/world/World.tscn" id="2_world"]
+[ext_resource type="Script" path="res://scripts/management/management_module.gd" id="3_mgmt_mod"]
+[ext_resource type="Script" path="res://scripts/management/ManagementAPI.gd" id="4_mgmt_api"]
 
 [node name="GameCoordinator" type="Node"]
 script = ExtResource("1_gc_script")
 daily_tick_rate_seconds = 3.0
-module_init_order = []
+module_init_order = PackedStringArray("ManagementModule")
+
+[node name="ManagementModule" type="Node" parent="."]
+script = ExtResource("3_mgmt_mod")
+
+[node name="ManagementAPI" type="Node" parent="."]
+script = ExtResource("4_mgmt_api")
 
 [node name="WorldSimulation" parent="." instance=ExtResource("2_world")]

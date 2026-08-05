@@ -1,18 +1,18 @@
 extends Node
+class_name ManagementAPI
 
 signal settlement_tier_changed(node_id: int, new_tier_string: String)
 signal construction_failed_no_resources(node_id: int, building_id: String)
 signal operation_failed(reason: String)
 
-# Internal reference to the complete array of simulated world data resources
-var _world_nodes: Dictionary = {} 
+# Reference to the coordinator
+@onready var game_coordinator: Node = get_parent()
 
 # Registered populants (character_id: int -> ManagementPopulantComponent)
 var _registered_populants: Dictionary = {}
 
-func _ready() -> void:
+func _enter_tree() -> void:
 	ServiceLocator.register_management_service(self)
-	# TODO(event-system): subscribe to the day tick via the replacement for legacy EventBus.day_changed
 
 func register_populant_component(comp: ManagementPopulantComponent) -> void:
 	_registered_populants[comp.character_id] = comp
@@ -23,8 +23,14 @@ func unregister_populant_component(character_id: int) -> void:
 func _get_npc_management_populant_component(character_id: int) -> ManagementPopulantComponent:
 	return _registered_populants.get(character_id, null)
 
+func _get_world_nodes() -> Dictionary:
+	if game_coordinator and game_coordinator.game_context:
+		return game_coordinator.game_context.world_nodes
+	return {}
+
 func _remove_worker_from_node_data(character_id: int, node_id: int) -> void:
-	var node: ZoneNode = _world_nodes.get(node_id)
+	var nodes = _get_world_nodes()
+	var node: ZoneNode = nodes.get(node_id)
 	if not node:
 		return
 	for i in range(node.local_workers.size() - 1, -1, -1):
@@ -38,7 +44,8 @@ func get_character_assignment(char_id: int) -> Dictionary:
 		return {}
 		
 	var node_id = populant_comp.assigned_node_id
-	var node: ZoneNode = _world_nodes.get(node_id)
+	var nodes = _get_world_nodes()
+	var node: ZoneNode = nodes.get(node_id)
 	if not node:
 		return {}
 		
@@ -64,16 +71,18 @@ func get_character_assignment(char_id: int) -> Dictionary:
 
 ## API Query: Allows environmental rendering engines to update Terrain3D foliage elements
 func get_node_canopy_density(node_id: int) -> float:
-	if _world_nodes.has(node_id):
-		return _world_nodes[node_id].canopy_density
+	var nodes = _get_world_nodes()
+	if nodes.has(node_id):
+		return nodes[node_id].canopy_density
 	return 0.0
 
 ## API Query: Returns a basic data snapshot dictionary for UI framework parsing
 func get_node_inspection_data(node_id: int) -> Dictionary:
-	if not _world_nodes.has(node_id):
+	var nodes = _get_world_nodes()
+	if not nodes.has(node_id):
 		return {}
 		
-	var node: ZoneNode = _world_nodes[node_id]
+	var node: ZoneNode = nodes[node_id]
 	return {
 		"node_id": node.node_id,
 		"node_name": node.node_name,
@@ -88,7 +97,8 @@ func get_node_inspection_data(node_id: int) -> Dictionary:
 
 ## Executed when the player activates the 'Establish Camp' UI command
 func establish_camp(node_id: int, owner_id: String = "player") -> void:
-	var node: ZoneNode = _world_nodes.get(node_id)
+	var nodes = _get_world_nodes()
+	var node: ZoneNode = nodes.get(node_id)
 	if not node or node.current_tier != ZoneNode.SettlementTier.WILDERNESS:
 		operation_failed.emit("Invalid or already settled node.")
 		return
@@ -100,7 +110,8 @@ func establish_camp(node_id: int, owner_id: String = "player") -> void:
 
 ## Executed when the player issues a build blueprint command
 func order_building(node_id: int, blueprint: BuildingData) -> bool:
-	var node: ZoneNode = _world_nodes.get(node_id)
+	var nodes = _get_world_nodes()
+	var node: ZoneNode = nodes.get(node_id)
 	if not node:
 		return false
 		
@@ -129,10 +140,11 @@ func recruit_populant_to_faction(character_id: int, lord_id: String = "player") 
 
 ## Assigns a faction-aligned Populant to live and work at a target ZoneNode
 func assign_populant_to_node(character_id: int, target_node_id: int) -> bool:
-	if not _world_nodes.has(target_node_id):
+	var nodes = _get_world_nodes()
+	if not nodes.has(target_node_id):
 		return false
 		
-	var node: ZoneNode = _world_nodes[target_node_id]
+	var node: ZoneNode = nodes[target_node_id]
 	var populant_comp = _get_npc_management_populant_component(character_id)
 	
 	if not populant_comp or populant_comp.serving_lord_id == "none":
@@ -152,11 +164,6 @@ func assign_populant_to_node(character_id: int, target_node_id: int) -> bool:
 	_notify_assignment(character_id)
 	
 	return true
-
-func _on_day_changed(new_day: int) -> void:
-	for node_id in _world_nodes:
-		var node: ZoneNode = _world_nodes[node_id]
-		node.process_management_tick()
 
 ## Finds the physical NPC in the scene tree and switches it to the AssignedWork state
 func _notify_assignment(character_id: int) -> void:
