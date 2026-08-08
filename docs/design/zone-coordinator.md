@@ -27,13 +27,23 @@ The `ZoneCoordinator` script (`zone_coordinator.gd`) exposes the following lifec
 
 ### Functions
 * `create_zone_anchor(id: int, global_position: Vector3) -> ZoneAnchor3D`
-  Instantiates the `ZoneAnchor3D` prefab scene, assigns its Coordinator-scoped `id`, sets its position, adds it as a child of the `ZoneContainer`, registers it in the tracked dictionary, and returns the node reference.
+  Instantiates the `ZoneAnchor3D` prefab scene, assigns its Coordinator-scoped `id`, sets its position, adds it as a child of the `ZoneContainer`, registers it in the tracked dictionary, and returns the node reference. The `global_position` is provided entirely by the **caller** (e.g. the world generator or save loader) — `ZoneAnchor3D` has no knowledge of where it should be placed.
 * `destroy_zone_anchor(id: int) -> void`
   Despawns and frees the `ZoneAnchor3D` instance with the matching `id` and removes it from the tracking cache.
 * `get_zone_anchor(id: int) -> ZoneAnchor3D`
   Returns the tracked node reference for the given `id`, or `null` if not found.
 * `get_all_zone_anchors() -> Array[ZoneAnchor3D]`
   Returns an array of all currently active `ZoneAnchor3D` instances.
+
+### Spatial Position at Runtime
+3D world coordinates belong to the Godot scene layer, not to any simulation domain resource. If a system (e.g. GOAP AI, pathfinding) needs the world position of a zone at runtime, it retrieves it through the coordinator:
+
+```gdscript
+var anchor = zone_coordinator.get_zone_anchor(node_id)
+var pos = anchor.global_position
+```
+
+The `ZoneNode` resource (management domain) intentionally contains **no position data**.
 
 ---
 

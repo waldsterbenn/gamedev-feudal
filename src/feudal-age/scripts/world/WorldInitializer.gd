@@ -31,7 +31,6 @@ func _ready() -> void:
 		var node = ZoneNode.new()
 		node.node_id = data["id"]
 		node.node_name = data["name"]
-		node.world_position = data["pos"]
 		node.fertilities = data["fertilities"]
 		node.current_tier = ZoneNode.SettlementTier.WILDERNESS
 		
