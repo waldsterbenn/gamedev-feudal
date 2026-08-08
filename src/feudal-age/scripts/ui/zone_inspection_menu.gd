@@ -40,9 +40,9 @@ func _refresh_display_metrics() -> void:
 	berries_label.text = "🫐 " + str(data["berry_stock"])
 	mushrooms_label.text = "🍄 " + str(data["mushroom_stock"])
 
-	# Count workers from the raw ZoneNode for now
-	var node_data: ZoneNode = api._world_nodes.get(_active_node_id)
-	workers_label.text = str(node_data.local_workers.size()) + " workers" if node_data else "0 workers"
+	# Count workers from the API
+	var worker_count: int = api.get_node_worker_count(_active_node_id)
+	workers_label.text = str(worker_count) + " workers"
 
 	# Show contextual action buttons based on settlement state
 	var is_wilderness: bool = data["is_camp_creatable"]

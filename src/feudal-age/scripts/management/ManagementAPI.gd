@@ -95,6 +95,12 @@ func get_node_inspection_data(node_id: int) -> Dictionary:
 		"is_camp_creatable": (node.current_tier == ZoneNode.SettlementTier.WILDERNESS)
 	}
 
+## API Query: Returns the number of local workers assigned to a node
+func get_node_worker_count(node_id: int) -> int:
+	var nodes = _get_world_nodes()
+	var node: ZoneNode = nodes.get(node_id)
+	return node.local_workers.size() if node else 0
+
 ## Executed when the player activates the 'Establish Camp' UI command
 func establish_camp(node_id: int, owner_id: String = "player") -> void:
 	var nodes = _get_world_nodes()

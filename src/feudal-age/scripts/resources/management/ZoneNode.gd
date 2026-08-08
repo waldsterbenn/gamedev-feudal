@@ -9,6 +9,7 @@ enum SettlementTier { WILDERNESS, CAMP, FARM, MANOR, VILLAGE, TOWN }
 @export var node_id: int
 @export var node_name: String
 @export var current_tier: SettlementTier = SettlementTier.WILDERNESS
+@export var world_position: Vector3 = Vector3.ZERO
 
 # Environmental Dynamics & Base Fertilities
 @export var canopy_density: float = 1.0
