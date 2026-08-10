@@ -3,11 +3,11 @@
 [ext_resource type="PackedScene" uid="uid://dp33gcy2sd5q" path="res://scenes/TerrainManager.tscn" id="2_qh0kd"]
 [ext_resource type="PackedScene" uid="uid://player" path="res://scenes/player/Player.tscn" id="7"]
 [ext_resource type="PackedScene" uid="uid://npc" path="res://scenes/characters/NPC.tscn" id="8"]
-[ext_resource type="Script" path="res://scripts/world/ZoneCoordinator.gd" id="9_coord"]
-[ext_resource type="PackedScene" uid="uid://zone_anchor_3d" path="res://scenes/world/ZoneAnchor3D.tscn" id="10_prefab"]
-[ext_resource type="Script" path="res://scripts/world/WorldInitializer.gd" id="11_init"]
-[ext_resource type="PackedScene" uid="uid://ui_coordinator" path="res://scenes/ui/UICoordinator.tscn" id="12"]
-[ext_resource type="Script" path="res://scripts/world/NPCCoordinator.gd" id="13_npc_coord"]
+[ext_resource type="Script" uid="uid://c2l0mlqw8ka2h" path="res://scripts/world/ZoneCoordinator.gd" id="9_coord"]
+[ext_resource type="PackedScene" path="res://scenes/world/ZoneAnchor3D.tscn" id="10_prefab"]
+[ext_resource type="Script" uid="uid://cqlgltpkfbb53" path="res://scripts/world/WorldInitializer.gd" id="11_init"]
+[ext_resource type="PackedScene" path="res://scenes/ui/UICoordinator.tscn" id="12"]
+[ext_resource type="Script" uid="uid://50ugxoykjwid" path="res://scripts/world/NPCCoordinator.gd" id="13_npc_coord"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_world"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -37,22 +37,21 @@ shadow_enabled = true
 [node name="Player" parent="." unique_id=1715495869 instance=ExtResource("7")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.66805, 78.06772, 36.80931)
 
-
 [node name="UICoordinator" parent="." unique_id=1767430632 instance=ExtResource("12")]
 
-[node name="ZoneCoordinator" type="Node" parent="."]
+[node name="ZoneCoordinator" type="Node" parent="." unique_id=556366268]
 script = ExtResource("9_coord")
 zone_prefab = ExtResource("10_prefab")
 container_path = NodePath("../ZoneContainer")
 
-[node name="ZoneContainer" type="Node3D" parent="."]
+[node name="ZoneContainer" type="Node3D" parent="." unique_id=793975599]
 
-[node name="NPCCoordinator" type="Node" parent="."]
+[node name="NPCCoordinator" type="Node" parent="." unique_id=595551154]
 script = ExtResource("13_npc_coord")
 npc_prefab = ExtResource("8")
 container_path = NodePath("../NPCContainer")
 
-[node name="NPCContainer" type="Node3D" parent="."]
+[node name="NPCContainer" type="Node3D" parent="." unique_id=1796258538]
 
-[node name="WorldInitializer" type="Node" parent="."]
+[node name="WorldInitializer" type="Node" parent="." unique_id=1125366125]
 script = ExtResource("11_init")

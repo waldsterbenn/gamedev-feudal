@@ -29,7 +29,27 @@ func _ready() -> void:
 		{
 			"id": 3,
 			"name": "Ashfen Crossing",
-			"pos": Vector3(20.0, 78.0, 45.0),
+			"pos": Vector3(00.0, 78.0, 45.0),
+			"fertilities": {"Timber": 0.5, "Cereals": 0.4, "Berries": 0.6, "Mushrooms": 0.6},
+			"initial_populants": [
+				{"offset": Vector3(-1.0, 0.0, -1.5), "qualification": "forager"},
+				{"offset": Vector3(2.5, 0.0, -0.5), "qualification": "unskilled"}
+			]
+		},
+		{
+			"id": 4,
+			"name": "Hadsten",
+			"pos": Vector3(40.0, 78.0, 70.0),
+			"fertilities": {"Timber": 0.5, "Cereals": 0.4, "Berries": 0.6, "Mushrooms": 0.6},
+			"initial_populants": [
+				{"offset": Vector3(-1.0, 0.0, -1.5), "qualification": "forager"},
+				{"offset": Vector3(2.5, 0.0, -0.5), "qualification": "unskilled"}
+			]
+		},
+		{
+			"id": 5,
+			"name": "Tranbjerg",
+			"pos": Vector3(80.0, 78.0, 30.0),
 			"fertilities": {"Timber": 0.5, "Cereals": 0.4, "Berries": 0.6, "Mushrooms": 0.6},
 			"initial_populants": [
 				{"offset": Vector3(-1.0, 0.0, -1.5), "qualification": "forager"},
