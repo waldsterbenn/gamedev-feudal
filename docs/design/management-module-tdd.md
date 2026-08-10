@@ -28,7 +28,7 @@ A Populant is a physical NPC agent that exists in the 3D scene tree and simultan
 
 A component `Node` attached as a child to the physical NPC character scene root. It acts as the registration anchor between the 3D agent and the `ManagementAPI`.
 
-**Script:** `res://scripts/characters/components/ManagementPopulantComponent.gd`
+**Script:** `res://scripts/management/components/ManagementPopulantComponent.gd`
 **Class:** `ManagementPopulantComponent`
 
 **Variables:**
@@ -57,7 +57,7 @@ The `ZoneNode` resource maps 1:1 to a `ZoneAnchor3D` spatial node placed in the 
 
 #### 2.2.1 ZoneNode (Resource)
 
-**Script:** `res://scripts/resources/management/ZoneNode.gd`
+**Script:** `res://scripts/management/resources/ZoneNode.gd`
 **Class:** `ZoneNode`
 **Extends:** `Resource`
 
@@ -105,7 +105,7 @@ The `ZoneNode` resource maps 1:1 to a `ZoneAnchor3D` spatial node placed in the 
 
 A static blueprint resource. Two `BuildingData` objects with identical values are interchangeable.
 
-**Script:** `res://scripts/resources/management/BuildingData.gd`
+**Script:** `res://scripts/management/resources/BuildingData.gd`
 **Class:** `BuildingData`
 **Extends:** `Resource`
 
@@ -126,7 +126,7 @@ A static blueprint resource. Two `BuildingData` objects with identical values ar
 
 A dynamic state resource representing one active construction order or completed structure. Paired 1:1 with a `BuildingData` blueprint.
 
-**Script:** `res://scripts/resources/management/BuildingInstance.gd`
+**Script:** `res://scripts/management/resources/BuildingInstance.gd`
 **Class:** `BuildingInstance`
 **Extends:** `Resource`
 
@@ -146,7 +146,7 @@ A dynamic state resource representing one active construction order or completed
 
 A lightweight structural link between a `ZoneNode` and a Populant. Held inside `ZoneNode.local_workers`.
 
-**Script:** `res://scripts/resources/management/WorkerData.gd`
+**Script:** `res://scripts/management/resources/WorkerData.gd`
 **Class:** `WorkerData`
 **Extends:** `Resource`
 
@@ -353,11 +353,11 @@ The `ServiceLocator` asserts that the API is registered before returning it, cat
 | **Script** | `res://scripts/management/ManagementAPI.gd` | Externally-facing command and query boundary. Registered to `ServiceLocator` for external modules to interface with current data state. |
 | **Script** | `res://scripts/management/JobPriorities.gd` | Global constant class defining the ordered job evaluation hierarchy for workforce allocation. |
 | **Script** | `res://scripts/management/DietPriorities.gd` | Global constant class defining the food consumption order for starvation deduction. |
-| **Resource Script** | `res://scripts/resources/management/ZoneNode.gd` | Core domain aggregate resource. Holds per-node simulation variables and runs simulation step subroutines. |
-| **Resource Script** | `res://scripts/resources/management/BuildingData.gd` | Static building blueprint defining cost, labor requirement, and job type. |
-| **Resource Script** | `res://scripts/resources/management/BuildingInstance.gd` | Dynamic building state tracking construction progress, completion, and assigned workers. |
-| **Resource Script** | `res://scripts/resources/management/WorkerData.gd` | Lightweight structural link between a `ZoneNode` and a Populant. |
-| **Script** | `res://scripts/characters/components/ManagementPopulantComponent.gd` | Component node attached to NPC character scenes. Bridges the 3D agent to the management data layer. |
+| **Resource Script** | `res://scripts/management/resources/ZoneNode.gd` | Core domain aggregate resource. Holds per-node simulation variables and runs simulation step subroutines. |
+| **Resource Script** | `res://scripts/management/resources/BuildingData.gd` | Static building blueprint defining cost, labor requirement, and job type. |
+| **Resource Script** | `res://scripts/management/resources/BuildingInstance.gd` | Dynamic building state tracking construction progress, completion, and assigned workers. |
+| **Resource Script** | `res://scripts/management/resources/WorkerData.gd` | Lightweight structural link between a `ZoneNode` and a Populant. |
+| **Script** | `res://scripts/management/components/ManagementPopulantComponent.gd` | Component node attached to NPC character scenes. Bridges the 3D agent to the management data layer. |
 | **Script** | `res://scripts/autoloads/ServiceLocator.gd` | Global autoload singleton. Holds the active `ManagementAPI` reference and provides registration/retrieval. |
 | **Game Design** | `res://docs/design/management-module-gdd.md` | Game design document: player experience, settlement tiers, jobs, and resource ecosystem. |
 | **Implementation Plan** | `res://docs/design/management-module-plan.md` | Phase-by-phase implementation plan for the management module. |

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="FiefStateResource" load_steps=2 format=3 uid="uid://fief_state"]
 
-[ext_resource type="Script" path="res://scripts/resources/management/FiefStateResource.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/management/resources/FiefStateResource.gd" id="1_script"]
 
 [resource]
 script = ExtResource("1_script")

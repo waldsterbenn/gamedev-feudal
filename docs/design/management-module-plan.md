@@ -28,7 +28,7 @@ We will shift this to:
 Set up the shared context container for simulation state.
 
 1. **Define the Context Resource**:
-   * Create `res://scripts/resources/management/FiefStateResource.gd` (or update existing global context scripts).
+   * Create `res://scripts/management/resources/FiefStateResource.gd` (or update existing global context scripts).
    * It must export a dictionary `world_nodes: Dictionary` (mapping `node_id: int -> ZoneNode`).
 2. **Expose Context to GameCoordinator**:
    * Assign `FiefStateResource` as the `@export var game_context: Resource` on the `GameCoordinator` node in the inspector.
