@@ -7,7 +7,7 @@
 As widely as possible, try to keep the game separated into self-contained modules. When creating a new module, use this approach:
 
 ### 1.1 Game Design Document
-Try to describe what the module simulates **without** getting technical.
+Try to describe what the module simulates **without** getting technical. Game design documents must have a filename ending in `-gdd` (e.g., `<system-name>-gdd.md`).
 * What does the player experience?
 * What do you think is happening behind the scenes?
 
@@ -18,6 +18,7 @@ Try to define abstract objects and rules from the Game Design Document:
 * **Aggregates** — A cluster of associated Domain Objects that we treat as a single unit for data changes.
 
 ### 1.3 Translate the Domain to a Technical Design
+Technical design documents must have a filename ending in `-tdd` (e.g., `<system-name>-tdd.md`).
 * What data and algorithms are needed?
 * Define classes, functions.
 * Define what scripts the classes need to be separated into.
@@ -31,7 +32,7 @@ Try to define abstract objects and rules from the Game Design Document:
 * **Scene hierarchy:**
   * Does the design need new scenes? (e.g., a physical resource pile, or a "manager"/"controller" type scene that can generate/spawn new game objects into the world.)
   * Changes to existing nodes? (e.g., does it need to add a "component" node to existing scenes, like adding a health node to the NPC scene?)
-* **What folders do the files belong in?** Put scripts in their own subfolder in the script folder. The project documentation should be able to tell you what goes where. For where the *documentation itself* lives, see `documentation-conventions.md` (`design/` vs `project/`, and `docs/plans/` for implementation plans).
+* **What folders do the files belong in?** All scripts for a module must reside within that module's subfolder inside the scripts directory (e.g., `src/feudal-age/scripts/<module_name>/` or a subfolder within it). For example, scripts like `<ModuleName><ComponentName>.gd` and `<ModuleName>Data.gd` must reside in the corresponding module directory `src/feudal-age/scripts/<module_name>/` or in a subfolder. For where the *documentation itself* lives, see [documentation-conventions.md](file:///C:/Users/woodl/GitHub/gamedev-feudal/docs/project/documentation-conventions.md) (`design/` vs `project/`, and `docs/plans/` for implementation plans).
 * **Where do the new scenes need to sit in the game world hierarchy to do their thing?**
   * Is it a global "manager" scene that attaches straight to the top of the "root"/"world" scene? (Like an enemy spawner, for example.)
   * Will there be multiple instances of this scene? (Like an enemy type of which there need to be many.)

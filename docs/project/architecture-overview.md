@@ -23,7 +23,7 @@ To ensure absolute isolation, systems remain strictly decoupled and communicate 
                                    ▼
                             [ INPUT ROUTER ]
                      (Holds Keybinding Config Maps)
-                                   │
+                                    │
          ┌──────────────────────────┴──────────────────────────┐
     (If UI is Open)                                       (If UI is Closed)
          ▼                                                     ▼

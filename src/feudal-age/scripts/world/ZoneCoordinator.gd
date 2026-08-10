@@ -9,6 +9,7 @@ class_name ZoneCoordinator
 # Dictionary tracking active anchors: coordinator_id -> ZoneAnchor3D
 var _active_anchors: Dictionary = {}
 
+# Figure out a way to get the terrain height without breaking the architecture
 func create_zone_anchor(id: int, global_pos: Vector3) -> ZoneAnchor3D:
 	if _active_anchors.has(id):
 		push_warning("Zone anchor with ID %d already exists." % id)
