@@ -15,6 +15,12 @@ func create_zone_anchor(id: int, global_pos: Vector3) -> ZoneAnchor3D:
 		push_warning("Zone anchor with ID %d already exists." % id)
 		return _active_anchors[id]
 		
+	var terrain_service = ServiceLocator.get_terrain_service()
+	if terrain_service:
+		var height = terrain_service.get_height(global_pos)
+		if not is_nan(height):
+			global_pos.y = height
+
 	var instance = zone_prefab.instantiate() as ZoneAnchor3D
 	instance.coordinator_id = id
 	container.add_child(instance)

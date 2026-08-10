@@ -16,7 +16,7 @@ func enter(_data: Dictionary = {}) -> void:
 	_working = false
 
 func physics_update(delta: float) -> void:
-	var npc: NpcPeasant = owner as NpcPeasant
+	var npc: NPC = owner as NPC
 	if not npc: return
 	
 	if _working:
@@ -49,7 +49,7 @@ func physics_update(delta: float) -> void:
 		npc.velocity.z = 0.0
 
 func _pick_new_target() -> void:
-	var npc: NpcPeasant = owner as NpcPeasant
+	var npc: NPC = owner as NPC
 	if not npc: return
 	
 	# Wander around the peasant's current position
@@ -59,7 +59,7 @@ func _pick_new_target() -> void:
 func _start_working() -> void:
 	_working = true
 	_work_timer = randf_range(5.0, 10.0)
-	var npc: NpcPeasant = owner as NpcPeasant
+	var npc: NPC = owner as NPC
 	if npc and npc.visuals:
 		npc.visuals.play_animation("Take 001") # Placeholder for work anim
 	npc.velocity = Vector3.ZERO

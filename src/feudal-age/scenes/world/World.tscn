@@ -2,11 +2,12 @@
 
 [ext_resource type="PackedScene" uid="uid://dp33gcy2sd5q" path="res://scenes/TerrainManager.tscn" id="2_qh0kd"]
 [ext_resource type="PackedScene" uid="uid://player" path="res://scenes/player/Player.tscn" id="7"]
-[ext_resource type="PackedScene" path="res://scenes/characters/NpcPeasant.tscn" id="8"]
+[ext_resource type="PackedScene" uid="uid://npc" path="res://scenes/characters/NPC.tscn" id="8"]
 [ext_resource type="Script" path="res://scripts/world/ZoneCoordinator.gd" id="9_coord"]
 [ext_resource type="PackedScene" uid="uid://zone_anchor_3d" path="res://scenes/world/ZoneAnchor3D.tscn" id="10_prefab"]
 [ext_resource type="Script" path="res://scripts/world/WorldInitializer.gd" id="11_init"]
 [ext_resource type="PackedScene" uid="uid://ui_coordinator" path="res://scenes/ui/UICoordinator.tscn" id="12"]
+[ext_resource type="Script" path="res://scripts/world/NPCCoordinator.gd" id="13_npc_coord"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_world"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -36,9 +37,6 @@ shadow_enabled = true
 [node name="Player" parent="." unique_id=1715495869 instance=ExtResource("7")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.66805, 78.06772, 36.80931)
 
-[node name="NpcPeasant" parent="." unique_id=209300508 instance=ExtResource("8")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 79.12944, 12)
-patrol_points = Array[Vector3]([Vector3(5, 1, 5), Vector3(15, 1, 5), Vector3(15, 1, 15), Vector3(5, 1, 15)])
 
 [node name="UICoordinator" parent="." unique_id=1767430632 instance=ExtResource("12")]
 
@@ -48,6 +46,13 @@ zone_prefab = ExtResource("10_prefab")
 container_path = NodePath("../ZoneContainer")
 
 [node name="ZoneContainer" type="Node3D" parent="."]
+
+[node name="NPCCoordinator" type="Node" parent="."]
+script = ExtResource("13_npc_coord")
+npc_prefab = ExtResource("8")
+container_path = NodePath("../NPCContainer")
+
+[node name="NPCContainer" type="Node3D" parent="."]
 
 [node name="WorldInitializer" type="Node" parent="."]
 script = ExtResource("11_init")

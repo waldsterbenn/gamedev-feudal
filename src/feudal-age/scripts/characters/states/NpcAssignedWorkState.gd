@@ -25,7 +25,7 @@ func exit() -> void:
 	pass
 
 func physics_update(delta: float) -> void:
-	var npc: NpcPeasant = owner as NpcPeasant
+	var npc: NPC = owner as NPC
 	if not npc:
 		return
 

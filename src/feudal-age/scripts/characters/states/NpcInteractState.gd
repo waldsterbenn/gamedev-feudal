@@ -10,7 +10,7 @@ var _timer: float = 0.0
 
 func enter(_data: Dictionary = {}) -> void:
 	_timer = interact_duration
-	var npc: NpcPeasant = owner as NpcPeasant
+	var npc: NPC = owner as NPC
 	if npc:
 		npc.velocity = Vector3.ZERO
 		if npc.visuals:
@@ -23,6 +23,6 @@ func update(delta: float) -> void:
 		state_machine.change_state_by_path("Idle")
 
 func physics_update(_delta: float) -> void:
-	var npc: NpcPeasant = owner as NpcPeasant
+	var npc: NPC = owner as NPC
 	if npc:
 		npc.velocity = Vector3.ZERO
