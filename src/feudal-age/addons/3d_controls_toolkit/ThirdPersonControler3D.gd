@@ -9,6 +9,7 @@ class_name ThirdPersonControler3D
 @export var Spring_Length : float = 4
 @export var Start_Angle : float = -20
 @export var Horizontal_Offset : float = 0.4
+@export var Vertical_Offset : float = -1.0 # If -1.0, dynamically calculated as 60% of character height
 @export var Vertical_Look_At_Offset : float = 0
 @export var Custom_Camera : Camera3D
 @export_range(1, 360) var Max_Camera_Angle : int = 90
@@ -22,6 +23,19 @@ func _ready() -> void:
 	add_child(pivot)
 	pivot.global_rotation.x = deg_to_rad(Start_Angle)
 	pivot.position.x = Horizontal_Offset
+	
+	# Determine character height for attachment point (defaulting to 2.0 if not found)
+	var char_height = 2.0
+	if _parent:
+		for child in _parent.get_children():
+			if child is CollisionShape3D and child.shape is CapsuleShape3D:
+				char_height = child.shape.height
+				break
+	if Vertical_Offset < 0:
+		pivot.position.y = char_height * 0.6
+	else:
+		pivot.position.y = Vertical_Offset
+
 	pivot.add_excluded_object(_parent)
 	if Custom_Camera:
 		camera = Custom_Camera
@@ -80,6 +94,17 @@ func _process(delta: float) -> void:
 		_velocity.z = move_toward(_velocity.z, 0, Deacceleration * delta)
 		
 	move()
+	
+	if camera:
+		var terrain_service = ServiceLocator.get_terrain_service()
+		if terrain_service:
+			var cam_pos = camera.global_position
+			var terrain_height = terrain_service.get_height(cam_pos)
+			if not is_nan(terrain_height):
+				var min_y = terrain_height + 0.5
+				if cam_pos.y < min_y:
+					cam_pos.y = min_y
+					camera.global_position = cam_pos
 
 func update():
 	pivot.spring_length = Spring_Length	
