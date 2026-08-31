@@ -12,7 +12,7 @@ metadata:
 tags:
   - godot
   - plugin
-  - feudal-game
+  - feudal-age
 ---
 
 ## 2. Humanizer

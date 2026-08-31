@@ -8,7 +8,7 @@ metadata:
 tags:
   - godot
   - plugin
-  - feudal-game
+  - feudal-age
 ---
 
 ## 5. AmbientCG & Polyhaven
