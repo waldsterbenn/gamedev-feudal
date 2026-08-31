@@ -12,7 +12,7 @@ metadata:
 tags:
   - godot
   - plugin
-  - feudal-game
+  - feudal-age
 ---
 
 ## 4. HTerrain (Heightmap Terrain Plugin) [LEGACY]

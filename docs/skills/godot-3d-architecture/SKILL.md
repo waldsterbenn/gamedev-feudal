@@ -12,7 +12,7 @@ tags:
   - 3d
   - architecture
   - project-structure
-  - feudal-game
+  - feudal-age
 ---
 
 # Godot 3D Project Architecture - Deep Research

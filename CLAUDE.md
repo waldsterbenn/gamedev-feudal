@@ -29,7 +29,7 @@ Read the AGENTS.md for instructions.
 - **Check Debug Output**: Use the Godot MCP tool to view console errors and stack traces:
   `get_debug_output`
 - **Headless Verification**: Run a headless check to verify project integrity:
-  `godot --path ./src/feudal-game/ --headless --quit`
+  `godot --path ./src/feudal-age/ --headless --quit`
 - **Project Info**: Retrieve metadata using `get_project_info`.
 
 ## Coding Standards
@@ -43,4 +43,4 @@ Read the AGENTS.md for instructions.
     - Use `NavigationAgent3D` for AI pathfinding.
 - **Asset Management**:
     - Keep raw 3rd-party assets in a read-only `/assets/original/` directory.
-    - Copy necessary assets to `src/feudal-game/assets/` for modification and version control.
+    - Copy necessary assets to `src/feudal-age/assets/` for modification and version control.
