@@ -1,3 +1,7 @@
+# ============================================================================
+# LEGACY CODE — outside the Management module and Terrain generator.
+# Retained for now; scheduled for refactor or removal. Do not extend.
+# ============================================================================
 class_name InteractableComponent
 extends Area3D
 
@@ -10,7 +14,7 @@ signal unfocused(interactor: Node3D)
 
 func interact(interactor: Node3D) -> void:
 	interacted.emit(interactor)
-	EventBus.message_logged.emit("Interacted with: " + interaction_name, "info")
+	EventBus.ui.message_logged.emit("Interacted with: " + interaction_name, "info")
 
 func focus(interactor: Node3D) -> void:
 	focused.emit(interactor)

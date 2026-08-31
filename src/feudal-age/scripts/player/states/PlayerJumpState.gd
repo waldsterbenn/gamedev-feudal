@@ -1,3 +1,7 @@
+# ============================================================================
+# LEGACY CODE — outside the Management module and Terrain generator.
+# Retained for now; scheduled for refactor or removal. Do not extend.
+# ============================================================================
 extends PlayerStateBase
 
 func enter(_data: Dictionary = {}) -> void:

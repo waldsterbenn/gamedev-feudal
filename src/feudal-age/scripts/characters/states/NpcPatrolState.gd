@@ -1,3 +1,7 @@
+# ============================================================================
+# LEGACY CODE — outside the Management module and Terrain generator.
+# Retained for now; scheduled for refactor or removal. Do not extend.
+# ============================================================================
 extends StateNode
 
 @export var move_speed: float = 2.0
@@ -7,7 +11,7 @@ var _current_waypoint_idx: int = 0
 var _target_position: Vector3 = Vector3.ZERO
 
 func enter(_data: Dictionary = {}) -> void:
-	var npc: NpcPeasant = owner as NpcPeasant
+	var npc: NPC = owner as NPC
 	if not npc:
 		state_machine.change_state_by_path("Idle")
 		return
@@ -20,7 +24,7 @@ func enter(_data: Dictionary = {}) -> void:
 	_target_position = points[_current_waypoint_idx]
 
 func physics_update(_delta: float) -> void:
-	var npc: NpcPeasant = owner as NpcPeasant
+	var npc: NPC = owner as NPC
 	if not npc:
 		state_machine.change_state_by_path("Idle")
 		return
@@ -46,7 +50,7 @@ func physics_update(_delta: float) -> void:
 		npc.velocity.z = 0.0
 
 func _advance_waypoint() -> void:
-	var npc: NpcPeasant = owner as NpcPeasant
+	var npc: NPC = owner as NPC
 	if not npc:
 		return
 	var points: Array[Vector3] = npc.patrol_points

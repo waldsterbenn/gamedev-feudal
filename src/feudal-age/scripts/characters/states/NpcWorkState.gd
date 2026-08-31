@@ -1,3 +1,7 @@
+# ============================================================================
+# LEGACY CODE — outside the Management module and Terrain generator.
+# Retained for now; scheduled for refactor or removal. Do not extend.
+# ============================================================================
 extends StateNode
 
 @export var work_speed: float = 1.5
@@ -12,7 +16,7 @@ func enter(_data: Dictionary = {}) -> void:
 	_working = false
 
 func physics_update(delta: float) -> void:
-	var npc: NpcPeasant = owner as NpcPeasant
+	var npc: NPC = owner as NPC
 	if not npc: return
 	
 	if _working:
@@ -45,25 +49,17 @@ func physics_update(delta: float) -> void:
 		npc.velocity.z = 0.0
 
 func _pick_new_target() -> void:
-	var npc: NpcPeasant = owner as NpcPeasant
+	var npc: NPC = owner as NPC
 	if not npc: return
 	
-	if npc.current_fief:
-		# Pick random point in fief radius
-		var radius: float = 15.0 # Slightly smaller than Fief collision
-		var angle: float = randf() * PI * 2
-		var dist: float = randf() * radius
-		var offset: Vector3 = Vector3(cos(angle) * dist, 0, sin(angle) * dist)
-		_target_position = npc.current_fief.global_position + offset
-	else:
-		# Just wander if no fief
-		var offset: Vector3 = Vector3(randf_range(-10, 10), 0, randf_range(-10, 10))
-		_target_position = npc.global_position + offset
+	# Wander around the peasant's current position
+	var offset: Vector3 = Vector3(randf_range(-10, 10), 0, randf_range(-10, 10))
+	_target_position = npc.global_position + offset
 
 func _start_working() -> void:
 	_working = true
 	_work_timer = randf_range(5.0, 10.0)
-	var npc: NpcPeasant = owner as NpcPeasant
+	var npc: NPC = owner as NPC
 	if npc and npc.visuals:
 		npc.visuals.play_animation("Take 001") # Placeholder for work anim
 	npc.velocity = Vector3.ZERO

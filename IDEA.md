@@ -1,1 +1,1 @@
-Game Development project. Feudal Age is a 3d managment game set in medieval europe. Made with Godot engine.
+This is a gamer dev project made in the godot engine. its an open world, 3D, management game set in medival europe.

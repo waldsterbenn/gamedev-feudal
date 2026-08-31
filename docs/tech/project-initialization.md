@@ -1,4 +1,4 @@
-# Feudal Age — Project Initialization
+# Feudal Age — Project Initialization (Depricated)
 
 **Type**: Technical Setup  
 **Date**: 2026-04-30  

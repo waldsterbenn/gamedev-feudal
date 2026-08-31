@@ -1,3 +1,7 @@
+# ============================================================================
+# LEGACY CODE — outside the Management module and Terrain generator.
+# Retained for now; scheduled for refactor or removal. Do not extend.
+# ============================================================================
 extends CharacterBody3D
 
 signal health_changed(current_health: float, max_health: float)
@@ -9,7 +13,8 @@ signal health_changed(current_health: float, max_health: float)
 func _ready() -> void:
 	if health_component:
 		health_component.health_changed.connect(_on_health_changed)
-	EventBus.message_logged.emit("Player initialized", "info")
+	# Emit player initialization log via EventBus
+	EventBus.ui.message_logged.emit("Player initialized", "info")
 
 func _physics_process(_delta: float) -> void:
 	move_and_slide()

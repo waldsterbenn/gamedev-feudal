@@ -42,6 +42,8 @@ gamedev-feudal/
 4. **Set art direction** -- Populate `docs/art/mood-board-reference.md` before any art is made
 5. **Follow conventions** -- Read `docs/project/asset-naming-conventions.md` before adding files
 6. **Plan playtests** -- Follow `docs/qa/playtest-framework.md` from the first playable build
+7. **Module workflow** -- Follow `docs/project/module-workflow-and-docs.md` when adding a new simulation module (design → domain → technical design → Godot implementation → docs)
+8. **Where docs go** -- Read `docs/project/documentation-conventions.md` before creating any new document (design/ vs project/, and the `docs/plans/` folder for implementation plans)
 
 ## LLM Wiki
 
@@ -66,3 +68,4 @@ The LLM reads from `docs/` and `wiki/raw/`, synthesizes knowledge, maintains cro
 - Status tags: `Draft` / `In Review` / `Approved` / `Archived`
 - Tables use pipe syntax with header separators
 - All decisions go through the ADR process in `design-decisions.md`
+- **Document location** -- See `docs/project/documentation-conventions.md`: `design/` holds concrete-system specs, `project/` holds high-level/process docs, and `docs/plans/` holds implementation plans (incl. AI-formulated ones)
