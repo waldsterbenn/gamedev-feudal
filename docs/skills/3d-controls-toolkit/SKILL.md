@@ -76,5 +76,5 @@ tags:
    **Insufficient Information:**
    - No detailed API documentation available
    - Limited code examples in repository
-   - Unknown compatibility with Godot 4.6+
+   - Compatibility verified under Godot 4.7 (integrated at `src/feudal-age/addons/3d_controls_toolkit/`)
    - No clear licensing information

@@ -1,5 +1,7 @@
 # Godot 4.6 Best Practices Research Summary
 
+> **Status:** Researched against **Godot 4.6** — project baseline is now **Godot 4.7.x** (ADR-004, 2026-09-02). Keep as a conservative reference; verify APIs against 4.7 before relying on details.
+
 ## Research Overview
 
 This research was conducted to provide a comprehensive guide on best practices for game development using Godot 4.6. The research was conducted in parallel across three main areas:

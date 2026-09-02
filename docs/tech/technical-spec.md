@@ -6,7 +6,7 @@
 
 ## Engine & Technology
 
-- **Engine:** Godot 4.6
+- **Engine:** Godot 4.7 (4.7.2 — baseline per ADR-004)
 - **Language:** GDScript (primary)
 - **Version Control:** Git
 - **Asset Pipeline:** Godot import pipeline (textures, models, audio imported via the editor)

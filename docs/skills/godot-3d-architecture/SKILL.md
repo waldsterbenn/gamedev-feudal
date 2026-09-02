@@ -728,10 +728,10 @@ The following research reports in `docs/research/` provide additional context an
 
 - **feudal-games-report.md** — Overview of feudal game genres, mechanics, and design patterns
 - **feudal-system.md** — Feudal system design (economy, hierarchy, progression)
-- **godot-4.6-best-practices-comprehensive-report.md** — Comprehensive best practices for Godot 4.6 development
-- **godot-4.6-plugins-assets-libraries-report.md** — Plugin stack, asset libraries, and recommended tools
-- **godot-4.6-quick-reference-guide.md** — Quick reference for common Godot 4.6 patterns
-- **godot-4.6-research-summary.md** — Summary of Godot 4.6 research findings
+- **godot-4.6-best-practices-comprehensive-report.md** — Comprehensive best practices for Godot 4.6 development *(4.6-era research; baseline is 4.7 per ADR-004)*
+- **godot-4.6-plugins-assets-libraries-report.md** — Plugin stack, asset libraries, and recommended tools *(4.6-era research; baseline is 4.7 per ADR-004)*
+- **godot-4.6-quick-reference-guide.md** — Quick reference for common Godot 4.6 patterns *(4.6-era research; baseline is 4.7 per ADR-004)*
+- **godot-4.6-research-summary.md** — Summary of Godot 4.6 research findings *(4.6-era research; baseline is 4.7 per ADR-004)*
 - **plugin-deep-research.md** — Deep research on specific plugins (3D Controls Toolkit, HTerrain, Beehave, etc.)
 
 **Note**: When planning new systems, consult the relevant research report(s) above in addition to this skill.

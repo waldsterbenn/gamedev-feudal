@@ -1,5 +1,7 @@
 # GODOT 4.6 PLUGINS, ASSETS, AND LIBRARIES RESEARCH REPORT
 
+> **Status:** Researched against **Godot 4.6** — project baseline is now **Godot 4.7.x** (ADR-004, 2026-09-02). Keep as a conservative reference; verify compatibility against 4.7 before relying on details.
+
 ## Executive Summary
 
 Based on comprehensive research of Godot Engine's official platforms, community forums, and third-party marketplaces, this report identifies the highest-regarded free plugins, assets, and libraries for Godot 4.6. The findings prioritize community acclaim, usage statistics, and practical value for game development.
