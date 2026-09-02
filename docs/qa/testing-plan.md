@@ -6,9 +6,26 @@
 
 ## Testing Strategy
 
+### Slice Smoke & Headless Gate (authoritative, implemented 2026-09-02)
+
+The two-stage headless gate from [Wayfinder #55/#57](https://github.com/waldsterbenn/gamedev-feudal/issues/55) is the project's verification backbone. Run from the repo root:
+
+```bash
+# Stage 1 — cache warm + integrity (must exit 0):
+godot --path src/feudal-age --headless --editor --quit   # one-time per session (cold class_name parse)
+godot --path src/feudal-age --headless --quit
+
+# Stage 2 — slice smoke (must print "SMOKE: PASS", exit 0):
+godot --path src/feudal-age --headless --script res://tests/smoke_slice.gd
+```
+
+The smoke boots `GameCoordinator.tscn` headless, establishes a camp at zone 1 (Ironwood Hollow), assigns the woodcutter via `ManagementAPI`, runs 3 daily ticks, and asserts real `FiefStateResource` mutation (`Timber > 0`, optional `canopy_density` drop). Repro/instrumentation scripts live beside it in `src/feudal-age/tests/` (`debug_populants.gd`, `debug_step.gd`, `debug_invest_*.gd`).
+
+Gotchas (see map #45 Notes): in `--script` SceneTree mode, load scenes in `_process()`, never `_init()` — autoload globals are not yet script identifiers; fetch autoloads via `root.get_node("ServiceLocator")`.
+
 ### Unit Testing
-- **Framework:**
-- **Coverage Target:**
+- **Framework:** GUT/gdUnit4 deferred until ≥5 real units exist (decision in #55).
+- **Coverage Target:** —
 
 ### Integration Testing
 - **Systems to Integration Test:**
