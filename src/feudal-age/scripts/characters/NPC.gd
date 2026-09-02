@@ -23,11 +23,17 @@ func _ready() -> void:
 	if not management_comp:
 		management_comp = ManagementPopulantComponent.new()
 		management_comp.name = "ManagementPopulantComponent"
+		# ID must be set BEFORE add_child(): the component's _ready() fires
+		# synchronously here and registers with ManagementAPI under this key.
+		management_comp.character_id = id if id != -1 else name.hash()
 		add_child(management_comp)
 
-	# Align IDs: Preserve Coordinator-assigned ID if available, else fall back to name.hash()
+	# Align IDs for scene-defined components (preserve Coordinator-assigned ID).
+	# The component re-keys its own registration if the ID changes after _ready().
 	if management_comp.character_id <= 0:
+		var old_id: int = management_comp.character_id
 		management_comp.character_id = id if id != -1 else name.hash()
+		management_comp.notify_character_id_changed(old_id)
 
 	if interactable_component:
 		interactable_component.interacted.connect(_on_interacted)
