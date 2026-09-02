@@ -7,7 +7,7 @@ This document governs all development for the gamedev-feudal project. All agents
 
 
 ### 1. Plugins & Assets (Recommended Stack)
-The following tools are recommended for high-quality project development. While these are currently our standard, teams may select alternative plugins for specific slice requirements, provided they are documented.
+The following tools are recommended for high-quality project development. While these are currently our standard, teams may select alternative plugins for specific feature requirements, provided they are documented.
 
 *   [**3D Controls Toolkit**](https://github.com/CiaNCI-Studio/3D-Controls-Toolkit) (by Cianci): Tools for enhanced camera manipulation and user interaction in 3D.
 *   [**Humanizer**](https://github.com/NitroxNova/humanizer/wiki): Plugin for procedural character animation and animation retargeting.
@@ -164,21 +164,23 @@ Maintain the standardized following layout:
 
 ---
 
-### 6. Development Workflow for Slices & Iteration
-To iterate on new features, bug fixes, or experimental content without disrupting the main codebase, follow these rules for working with "vertical slices":
+### 6. Development Workflow (Trunk-Based)
 
-*   **Slice Directory**: All experimental or feature-specific work belongs in `src/slice_<feature_name>/`.
-*   **Decoupling**: Slices should be self-contained in their functionality. Avoid hard-linking dependencies from the main `src/feudal-age/` source unless absolutely required. 
-*   **Modifying project.godot**: If a slice introduces a new main scene or requires specific engine configurations, document these changes in the slice's own README. Avoid overriding the master `project.godot` file in the root directory.
+The project uses **trunk-based development** (ADR-003): all code lives in `src/feudal-age/` and `master` is the trunk. There are no `src/slice_*` experiment directories — the slice workflow was retired 2026-09-02.
+
+*   **Working Directly**: All feature and experiment work happens directly in `src/feudal-age/`.
+*   **Branches**: Work on a short-lived feature branch (e.g. `feat/<name>`); never push directly to `master`.
+*   **Merge**: Open a PR to master; master must always pass the two-stage headless gate:
+    1. `godot --path src/feudal-age --headless --editor --quit` (warm the global class cache)
+    2. `godot --path src/feudal-age --headless --quit` (integrity check, must exit 0)
 
 *   **Asset Management (The Original Master Policy)**:
     *   **Keep a Master Source**: Never modify assets directly in the original download folder. Store all raw 3rd-party asset packs in a read-only `/assets/original/` directory.
     *   **Working Copy**: When an asset is required, copy the necessary files into `src/feudal-age/assets/`. Modify these copies to fit the game's requirements.
     *   **Reasoning**: This keeps the Godot project self-contained and version-controlled, while preserving the original source files in `/assets/original/` for easy referencing, diffing, or manual merging if the original author releases an update.
 
-*   **UID Management**: When copying scenes from the main project into a slice, ensure all script and resource UIDs are updated to match the new local file paths to prevent "broken" file states.
-*   **Merge Policy**: Once a feature in a slice is stable, migrate the tested modules, scenes, and scripts into `src/feudal-age/`. Delete the slice folder after migration.
-*   **No Nested .git**: Ensure slices do not contain internal `.git` directories or submodules, as this breaks parent repo gitlink references.
+*   **UID Management**: When moving scenes between directories, ensure all script and resource UIDs are updated to match the new local file paths to prevent "broken" file states.
+*   **No Nested .git**: Do not create internal `.git` directories or submodules anywhere in `src/`, as this breaks parent repo gitlink references.
 
 *   **Core Systems**: Design must reflect the tension between "Demesne" (direct management) and "Vassal" (indirect management).
 *   **Hierarchy Simulation**: Implement the "Three Estates" model (Those who pray, Those who fight, Those who work) as the logical basis for NPC behaviors and AI decision-making.

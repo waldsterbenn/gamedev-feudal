@@ -17,6 +17,10 @@ The project follows strict architectural mandates for maintainability and perfor
     - Avoid expensive operations in `_process()`.
     - Implement **Object Pooling** for frequent entities like projectiles or enemies.
 
+## Development Workflow
+
+The project uses **trunk-based development** (see ADR-003 in `docs/project/design-decisions.md`): all code lives in `src/feudal-age/` and `master` is the trunk. Work on a short-lived feature branch and merge to master via pull request — never push directly to master. Master must always pass the two-stage headless gate (cache-warm + `--headless --quit`). The legacy `src/slice_*` experiment-directory workflow is retired.
+
 ## Development Commands
 
 Read `src/AGENTS.md` for the technical agent's operational instructions (MCP workflow, plugin stack, asset policy).

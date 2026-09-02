@@ -27,7 +27,7 @@ You must follow these rules without exception. If a task conflicts with these, p
 - Orientation: Godot Y-Up. Verify import scales match.
 
 ## 2. RECOMMENDED PLUGIN STACK
-The following tools are recommended for high-quality development. While these are our standard, you may select alternative plugins for specific slice requirements, provided they are documented:
+The following tools are recommended for high-quality development. While these are our standard, you may select alternative plugins for specific feature requirements, provided they are documented:
 
 - **Plugin: 3D Controls Toolkit (by Cianci)**: Camera manipulation and user interaction.
 - **Tool: Humanizer (Plugin)**: Procedural character animation and retargeting.
@@ -44,14 +44,12 @@ The following tools are recommended for high-quality development. While these ar
 Follow this exact loop for all tasks using your available Godot MCP tools:
 
 1. **Prep**: Call `get_project_info` to verify scene context.
-2. **Execution**:
-   - For **new features/experiments**: Work in a new `src/slice_<feature_name>/` directory.
-   - For **routine maintenance/fixes**: Work directly in the relevant `src/feudal-age/` files.
+2. **Execution**: All code lives in `src/feudal-age/` on master (trunk-based development, ADR-003). For features/experiments, work directly in `src/feudal-age/` on a short-lived feature branch — never in `src/slice_*` directories (retired 2026-09-02).
 3. **Validation**:
    - Execute: Call `run_project` for your current active path.
    - Analyze: Fetch logs immediately via `get_debug_output`.
    - Headless Test: Run `godot --path ./src/feudal-age/ --headless --quit` before committing. If exit code != 0, capture logs and fix immediately.
-4. **Integration**: If working in a slice, migrate validated code to `src/feudal-age/`.
+4. **Merge**: Merge validated code to `master` via a pull request. Master must always pass the two-stage headless gate (see §6 of `developer-instruction.md`).
 5. **Tool Preference**: Always prefer using an available Godot MCP tool (e.g., `add_node`, `create_scene`, `load_sprite`) for administrative or structural tasks over manual file manipulation or writing custom scripts. Only use custom code/scripts when specific functional logic cannot be handled by the MCP toolset.
 
 ## 4. ASSET INTEGRITY POLICY (Original Master Policy)
