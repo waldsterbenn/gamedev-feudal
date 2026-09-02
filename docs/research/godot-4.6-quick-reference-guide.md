@@ -1,4 +1,6 @@
 # Godot 4.6 Quick Reference Guide
+
+> **Status:** Researched against **Godot 4.6** — project baseline is now **Godot 4.7.x** (ADR-004, 2026-09-02). Keep as a conservative reference; verify APIs against 4.7 before relying on details.
 ## Best Practices and Patterns
 
 ### Core Concepts

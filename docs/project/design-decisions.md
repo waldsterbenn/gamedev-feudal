@@ -43,7 +43,7 @@ When the team makes a decision (chooses Godot over Unity, picks a camera perspec
 ### ADR-001: Use Godot 4.6 as the Game Engine
 
 - **Date:** 2026-04-05
-- **Status:** Accepted
+- **Status:** Superseded by ADR-004 (engine baseline moved to Godot 4.7, 2026-09-02)
 - **Category:** Engine
 
 **Context:** Need a game engine for a feudal-themed game. Team includes first-time developers. Requirements: free/open source, gentle learning curve, good 2D support, no licensing complications.
@@ -113,6 +113,30 @@ When the team makes a decision (chooses Godot over Unity, picks a camera perspec
 
 **References:**
 - Wayfinder map [#45](https://github.com/waldsterbenn/gamedev-feudal/issues/45) and ticket "Trunk-based workflow — retire slice dirs/branches, update agent docs"
+
+---
+
+### ADR-004: Godot 4.7 as the Engine Baseline
+
+- **Date:** 2026-09-02
+- **Status:** Accepted
+- **Category:** Engine
+
+**Context:** ADR-001 chose Godot 4.6 and the project was set up on 4.6.2, but the toolchain has since moved to **Godot 4.7.2** (installed, running). The 4.7 editor rewrites `config/features` to `"4.7"` on every save and its FBX importer adds new mesh options (observed as a one-time `.import` regeneration), so the committed metadata and documentation — which still said 4.6 — no longer matched the engine actually in use.
+
+**Decision:** The engine baseline is **Godot 4.7.x** (installed: 4.7.2). `project.godot` declares features `"4.7"`; all live documentation states Godot 4.7; 4.6-era research documents are kept as historical reference with staleness banners rather than re-run.
+
+**Consequences:**
+- Import metadata and the feature flag now match the running engine — no more editor-driven churn.
+- Plugin compatibility is judged against 4.7 (3D Controls Toolkit and Terrain3D verified running in-tree).
+- Future research, skill compatibility notes, and setup docs target 4.7.
+
+**Alternatives Considered:**
+- Stay on 4.6 — rejected: the project already runs 4.7.2 and the editor keeps bumping the feature flag; fighting the toolchain is churn without benefit.
+- Re-run all 4.6-era research — rejected: the research is API-conservative and mostly valid; flagging it as historical is cheaper and honest.
+
+**References:**
+- ADR-001 (superseded), PR [#59](https://github.com/waldsterbenn/gamedev-feudal/pull/59), `docs/research/godot-4.6-*.md` (historical)
 
 ---
 

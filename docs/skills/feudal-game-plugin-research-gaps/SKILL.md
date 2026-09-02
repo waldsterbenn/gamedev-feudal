@@ -23,8 +23,8 @@ tags:
 |--------|--------------|------------|
 | **Terrain3D** | Listed as "next step to test" | **Integrated and active** in `src/feudal-age/addons/terrain_3d/`. Project migrated off HTerrain. See `skills/terrain3d/SKILL.md`. |
 | **HTerrain** | Advanced scripting API incomplete | **Removed as legacy.** No longer in the addon stack. Kept for reference only. |
-| **3D Controls Toolkit** | No API docs, licensing unclear, 4.6 compat unknown | **Integrated** in `src/feudal-age/addons/3d_controls_toolkit/` and used from `src/feudal-age/` (migrated out of the retired slice3 dir). Licensing verified at integration time (check `plugin.cfg` / upstream repo). |
-| **Godot 4.x version** | Research assumed "4.6" | Project actually runs on **Godot 4.7.stable**. All skill compatibility notes saying "4.6" are conservative-but-stale; treat 4.7 as the baseline. |
+| **3D Controls Toolkit** | No API docs, licensing unclear | **Integrated** in `src/feudal-age/addons/3d_controls_toolkit/` and used from `src/feudal-age/` (migrated out of the retired slice3 dir). Compatibility verified under Godot 4.7 (ADR-004). Licensing verified at integration time (check `plugin.cfg` / upstream repo). |
+| **Godot version** | Research assumed "4.6" | Baseline is **Godot 4.7.x** (ADR-004, 2026-09-02; installed 4.7.2). The "4.6" rows above are historical records — treat 4.7 as the baseline going forward. |
 
 ## Still Open / Genuinely Uncertain
 
@@ -38,7 +38,7 @@ tags:
 1. **Benchmark Terrain3D** under the project's 60 FPS / 256 MB target with realistic feudal-scene foliage counts.
 2. **Document the 3D Controls Toolkit migration path** actually used (slice3 → `src/feudal-age/`) so future camera work is reproducible.
 3. **Decide on Steering AI vs. NavigationAgent3D** explicitly; record the decision in an ADR (`docs/project/`).
-4. **Re-run plugin compatibility against Godot 4.7**, not 4.6, and update each skill's `compatibility:` line.
+4. ~~Re-run plugin compatibility against Godot 4.7, not 4.6, and update each skill's `compatibility:` line.~~ **Done 2026-09-02** — baseline is Godot 4.7 (ADR-004); 3D Controls Toolkit and Terrain3D verified running on 4.7.2 in-tree.
 
 ## Skill Development Priorities (current)
 

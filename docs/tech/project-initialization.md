@@ -4,13 +4,13 @@
 **Date**: 2026-04-30  
 **Author**: Hermes Agent  
 **Status**: Complete  
-**Engine**: Godot 4.6.2.stable
+**Engine**: Godot 4.7.2 (4.6.2 at original time of writing — see ADR-004)
 
 ---
 
 ## Overview
 
-This document covers the complete initialization of the **Feudal Age** Godot 4.6 3D project located at `src/feudal-age/`. The project serves as the main game target for all vertical slice experiments and eventual migration.
+This document covers the complete initialization of the **Feudal Age** Godot 3D project located at `src/feudal-age/`. The project is the single main game project (trunk-based development — see `developer-instruction.md` §6).
 
 ---
 
@@ -18,7 +18,7 @@ This document covers the complete initialization of the **Feudal Age** Godot 4.6
 
 | Decision | Value | Rationale |
 |----------|-------|-----------|
-| **Engine** | Godot 4.6.2 | Stable, enhanced 3D, native Jolt integration |
+| **Engine** | Godot 4.7.2 | Stable, enhanced 3D, native Jolt integration |
 | **Renderer** | `forward_plus` | Best quality for desktop, supports VoxelGI/SDFGI |
 | **Physics** | `JoltPhysics` | Superior 3D physics simulation |
 | **Physics Tick** | 120/sec | Smooth character collision and movement |
@@ -77,7 +77,7 @@ src/feudal-age/
 ```ini
 config_version=5
 config/name="Feudal Age"
-config/features=PackedStringArray("4.6")
+config/features=PackedStringArray("4.7")
 run/main_scene="res://scenes/main.tscn"
 ```
 
@@ -272,6 +272,6 @@ Each slice is developed in `src/slice_N/`, validated independently, then migrate
 
 - **AGENTS.md**: `src/AGENTS.md` — Architectural standards and operational workflow
 - **Godot 3D Architecture Research**: `docs/research/godot-3d-architecture-research.md`
-- **Godot 4.6 Best Practices**: `docs/research/godot-4.6-best-practices-comprehensive-report.md`
+- **Godot 4.6 Best Practices**: `docs/research/godot-4.6-best-practices-comprehensive-report.md` *(4.6-era research — baseline is 4.7, ADR-004)*
 - **Feudal Games Report**: `docs/research/feudal-games-report.md`
 - **Feudal System Research**: `docs/research/feudal-system.md`

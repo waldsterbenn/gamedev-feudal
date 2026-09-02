@@ -884,7 +884,7 @@
    5. **RTS Camera:** No standardized 3D solution, selection system needs custom implementation
 
    ### Recommended Further Investigation
-   1. **Test each plugin** in Godot 4.6 to verify compatibility
+   1. **Test each plugin** in Godot 4.7 to verify compatibility
    2. **Create example projects** for each plugin integration
    3. **Benchmark performance** with typical feudal game scenarios
    4. **Document migration paths** from Godot 3.x to 4.x for older plugins
