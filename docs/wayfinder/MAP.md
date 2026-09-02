@@ -1,7 +1,9 @@
 # Wayfinder Map — *Wilderness Fief* Runnable Vertical Slice
 
-> **Tracker:** local-markdown (no issue tracker is wired into this repo)
-> **Location:** `docs/wayfinder/MAP.md` (this file) + `docs/wayfinder/tickets/*.md`
+> **⚠️ SUPERSEDED (2026-09-02):** This file-based map has been migrated to the GitHub issue tracker. The canonical map is now [Wayfinder Map — Wilderness Fief Runnable Vertical Slice](https://github.com/waldsterbenn/gamedev-feudal/issues/45) (label `wayfinder:map`, waldsterbenn/gamedev-feudal). Tickets are GitHub issues #46–#55 with `wayfinder:<type>` labels and native issue dependencies for blocking; findings live as resolution comments on the closed tickets. This file and `docs/wayfinder/tickets/` + `docs/wayfinder/findings/` are kept as the historical record — do not edit them as a live map.
+>
+> **Tracker:** ~~local-markdown (no issue tracker is wired into this repo)~~ → GitHub issues
+> **Location:** `docs/wayfinder/MAP.md` (this file) + `docs/wayfinder/tickets/*.md` (historical only)
 > **Map convention:** Tickets are child markdown files of this map. Their filename is the ticket name (kebab-case). Status (`open` / `in-progress` / `closed` / `out-of-scope`) and `blocked-by` references live in each ticket's frontmatter. The frontier = open + unblocked + unclaimed tickets.
 
 ## Destination
