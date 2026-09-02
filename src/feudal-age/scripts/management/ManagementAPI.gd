@@ -17,6 +17,13 @@ func _enter_tree() -> void:
 func register_populant_component(comp: ManagementPopulantComponent) -> void:
 	_registered_populants[comp.character_id] = comp
 
+## Moves an existing registration to a new key after a late character_id change.
+func rekey_populant_registration(old_id: int, comp: ManagementPopulantComponent) -> void:
+	if old_id == comp.character_id:
+		return
+	_registered_populants.erase(old_id)
+	_registered_populants[comp.character_id] = comp
+
 func unregister_populant_component(character_id: int) -> void:
 	_registered_populants.erase(character_id)
 
