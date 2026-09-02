@@ -13,7 +13,7 @@ config_version=5
 config/name="Feudal Age"
 config/description="A feudal simulation game focused on vassal loyalty, land management, and emergent narrative."
 run/main_scene="res://scenes/gamecoordinator/GameCoordinator.tscn"
-config/features=PackedStringArray("4.6")
+config/features=PackedStringArray("4.7")
 config/icon="res://icon.svg"
 
 [autoload]
