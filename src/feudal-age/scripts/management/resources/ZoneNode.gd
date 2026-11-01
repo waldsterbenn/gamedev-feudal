@@ -6,12 +6,16 @@ signal building_ordered(node_id: int, building: BuildingInstance)
 signal populants_starving(node_id: int, starving_count: int)
 signal zone_famine(node_id: int, off_the_land_count: int)
 signal zone_famine_ended(node_id: int, food_stock: int)
+signal storage_discarded(node_id: int, amount: int)
 
-const TRICKLE_RATE: float = 0.35   # desperate forage: 35% of forager yield per resting resident (#92)
+const TRICKLE_RATE: float = 0.30   # desperate forage: 30% of forager yield per resting resident (#92)
+const FAMINE_DEBT_RATE: int = 2    # ration debt accrued per resident per famine day (#91 v4)
 const ORG_GEN_RATE: float = 10.0   # Camp Organization gained per day with a foreman (#92)
-const ORG_DRAIN_RATE: float = 10.0 # Camp Organization drained per famine day (#92)
+const ORG_IDLE_DECAY: float = 5.0  # Camp Organization decay per day WITHOUT a foreman (#91 v4)
+const ORG_FAMINE_DRAIN: float = 20.0 # Camp Organization drained per famine day (#91 v4, doubled)
 const ORG_MAX: float = 100.0
 const ORG_MAX_BONUS: float = 25.0  # resource bonus caps at +25% for now (#92)
+const FAMINE_EXIT_BUFFER: int = 3  # famine ends when banked food >= residents * this AND debt == 0 (#91 v4)
 
 enum SettlementTier { WILDERNESS, CAMP, FARM, MANOR, VILLAGE, TOWN }
 
@@ -32,11 +36,21 @@ enum SettlementTier { WILDERNESS, CAMP, FARM, MANOR, VILLAGE, TOWN }
 @export var stockpile: Dictionary = {}
 @export var allocated_construction_resources: Dictionary = {}
 @export var max_storage_capacity: int = 200
+## Headroom above stacked caps for famine-scavenge overflow (the trickle
+## deliberately bypasses per-resource caps so recovery can't deadlock on a
+## full pantry) — the audit tolerates this much before discarding.
+const CAP_AUDIT_HEADROOM: int = 40
 ## Starving residents from the most recent sustenance tick (UI reads; #85)
 var _last_starving_count: int = 0
 ## STICKY famine state (#92): true from the day residents go unfed until
 ## food >= 2x residents. Evaluated once per tick (end), never per stage.
 var famine_latched: bool = false
+## Ration debt ledger (#91 v3/v4): while famine-latched, the camp owes
+## FAMINE_DEBT_RATE (2) rations per resident per day. The off-the-land
+## trickle repays this debt FIRST; only the surplus banks into the
+## stockpile. Exit requires famine_deficit == 0 AND stock food >=
+## FAMINE_EXIT_BUFFER (3x) residents.
+var famine_deficit: int = 0
 ## Player toggle (#92): keep building through famine at half speed — the
 ## working builders stop foraging, so recovery stalls while they work.
 var work_through_famine: bool = false
@@ -114,18 +128,25 @@ func _update_famine_latch() -> void:
 		if residents > 0 and _last_starving_count > 0:
 			famine_latched = true
 			zone_famine.emit(node_id, residents)
-	elif food >= residents * 2:
+	# Exit (#91 v4): the ledger must be CLEAN — no ration debt — AND the
+	# camp must have banked the exit buffer (3x residents). Debt accrues
+	# at 2 rations/resident/day while latched, so the camp grinds from
+	# negative through zero into surplus.
+	elif famine_deficit <= 0 and food >= residents * FAMINE_EXIT_BUFFER:
 		famine_latched = false
 		zone_famine_ended.emit(node_id, food)
 
-## Camp Organization (#92): the foreman's output. +10/day while a foreman is
-## assigned; famine drains -10/day (chaos erodes organization). Production
-## bonus = min(org, 25)/100 — +25% resources max for now.
+## Camp Organization (#92/#91 v4): the foreman's output. +10/day while a
+## foreman is assigned; decays -5/day with NO foreman (neglect erodes it);
+## famine drains -20/day (chaos ravages it). Production bonus =
+## min(org, 25)/100 — +25% resources max for now.
 func _process_camp_organization() -> void:
 	if famine_latched:
-		camp_organization = maxf(0.0, camp_organization - ORG_DRAIN_RATE)
+		camp_organization = maxf(0.0, camp_organization - ORG_FAMINE_DRAIN)
 	elif _get_assigned_count("foreman") > 0:
 		camp_organization = minf(ORG_MAX, camp_organization + ORG_GEN_RATE)
+	else:
+		camp_organization = maxf(0.0, camp_organization - ORG_IDLE_DECAY)
 
 func _get_assigned_count(job_type: String) -> int:
 	if _assigned_workers_by_job.has(job_type):
@@ -238,13 +259,19 @@ func _construction_shortfall() -> int:
 	return shortfall
 
 ## Processes daily food consumption across all checked residents.
-## During famine (#92) consumption continues — residents eat whatever the
-## desperate trickle has banked; going hungry keeps the latch closed.
+## Famine ledger (#91 v3): off-the-land residents live off their own
+## foraging — the camp OWES a ration per resident per unfed day. The
+## deficit accrues daily while latched; the trickle repays it before
+## anything banks. Residents never eat the store during famine: the
+## store IS the recovery goal (2x residents banked).
 func _deduct_sustenance_inventories() -> void:
 	var hungry_mouths: int = local_workers.size()
 	if hungry_mouths <= 0:
 		return
-		
+	if _is_famine():
+		famine_deficit += hungry_mouths * FAMINE_DEBT_RATE
+		_last_starving_count = 0  # famine toast already covers it — no daily spam
+		return
 	for food_type in DietPriorities.CONSUMPTION_ORDER:
 		if hungry_mouths <= 0:
 			break
@@ -256,6 +283,8 @@ func _deduct_sustenance_inventories() -> void:
 
 	if hungry_mouths > 0:
 		_last_starving_count = hungry_mouths
+		# The unfed day opens the ledger at the debt rate (#91 v4)
+		famine_deficit += hungry_mouths * FAMINE_DEBT_RATE
 		populants_starving.emit(node_id, hungry_mouths)
 	else:
 		_last_starving_count = 0
@@ -296,15 +325,44 @@ func _process_construction_progress() -> void:
 ## Handles raw material yields and coupled environmental degradation formulas
 func _execute_production_and_labor() -> void:
 	# Famine latch (#92): desperate forage trickle — the RESTING residents
-	# (off the land; work-through builders are excluded) scrape 35% of a
-	# forager's yield into the ZONE stockpile. They still eat from the stock
-	# in the consumption step, so the net climb is +0.4 food/resident/day —
-	# the crawl. Recovery exits when food >= 2x residents.
+	# (off the land; work-through builders are excluded) scrape 30% of a
+	# forager's yield into the ZONE stockpile, scaled by the anti-deadlock
+	# floor. They owe the camp's ration debt first. Recovery exits when the
+	# ledger is clean AND food >= 3x residents.
 	if _is_famine():
 		var resting: int = _get_assigned_count("off_the_land")
+		var residents_count: int = local_workers.size()
 		if resting > 0:
 			var trickle_berries: int = roundi(resting * 5 * fertilities.get("Berries", 0.0) * TRICKLE_RATE)
 			var trickle_mushrooms: int = roundi(resting * 3 * fertilities.get("Mushrooms", 0.0) * canopy_density * TRICKLE_RATE)
+			# Anti-deadlock floor (#91 v4): ONLY while the ledger is in
+			# deficit — with EVERYONE resting the gross then exceeds the
+			# daily accrual by `max(1, residents/4)`, so even a barren zone
+			# grinds back at a crawl (8-resident famine ~8 debt days + ~3
+			# bank days; 2-resident ~4+2). Each working builder drops the
+			# gross by FAMINE_DEBT_RATE: a small camp's recovery stalls or
+			# deepens under work-through. Once the debt is cleared the
+			# floor VANISHES — the organic trickle banks the pantry over
+			# several more days. The floor's extra rations materialize as
+			# scavenged berries so real items back every repayment.
+			var floor_target: int = 0
+			if famine_deficit > 0:
+				floor_target = resting * FAMINE_DEBT_RATE + maxi(1, residents_count / 4)
+			# NOTE: floor_extra and the trickle are deliberately NOT clamped
+			# to per-resource caps — clamping deadlocks recovery when the
+			# pantry is already full while the ledger is in deficit (nothing
+			# could ever be repaid/banked). The cap audit grants headroom
+			# above the stacked caps for exactly this scavenge overflow.
+			var floor_extra: int = maxi(0, floor_target - (trickle_berries + trickle_mushrooms))
+			trickle_berries += floor_extra
+			var gross: int = maxi(trickle_berries + trickle_mushrooms, floor_target)
+			var repay: int = mini(famine_deficit, gross)
+			famine_deficit -= repay
+			var to_remove: int = repay
+			var take_b: int = mini(trickle_berries, to_remove)
+			trickle_berries -= take_b
+			to_remove -= take_b
+			trickle_mushrooms = maxi(0, trickle_mushrooms - to_remove)
 			stockpile["Berries"] = stockpile.get("Berries", 0) + trickle_berries
 			stockpile["Mushrooms"] = stockpile.get("Mushrooms", 0) + trickle_mushrooms
 		return
@@ -359,22 +417,33 @@ func _cap_room(resource_name: String, caps: Dictionary) -> int:
 		return 999999
 	return max(0, caps[resource_name] - stockpile.get(resource_name, 0))
 
-## Audits storage stockpile and trims excess to stay below capacity limits
+## Audits storage stockpile and trims excess to stay below capacity limits.
+## The effective total capacity is the zone's OWN stacked caps (#85), not
+## the legacy fixed 200 — a fixed total silently discards produced goods
+## whenever stacked caps exceed it (live play: Timber "draining" with
+## nothing being built — the audit was deleting stock every tick, 59×).
+## Production clamps per-resource, so the audit is a safety net.
 func _enforce_storage_caps() -> void:
+	var caps: Dictionary = _zone_storage_caps()
+	var caps_total: int = 0
+	for resource_name in caps:
+		caps_total += int(caps[resource_name])
+	var effective_capacity: int = maxi(max_storage_capacity, caps_total + CAP_AUDIT_HEADROOM)
 	var total_items: int = 0
 	for resource in stockpile:
 		total_items += stockpile[resource]
-		
-	if total_items > max_storage_capacity:
-		var excess: int = total_items - max_storage_capacity
-		# TODO(event-system): surface this via the replacement for legacy EventBus.message_logged
-		push_warning("Node " + str(node_id) + " stockpile exceeded storage capacity! Discarding " + str(excess) + " excess items.")
-		
-		for resource in stockpile:
-			if excess <= 0:
-				break
-			var amount = stockpile[resource]
-			if amount > 0:
-				var discard = min(excess, amount)
-				stockpile[resource] -= discard
-				excess -= discard
+
+	if total_items > effective_capacity:
+		var excess: int = total_items - effective_capacity
+		storage_discarded.emit(node_id, excess)  # toast via API layer (ZoneNode stays signal-only)
+		# Fair discard: round-robin across resources, not first-key-first.
+		var discarded: bool = true
+		while excess > 0 and discarded:
+			discarded = false
+			for resource in stockpile:
+				if excess <= 0:
+					break
+				if stockpile[resource] > 0:
+					stockpile[resource] -= 1
+					excess -= 1
+					discarded = true

@@ -4,6 +4,9 @@ extends PanelContainer
 @onready var node_name_label: Label = %NodeNameLabel
 @onready var tier_label: Label = %TierLabel
 @onready var canopy_bar: ProgressBar = %CanopyBar
+@onready var org_bar: ProgressBar = %OrgBar
+@onready var famine_panel: PanelContainer = %FaminePanel
+@onready var off_land_label: Label = %OffLandLabel
 @onready var timber_label: Label = %TimberValueLabel
 @onready var berries_label: Label = %BerriesValueLabel
 @onready var mushrooms_label: Label = %MushroomsValueLabel
@@ -37,7 +40,11 @@ func _apply_key_hints() -> void:
 	post_forager_button.text = "🌿 Forager +1  (%s / Shift+%s)" % [bindings.get_display("post_forager"), bindings.get_display("post_forager")]
 	post_woodcutter_button.text = "🪵 Woodcutter +1  (%s / Shift+%s)" % [bindings.get_display("post_woodcutter"), bindings.get_display("post_woodcutter")]
 	post_foreman_button.text = "🎖 Foreman +1  (%s / Shift+%s)" % [bindings.get_display("post_foreman"), bindings.get_display("post_foreman")]
+	work_through_button.text = "⛏ Work through starvation: OFF  (%s)" % bindings.get_display("work_through")
+	_wt_key_hint = bindings.get_display("work_through")
 	close_button.text = "✕ Close  (%s)" % bindings.get_display("close_menu")
+
+var _wt_key_hint: String = "T"
 
 var _active_node_id: int = -1
 
@@ -84,6 +91,8 @@ func _refresh_display_metrics() -> void:
 	node_name_label.text = data["node_name"]
 	tier_label.text = data["tier_name"].capitalize()
 	canopy_bar.value = data["canopy"] * 100.0
+	# Camp Organization gauge (#91 v4): 0-100, mirrors the canopy bar
+	org_bar.value = data.get("camp_organization", 0)
 	# Per-resource stockpiling trend arrows (#92): ▲ building, ▼ draining
 	var trends: Dictionary = data.get("stock_trends", {})
 	timber_label.text = "%s 🪵 %d" % [_trend_arrow(trends, "Timber"), data["timber_stock"]]
@@ -108,22 +117,50 @@ func _refresh_display_metrics() -> void:
 		foreman_label.text = "🎖 Foreman %d/%d · Organization %d/100 → +%d%% resources" % [
 			jobs["foreman"]["assigned"], caps["foreman"], data.get("camp_organization", 0), data.get("org_bonus_pct", 0)]
 	else:
-		foreman_label.text = "🎖 Foreman %d/%d · grows Camp Organization (up to +25%% resources)" % [jobs["foreman"]["assigned"], caps["foreman"]]
-	# Famine state block (#92): status, crawl progress, escape options
+		foreman_label.text = "🎖 Foreman %d/%d · grows Organization +10/day (decays without one)" % [jobs["foreman"]["assigned"], caps["foreman"]]
+	# Famine state block (#92): status, crawl progress, escape options.
+	# The whole block lives in a FaminePanel box (readability, #91 v4) —
+	# the panel is the single visibility writer for the block; inner
+	# widgets toggle only their own extras.
 	var latched: bool = data.get("famine_latched", false)
+	# Famine rows (#91 v4.3): during famine ALL peasants live off the land,
+	# so the other category rows would just read 0 — hide them, show only
+	# the 🌾 row. The +1 post buttons stay (postings apply on recovery).
+	if latched:
+		woodcutter_label.get_parent().visible = false
+		forager_label.get_parent().visible = false
+		foreman_label.get_parent().visible = false
+		builder_label.visible = false
+	else:
+		builder_label.visible = true
 	var banked: int = data.get("famine_banked", 0)
 	var needed: int = data.get("famine_needed", 0)
+	var has_status: bool = latched or data.get("starving", 0) > 0
+	famine_panel.visible = has_status
+	starving_label.visible = has_status
+	# "Living off the land" is a worker category during famine (#91) —
+	# shown in the jobs list like woodcutter/forager/foreman, cap = all.
+	off_land_label.get_parent().visible = latched
+	if latched:
+		off_land_label.text = "🌾 Living off the land %d/%d" % [
+			data.get("famine", 0), data.get("worker_count", 0)]
+	famine_explain_label.visible = latched
 	work_through_button.visible = latched
 	work_through_desc_label.visible = latched
-	famine_explain_label.visible = latched
 	if latched:
-		starving_label.text = "🌾 FAMINE — %d living off the land, no food stores!" % data.get("famine", 0)
+		var deficit: int = data.get("famine_deficit", 0)
+		var position: int = banked - deficit
+		if deficit > 0:
+			starving_label.text = "🌾 FAMINE — %d living off the land · ration debt %d" % [data.get("famine", 0), deficit]
+		else:
+			starving_label.text = "🌾 FAMINE — %d living off the land, workplaces unmanned!" % data.get("famine", 0)
 		starving_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.3))
 		famine_explain_label.text = "Workplaces unmanned, construction paused (except work-through). " \
-			+ "Recovery: %d/%d rations banked — the camp escapes when food reaches %d. " % [banked, needed, needed] \
-			+ "Famine drains Camp Organization daily."
-		work_through_desc_label.text = "Cost: working builders forage nothing — food recovery stalls and the famine lasts longer. Benefit: construction crawls at half speed. Toggle off to crawl out fastest."
-		work_through_button.text = "⛏ Work through starvation: %s" % ("ON" if data.get("work_through_famine", false) else "OFF")
+			+ "The camp owes %d rations — foraging repays the debt first, then banks toward %d rations (%d/%d banked). " % [deficit, needed, position, needed] \
+			+ "Only a clean ledger + full pantry ends the famine. Camp Organization drains daily."
+		work_through_desc_label.text = "Cost: working builders forage almost nothing — each builder slows the ration-debt repayment by 2 rations/day, so recovery stalls (small camps) or crawls (large camps) while this is ON. Benefit: construction proceeds at half speed. Toggle OFF to let the camp grind out of debt fastest."
+		work_through_button.text = "⛏ Work through starvation: %s  (%s)" % [
+			"ON" if data.get("work_through_famine", false) else "OFF", _wt_key_hint]
 	elif data.get("starving", 0) > 0:
 		starving_label.text = "⚠ %d starving — assign foragers!" % data["starving"]
 		starving_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.3))
@@ -145,9 +182,14 @@ func _refresh_display_metrics() -> void:
 	var is_wilderness: bool = data["is_camp_creatable"]
 	establish_camp_button.visible = is_wilderness
 	build_button.visible = not is_wilderness
+	# Assignment disabled during famine (#91 v4.3): the API hard-gates it;
+	# buttons render greyed. Build/order stays allowed.
 	cycle_blueprint_button.visible = not is_wilderness
 	blueprint_selection_label.visible = not is_wilderness
 	post_forager_button.visible = not is_wilderness and caps["forager"] > 0
+	post_forager_button.disabled = latched
+	post_woodcutter_button.disabled = latched
+	post_foreman_button.disabled = latched
 	post_woodcutter_button.visible = not is_wilderness and caps["woodcutter"] > 0
 	post_foreman_button.visible = not is_wilderness and caps["foreman"] > 0
 

@@ -1,6 +1,25 @@
-[gd_scene load_steps=2 format=3 uid="uid://zone_inspection_menu"]
+[gd_scene load_steps=4 format=3 uid="uid://zone_inspection_menu"]
 
 [ext_resource type="Script" path="res://scripts/ui/zone_inspection_menu.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="SB_famine"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.14, 0.07, 0.05, 0.94)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.55, 0.2, 0.12, 1)
+
+[sub_resource type="SystemFont" id="SF_bold"]
+weight = 700
 
 [node name="ZoneInspectionMenu" type="PanelContainer"]
 anchors_preset = 0
@@ -50,6 +69,21 @@ custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 max_value = 100.0
 value = 80.0
+
+[node name="OrgSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="OrgTitleLabel" type="Label" parent="MarginContainer/VBoxContainer/OrgSection"]
+layout_mode = 2
+text = "Organization"
+theme_override_font_sizes/font_size = 12
+
+[node name="OrgBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/OrgSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+max_value = 100.0
+value = 0.0
 
 [node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -143,6 +177,16 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "🌿 Forager 0 assigned / 0 wanted"
 
+[node name="OffLandRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="OffLandLabel" type="Label" parent="MarginContainer/VBoxContainer/OffLandRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🌾 Living off the land 0/0"
+
 [node name="BuilderRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
@@ -161,25 +205,37 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "🎖 Foreman 0 assigned / 0 wanted"
 
-[node name="StarvingLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="FaminePanel" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_styles/panel = SubResource("SB_famine")
+
+[node name="FamineBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/FaminePanel"]
+layout_mode = 2
+
+[node name="StarvingLabel" type="Label" parent="MarginContainer/VBoxContainer/FaminePanel/FamineBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = SubResource("SF_bold")
+theme_override_font_sizes/font_size = 17
 text = ""
 
-[node name="FamineExplainLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="FamineExplainLabel" type="Label" parent="MarginContainer/VBoxContainer/FaminePanel/FamineBox"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 autowrap_mode = 2
 text = ""
 
-[node name="WorkThroughButton" type="Button" parent="MarginContainer/VBoxContainer"]
+[node name="WorkThroughButton" type="Button" parent="MarginContainer/VBoxContainer/FaminePanel/FamineBox"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "⛏ Work through starvation: OFF"
 
-[node name="WorkThroughDescLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="WorkThroughDescLabel" type="Label" parent="MarginContainer/VBoxContainer/FaminePanel/FamineBox"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 autowrap_mode = 2
 text = ""
 

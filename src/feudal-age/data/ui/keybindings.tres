@@ -15,5 +15,6 @@ bindings = {
 "post_forager": "F",
 "post_foreman": "M",
 "post_woodcutter": "G",
-"select_zone": "1-9"
+"select_zone": "1-9",
+"work_through": "T"
 }

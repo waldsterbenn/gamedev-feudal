@@ -21,10 +21,11 @@ func _ready() -> void:
 	contextual_hints.hints_changed.connect(_render_hints)
 	_render_hints()
 	# One-shot timer hides the toast a while after each message (slow fade
-	# per playtest feedback: 4 s was too quick to read action texts)
+	# per playtest feedback: 4 s was too quick to read action texts; 15 s
+	# after v4 playtest still felt rushed — Timer-driven, not tick-driven)
 	_message_clear_timer = Timer.new()
 	_message_clear_timer.one_shot = true
-	_message_clear_timer.wait_time = 10.0
+	_message_clear_timer.wait_time = 15.0
 	_message_clear_timer.timeout.connect(func(): hud_message.text = "")
 	add_child(_message_clear_timer)
 	change_ui_state(UIState.HUD_ONLY)
