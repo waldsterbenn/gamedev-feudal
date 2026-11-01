@@ -8,10 +8,13 @@ signal zone_famine(node_id: int, off_the_land_count: int)
 signal zone_famine_ended(node_id: int, food_stock: int)
 
 const TRICKLE_RATE: float = 0.30   # desperate forage: 30% of forager yield per resting resident (#92)
+const FAMINE_DEBT_RATE: int = 2    # ration debt accrued per resident per famine day (#91 v4)
 const ORG_GEN_RATE: float = 10.0   # Camp Organization gained per day with a foreman (#92)
-const ORG_DRAIN_RATE: float = 10.0 # Camp Organization drained per famine day (#92)
+const ORG_IDLE_DECAY: float = 5.0  # Camp Organization decay per day WITHOUT a foreman (#91 v4)
+const ORG_FAMINE_DRAIN: float = 20.0 # Camp Organization drained per famine day (#91 v4, doubled)
 const ORG_MAX: float = 100.0
 const ORG_MAX_BONUS: float = 25.0  # resource bonus caps at +25% for now (#92)
+const FAMINE_EXIT_BUFFER: int = 3  # famine ends when banked food >= residents * this AND debt == 0 (#91 v4)
 
 enum SettlementTier { WILDERNESS, CAMP, FARM, MANOR, VILLAGE, TOWN }
 
@@ -37,10 +40,11 @@ var _last_starving_count: int = 0
 ## STICKY famine state (#92): true from the day residents go unfed until
 ## food >= 2x residents. Evaluated once per tick (end), never per stage.
 var famine_latched: bool = false
-## Ration debt ledger (#91 v3): while famine-latched, the camp owes 1
-## ration per resident per day. The off-the-land trickle repays this debt
-## FIRST; only the surplus banks into the stockpile. Exit requires
-## famine_deficit == 0 AND stock food >= 2x residents.
+## Ration debt ledger (#91 v3/v4): while famine-latched, the camp owes
+## FAMINE_DEBT_RATE (2) rations per resident per day. The off-the-land
+## trickle repays this debt FIRST; only the surplus banks into the
+## stockpile. Exit requires famine_deficit == 0 AND stock food >=
+## FAMINE_EXIT_BUFFER (3x) residents.
 var famine_deficit: int = 0
 ## Player toggle (#92): keep building through famine at half speed — the
 ## working builders stop foraging, so recovery stalls while they work.
@@ -119,21 +123,25 @@ func _update_famine_latch() -> void:
 		if residents > 0 and _last_starving_count > 0:
 			famine_latched = true
 			zone_famine.emit(node_id, residents)
-	# Exit (#91 v3): the ledger must be CLEAN — no ration debt — AND the
-	# camp must have banked the 2x buffer. Debt grows daily while latched,
-	# so the camp grinds from negative through zero into surplus.
-	elif famine_deficit <= 0 and food >= residents * 2:
+	# Exit (#91 v4): the ledger must be CLEAN — no ration debt — AND the
+	# camp must have banked the exit buffer (3x residents). Debt accrues
+	# at 2 rations/resident/day while latched, so the camp grinds from
+	# negative through zero into surplus.
+	elif famine_deficit <= 0 and food >= residents * FAMINE_EXIT_BUFFER:
 		famine_latched = false
 		zone_famine_ended.emit(node_id, food)
 
-## Camp Organization (#92): the foreman's output. +10/day while a foreman is
-## assigned; famine drains -10/day (chaos erodes organization). Production
-## bonus = min(org, 25)/100 — +25% resources max for now.
+## Camp Organization (#92/#91 v4): the foreman's output. +10/day while a
+## foreman is assigned; decays -5/day with NO foreman (neglect erodes it);
+## famine drains -20/day (chaos ravages it). Production bonus =
+## min(org, 25)/100 — +25% resources max for now.
 func _process_camp_organization() -> void:
 	if famine_latched:
-		camp_organization = maxf(0.0, camp_organization - ORG_DRAIN_RATE)
+		camp_organization = maxf(0.0, camp_organization - ORG_FAMINE_DRAIN)
 	elif _get_assigned_count("foreman") > 0:
 		camp_organization = minf(ORG_MAX, camp_organization + ORG_GEN_RATE)
+	else:
+		camp_organization = maxf(0.0, camp_organization - ORG_IDLE_DECAY)
 
 func _get_assigned_count(job_type: String) -> int:
 	if _assigned_workers_by_job.has(job_type):
@@ -256,7 +264,7 @@ func _deduct_sustenance_inventories() -> void:
 	if hungry_mouths <= 0:
 		return
 	if _is_famine():
-		famine_deficit += hungry_mouths
+		famine_deficit += hungry_mouths * FAMINE_DEBT_RATE
 		_last_starving_count = 0  # famine toast already covers it — no daily spam
 		return
 	for food_type in DietPriorities.CONSUMPTION_ORDER:
@@ -270,7 +278,8 @@ func _deduct_sustenance_inventories() -> void:
 
 	if hungry_mouths > 0:
 		_last_starving_count = hungry_mouths
-		famine_deficit += hungry_mouths  # the unfed day opens the ledger (#91 v3)
+		# The unfed day opens the ledger at the debt rate (#91 v4)
+		famine_deficit += hungry_mouths * FAMINE_DEBT_RATE
 		populants_starving.emit(node_id, hungry_mouths)
 	else:
 		_last_starving_count = 0
@@ -311,24 +320,32 @@ func _process_construction_progress() -> void:
 ## Handles raw material yields and coupled environmental degradation formulas
 func _execute_production_and_labor() -> void:
 	# Famine latch (#92): desperate forage trickle — the RESTING residents
-	# (off the land; work-through builders are excluded) scrape 35% of a
-	# forager's yield into the ZONE stockpile. They still eat from the stock
-	# in the consumption step, so the net climb is +0.4 food/resident/day —
-	# the crawl. Recovery exits when food >= 2x residents.
+	# (off the land; work-through builders are excluded) scrape 30% of a
+	# forager's yield into the ZONE stockpile, scaled by the anti-deadlock
+	# floor. They owe the camp's ration debt first. Recovery exits when the
+	# ledger is clean AND food >= 3x residents.
 	if _is_famine():
 		var resting: int = _get_assigned_count("off_the_land")
+		var residents_count: int = local_workers.size()
 		if resting > 0:
 			var trickle_berries: int = roundi(resting * 5 * fertilities.get("Berries", 0.0) * TRICKLE_RATE)
 			var trickle_mushrooms: int = roundi(resting * 3 * fertilities.get("Mushrooms", 0.0) * canopy_density * TRICKLE_RATE)
-			# Anti-deadlock floor (#91 v3): a forager always scrapes at least
-			# 1 ration — with EVERYONE resting the ledger climbs >= +1/day, so
-			# even a barren zone can grind back to surplus. Each working
-			# builder drops the floor by 1: 1 builder stalls recovery, 2+
-			# deepen the debt. The floor's extra ration materializes as
-			# scavenged berries so real items back every repayment.
-			var floor_extra: int = maxi(0, (resting + 1) - (trickle_berries + trickle_mushrooms))
+			# Anti-deadlock floor (#91 v4): ONLY while the ledger is in
+			# deficit — with EVERYONE resting the gross then exceeds the
+			# daily accrual by `residents`, so even a barren zone grinds
+			# back at >= +residents/day (~6-day famine at any camp size).
+			# Each working builder drops the gross by FAMINE_DEBT_RATE: a
+			# small camp's recovery stalls under work-through. Once the
+			# debt is cleared the floor VANISHES — the organic trickle
+			# (~calc) banks the pantry over several more days.
+			# The floor's extra rations materialize as scavenged berries so
+			# real items back every repayment.
+			var floor_target: int = 0
+			if famine_deficit > 0:
+				floor_target = resting * FAMINE_DEBT_RATE + residents_count
+			var floor_extra: int = maxi(0, floor_target - (trickle_berries + trickle_mushrooms))
 			trickle_berries += floor_extra
-			var gross: int = maxi(trickle_berries + trickle_mushrooms, resting + 1)
+			var gross: int = maxi(trickle_berries + trickle_mushrooms, floor_target)
 			var repay: int = mini(famine_deficit, gross)
 			famine_deficit -= repay
 			var to_remove: int = repay

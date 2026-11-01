@@ -79,6 +79,24 @@ func _run_loop_setup() -> void:
 		return
 	_tent_started = true
 
+	# STEP 2b: recruit + assign the forager-qualified populant BEFORE the
+	# tent completes (#91 v4): completion AUTO-FILLS housing to capacity
+	# (4/4), and a later external assign would be refused. Housing cap is
+	# unenforced while capacity is 0, so this passes pre-completion.
+	var forager_id: int = -1
+	for char_id in api._registered_populants:
+		var comp: Node = api._registered_populants[char_id]
+		if comp.qualification_profile == "forager":
+			forager_id = char_id
+			break
+	if forager_id != -1:
+		api.recruit_populant_to_faction(forager_id, "player")
+		if not api.assign_populant_to_node(forager_id, ZONE_ID):
+			_fail("assign_populant_to_node(forager %d) returned false" % forager_id)
+			return
+	else:
+		print("SMOKE: WARNING — no forager populant registered; forager production will rely on manual slot fallback")
+
 	# STEP 3: construction first — no forager targets while the tent builds
 	# (player-controlled model #70: targeted workers keep their tasks, free
 	# workers build). Foragers are posted AFTER completion, like a player would.
@@ -115,20 +133,11 @@ func _run_loop_setup() -> void:
 		return
 	_forager_posted = true
 
-	# STEP 4: Ensure a forager worker exists and is assigned (recruit + assign)
-	var forager_id: int = -1
-	for char_id in api._registered_populants:
-		var comp: Node = api._registered_populants[char_id]
-		if comp.qualification_profile == "forager":
-			forager_id = char_id
-			break
-	if forager_id != -1:
-		api.recruit_populant_to_faction(forager_id, "player")
-		if not api.assign_populant_to_node(forager_id, ZONE_ID):
-			_fail("assign_populant_to_node(forager %d) returned false" % forager_id)
-			return
-	else:
-		print("SMOKE: WARNING — no forager populant registered; forager production will rely on manual slot fallback")
+	# STEP 4c: assert the tent AUTO-FILLED housing to capacity (2 residents
+	# + 1 recruited forager -> fill 1 bed -> 4/4) — #91 v4.
+	if zone.local_workers.size() != 4:
+		_fail("tent auto-fill: workers %d != 4 after tent completed" % zone.local_workers.size())
+		return
 
 	_berries_start = zone.stockpile.get("Berries", 0)
 	_mushrooms_start = zone.stockpile.get("Mushrooms", 0)

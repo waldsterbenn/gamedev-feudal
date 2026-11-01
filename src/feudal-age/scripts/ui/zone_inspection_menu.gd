@@ -4,6 +4,8 @@ extends PanelContainer
 @onready var node_name_label: Label = %NodeNameLabel
 @onready var tier_label: Label = %TierLabel
 @onready var canopy_bar: ProgressBar = %CanopyBar
+@onready var org_bar: ProgressBar = %OrgBar
+@onready var famine_panel: PanelContainer = %FaminePanel
 @onready var timber_label: Label = %TimberValueLabel
 @onready var berries_label: Label = %BerriesValueLabel
 @onready var mushrooms_label: Label = %MushroomsValueLabel
@@ -84,6 +86,8 @@ func _refresh_display_metrics() -> void:
 	node_name_label.text = data["node_name"]
 	tier_label.text = data["tier_name"].capitalize()
 	canopy_bar.value = data["canopy"] * 100.0
+	# Camp Organization gauge (#91 v4): 0-100, mirrors the canopy bar
+	org_bar.value = data.get("camp_organization", 0)
 	# Per-resource stockpiling trend arrows (#92): ▲ building, ▼ draining
 	var trends: Dictionary = data.get("stock_trends", {})
 	timber_label.text = "%s 🪵 %d" % [_trend_arrow(trends, "Timber"), data["timber_stock"]]
@@ -108,14 +112,20 @@ func _refresh_display_metrics() -> void:
 		foreman_label.text = "🎖 Foreman %d/%d · Organization %d/100 → +%d%% resources" % [
 			jobs["foreman"]["assigned"], caps["foreman"], data.get("camp_organization", 0), data.get("org_bonus_pct", 0)]
 	else:
-		foreman_label.text = "🎖 Foreman %d/%d · grows Camp Organization (up to +25%% resources)" % [jobs["foreman"]["assigned"], caps["foreman"]]
-	# Famine state block (#92): status, crawl progress, escape options
+		foreman_label.text = "🎖 Foreman %d/%d · grows Organization +10/day (decays without one)" % [jobs["foreman"]["assigned"], caps["foreman"]]
+	# Famine state block (#92): status, crawl progress, escape options.
+	# The whole block lives in a FaminePanel box (readability, #91 v4) —
+	# the panel is the single visibility writer for the block; inner
+	# widgets toggle only their own extras.
 	var latched: bool = data.get("famine_latched", false)
 	var banked: int = data.get("famine_banked", 0)
 	var needed: int = data.get("famine_needed", 0)
+	var has_status: bool = latched or data.get("starving", 0) > 0
+	famine_panel.visible = has_status
+	starving_label.visible = has_status
+	famine_explain_label.visible = latched
 	work_through_button.visible = latched
 	work_through_desc_label.visible = latched
-	famine_explain_label.visible = latched
 	if latched:
 		var deficit: int = data.get("famine_deficit", 0)
 		var position: int = banked - deficit
@@ -127,7 +137,7 @@ func _refresh_display_metrics() -> void:
 		famine_explain_label.text = "Workplaces unmanned, construction paused (except work-through). " \
 			+ "The camp owes %d rations — foraging repays the debt first, then banks toward %d rations (%d/%d banked). " % [deficit, needed, position, needed] \
 			+ "Only a clean ledger + full pantry ends the famine. Camp Organization drains daily."
-		work_through_desc_label.text = "Cost: working builders forage almost nothing — the ration debt keeps growing while this is ON, so the famine cannot end. Benefit: construction crawls at half speed. Toggle OFF to let the camp grind out of debt."
+		work_through_desc_label.text = "Cost: working builders forage almost nothing — each builder slows the ration-debt repayment by 2 rations/day, so recovery stalls (small camps) or crawls (large camps) while this is ON. Benefit: construction proceeds at half speed. Toggle OFF to let the camp grind out of debt fastest."
 		work_through_button.text = "⛏ Work through starvation: %s" % ("ON" if data.get("work_through_famine", false) else "OFF")
 	elif data.get("starving", 0) > 0:
 		starving_label.text = "⚠ %d starving — assign foragers!" % data["starving"]

@@ -170,7 +170,7 @@ func get_node_inspection_data(node_id: int) -> Dictionary:
 		"famine": node._get_assigned_count("off_the_land"),
 		"famine_latched": node.famine_latched,
 		"famine_banked": node.stockpile.get("Berries", 0) + node.stockpile.get("Mushrooms", 0),
-		"famine_needed": node.local_workers.size() * 2,
+		"famine_needed": node.local_workers.size() * node.FAMINE_EXIT_BUFFER,
 		"famine_deficit": node.famine_deficit,
 		"work_through_famine": node.work_through_famine,
 		"camp_organization": int(node.camp_organization),
@@ -199,7 +199,62 @@ func establish_camp(node_id: int, owner_id: String = "player") -> void:
 	settlement_tier_changed.emit(node_id, tier_name)
 	EventBus.ui.message_logged.emit("Camp established at %s." % node.node_name, "info")
 	_wire_starving_toast(node)
+	_wire_housing_fill(node)
 	_auto_queue_tent(node)
+
+## Wire a zone's building completions: a completed TENT fills itself with
+## new workers up to housing capacity (#91 v4) — the first tent grows the
+## camp to 4, every additional tent adds 4 more.
+func _wire_housing_fill(node: ZoneNode) -> void:
+	if not node.building_completed.is_connected(_on_building_completed_housing):
+		node.building_completed.connect(_on_building_completed_housing)
+
+func _on_building_completed_housing(node_id: int, building_id: String) -> void:
+	var node: ZoneNode = _get_world_nodes().get(node_id)
+	if not node:
+		return
+	var is_housing: bool = false
+	for building in node.buildings:
+		if building.blueprint.building_id == building_id and building.blueprint.job_type == "housing":
+			is_housing = true
+			break
+	if not is_housing:
+		return
+	var capacity: int = get_housing_capacity(node_id)
+	var residents: int = node.local_workers.size()
+	var to_spawn: int = capacity - residents
+	if to_spawn <= 0:
+		return
+	var npc_coord: Node = get_parent().get_node_or_null("WorldSimulation/NPCCoordinator")
+	if npc_coord == null:
+		push_warning("Housing fill: NPCCoordinator not found at WorldSimulation/NPCCoordinator")
+		return
+	var anchor_pos: Vector3 = _zone_spawn_anchor(node)
+	var arrived: int = 0
+	for i in to_spawn:
+		var pos: Vector3 = anchor_pos + Vector3(1.5 + i * 1.5, 0.0, 1.0)
+		var npc: Node = npc_coord.create_npc(Transform3D(Basis.IDENTITY, pos))
+		if npc == null:
+			break
+		var comp = npc.management_comp
+		if comp:
+			comp.qualification_profile = "unskilled"
+			recruit_populant_to_faction(npc.id, "player")
+			if assign_populant_to_node(npc.id, node_id):
+				arrived += 1
+	if arrived > 0:
+		EventBus.ui.message_logged.emit("🏠 %d peasants settled at %s — the new Tent is filled." % [arrived, node.node_name], "info")
+
+## Spawn anchor for new residents: next to an existing resident's NPC
+## (falls back to world origin — terrain service lifts y).
+func _zone_spawn_anchor(node: ZoneNode) -> Vector3:
+	if not node.local_workers.is_empty():
+		var comp = _get_npc_management_populant_component(node.local_workers[0].character_id)
+		if comp:
+			var actor = comp.get_parent()
+			if actor is Node3D:
+				return (actor as Node3D).global_position
+	return Vector3.ZERO
 
 ## Auto-queues a Tent on camp establishment (#85): the camp needs housing
 ## immediately; the tent builds through the normal #70 queue (shortfall ->

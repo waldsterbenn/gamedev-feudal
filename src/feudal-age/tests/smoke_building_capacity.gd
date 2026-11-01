@@ -77,28 +77,21 @@ func _process(_delta: float) -> bool:
 			print("SMOKE: at cap — consumption + capped yield cancel out, never exceeds cap")
 			_stage = 5
 		5:
-			# Foreman bonus: complete Foreman's Tent, house a 3rd resident,
-			# post foreman 1, tick — mushrooms yield 3 instead of 2.
+			# Foreman bonus + TENT AUTO-FILL (#91 v4): completing the tent
+			# fills housing to capacity — residents 2 -> 4 instantly.
 			var ft := _force_complete("foremans_tent")
 			var tent := _force_complete("tent")
 			if ft == null or tent == null:
 				_fail("foremans_tent/tent blueprint missing")
 				return true
-			# Recruit zone-2's forager into zone 1 (housing now 4, residents 2)
-			var external_id: int = -1
-			for char_id in _api._registered_populants:
-				if _api._registered_populants[char_id].assigned_node_id != 1:
-					external_id = char_id
-					break
-			_api.recruit_populant_to_faction(external_id, "player")
-			if not _api.assign_populant_to_node(external_id, 1):
-				_fail("3rd resident refused while housing available (capacity 4)")
+			if _zone.local_workers.size() != 4:
+				_fail("tent auto-fill: residents %d != 4 after tent completed (2 + fill to capacity 4)" % _zone.local_workers.size())
 				return true
 			if not _api.adjust_job_target(1, "foreman", 1):
 				_fail("foreman target adjust refused")
 				return true
 			_tick()
-			# mouths=3: berries 50 -> eat 3 -> 47 -> capped yield min(6, 3) -> 50.
+			# mouths=4: berries 50 -> eat 4 -> 46 -> capped yield min(6, 4) -> 50.
 			# Mushrooms (uncapped): yield roundi(2*3*0.4*1.25)=3 vs 2 without
 			# foreman; accumulated 12 -> 14 over stages 3-4 -> 17 now.
 			if _zone.stockpile.get("Berries", -1) != 50:
@@ -111,23 +104,24 @@ func _process(_delta: float) -> bool:
 			print("SMOKE: foreman bonus verified — mushrooms 14 -> 17 (+3 with +25% mult vs +2 base), berries stay capped at 50")
 			_stage = 6
 		6:
-			# Housing cap: capacity 4 (tent), residents 3 -> 4 ok, 5th refused
-			var pulled: int = 0
+			# Housing cap: 4/4 (auto-filled by the tent) — any external
+			# assign must be refused.
 			var refused: bool = false
 			for char_id in _api._registered_populants:
-				if pulled < 2 and _api._registered_populants[char_id].assigned_node_id != 1:
+				if _api._registered_populants[char_id].assigned_node_id != 1:
 					_api.recruit_populant_to_faction(char_id, "player")
 					if _api.assign_populant_to_node(char_id, 1):
-						pulled += 1
-					else:
-						refused = true
-			if pulled != 1 or not refused:
-				_fail("housing cap wrong — pulled %d, refused %s (expected pull 1 then refuse)" % [pulled, str(refused)])
+						_fail("housing cap: external assign PASSED at 4/4")
+						return true
+					refused = true
+					break
+			if not refused:
+				_fail("no external populant available to test the housing cap")
 				return true
 			if _zone.local_workers.size() != 4:
 				_fail("residents %d != 4 after cap enforcement" % _zone.local_workers.size())
 				return true
-			print("SMOKE: housing cap verified — 4/4 residents, 5th refused")
+			print("SMOKE: housing cap verified — 4/4 auto-filled, external assign refused")
 			_stage = 7
 		7:
 			# Famine latch (#91 v3): zero production first (forager posting -> 0)
@@ -141,10 +135,10 @@ func _process(_delta: float) -> bool:
 			if not _zone.famine_latched:
 				_fail("famine: latch did not close after residents went unfed")
 				return true
-			if _zone.famine_deficit != 4:
-				_fail("famine: entry deficit %d != 4 (one owed day)" % _zone.famine_deficit)
+			if _zone.famine_deficit != 8:
+				_fail("famine: entry deficit %d != 8 (4 residents x 2 debt rate)" % _zone.famine_deficit)
 				return true
-			print("SMOKE: famine latched — ration debt opened at 4")
+			print("SMOKE: famine latched — ration debt opened at 8")
 			_stage = 8
 		8:
 			# Latched tick: everyone off the land; trickle 6/day (4 resting)
@@ -158,8 +152,8 @@ func _process(_delta: float) -> bool:
 				_fail("famine: foragers still manned")
 				return true
 			var food: int = _zone.stockpile.get("Berries", 0) + _zone.stockpile.get("Mushrooms", 0)
-			if _zone.famine_deficit != 3:
-				_fail("famine: deficit %d != 3 (4 owed + 4 accrued - 5 floor gross repaid)" % _zone.famine_deficit)
+			if _zone.famine_deficit != 4:
+				_fail("famine: deficit %d != 4 (8 owed + 8 accrued - 12 floor gross repaid)" % _zone.famine_deficit)
 				return true
 			if food != 0:
 				_fail("famine: %d banked during debt repayment, expected 0" % food)
@@ -167,13 +161,13 @@ func _process(_delta: float) -> bool:
 			if _zone.famine_latched == false:
 				_fail("famine: unlatched while debt outstanding (position=%d)" % (food - _zone.famine_deficit))
 				return true
-			print("SMOKE: famine tick — 4 off the land, debt ground 4 -> 3 (trickle 5/day), pantry still empty, org drained %d" % int(_zone.camp_organization))
+			print("SMOKE: famine tick — 4 off the land, debt ground 8 -> 4 (floor gross 12/day), pantry still empty, org drained %d" % int(_zone.camp_organization))
 			_stage = 9
 		9:
 			# Work through starvation (#92): order + cover an incomplete
 			# building, toggle ON — 1 builder crawls at half speed, 3 rest.
-			# Debt accrual (4) vs 3-resting floor gross (4) -> net 0: recovery
-			# STALLS but the builder crawls (+5 labor).
+			# Debt accrual (8) vs 3-resting floor gross (10) -> net +2/day:
+			# recovery SLOWS but continues; the builder still crawls (+5).
 			var lumber_bp: Resource = load("res://data/blueprints/lumber_camp.tres")
 			_api.order_building(1, lumber_bp)
 			_zone.allocated_construction_resources["Timber"] = 40  # cover its cost
@@ -194,31 +188,31 @@ func _process(_delta: float) -> bool:
 					if building.construction_progress - progress_before != 5.0:
 						_fail("work-through: progress +%f, expected +5.0 (half speed)" % (building.construction_progress - progress_before))
 						return true
-			if _zone.famine_deficit != 3:
-				_fail("work-through: deficit %d != 3 — accrual (4) and floor gross (4) must cancel while 1 builds" % _zone.famine_deficit)
+			if _zone.famine_deficit != 2:
+				_fail("work-through: deficit %d != 2 — accrual (8) vs floor gross (10): recovery must SLOW to +2/day with 1 builder" % _zone.famine_deficit)
 				return true
 			var food9: int = _zone.stockpile.get("Berries", 0) + _zone.stockpile.get("Mushrooms", 0)
 			if food9 != 0:
 				_fail("work-through: %d banked — recovery must stall while the toggle is ON" % food9)
 				return true
-			print("SMOKE: work-through verified — builder +5 labor, debt frozen at 3, nothing banks (recovery stalled)")
+			print("SMOKE: work-through verified — builder +5 labor, debt ground 4 -> 2 (slowed to +2/day), nothing banks")
 			_stage = 10
 		10:
-			# Toggle OFF: the full grind — deficit 3 -> 0, then the pantry
-			# banks +1/day to the 2x buffer (8).
+			# Toggle OFF: the full grind — deficit 2 -> 0 at +4/day, then the
+			# pantry banks +4/day to the 3x buffer (12).
 			_api.toggle_work_through_famine(1, false)
 			_grind = 0
 			_stage = 11
 		11:
-			# Grind loop: debt repaid (deficit 3 -> 0), then the pantry banks
-			# +1/day to the 2x buffer (8) and the latch OPENS.
+			# Grind loop: debt repaid (deficit 2 -> 0), then the pantry banks
+			# +4/day to the 3x buffer (12) and the latch OPENS.
 			_tick()
 			_grind += 1
 			if not _zone.famine_latched:
-				print("SMOKE: famine escaped after %d grind ticks — debt repaid + 2x buffer banked, workplaces re-manned" % _grind)
+				print("SMOKE: famine escaped after %d grind ticks — debt repaid + 3x buffer banked, workplaces re-manned" % _grind)
 				_stage = 12
 				return false
-			if _grind >= 20:
+			if _grind >= 12:
 				_fail("famine grind did not converge in 12 ticks (deficit=%d stock=%s)" % [
 					_zone.famine_deficit, str(_zone.stockpile)])
 				return true
@@ -244,6 +238,8 @@ func _tick() -> void:
 	_gc._on_simulation_tick_elapsed()
 
 ## Completes (ordering first if needed) the building of the given id.
+## Emits the REAL building_completed signal so completion side effects
+## (tent auto-fill #91 v4) fire exactly as in play.
 func _force_complete(building_id: String) -> Resource:
 	var bp: Resource = load("res://data/blueprints/%s.tres" % building_id)
 	if bp == null:
@@ -252,12 +248,14 @@ func _force_complete(building_id: String) -> Resource:
 		if building.blueprint.building_id == building_id:
 			building.is_completed = true
 			building.construction_progress = building.blueprint.total_work_required
+			_zone.building_completed.emit(_zone.node_id, building_id)
 			return building
 	_api.order_building(1, bp)
 	for building in _zone.buildings:
 		if building.blueprint.building_id == building_id:
 			building.is_completed = true
 			building.construction_progress = building.blueprint.total_work_required
+			_zone.building_completed.emit(_zone.node_id, building_id)
 			return building
 	return null
 
