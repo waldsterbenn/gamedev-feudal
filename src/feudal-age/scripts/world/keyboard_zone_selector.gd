@@ -30,7 +30,8 @@ func _process(_delta: float) -> void:
 			if zi != null and "node_id" in zi:
 				EventBus.ui.zone_selected.emit(zi)
 				# Direct build trigger for keyboard test
-				var api = root.get_node("ServiceLocator").management_api if root.has_node("ServiceLocator") else null
+				var root_node = get_tree().get_root()
+				var api = root_node.get_node("ServiceLocator").management_api if root_node.has_node("ServiceLocator") else null
 				if api != null:
 					var bp_path := "res://data/blueprints/tent.tres"
 					if ResourceLoader.exists(bp_path):
