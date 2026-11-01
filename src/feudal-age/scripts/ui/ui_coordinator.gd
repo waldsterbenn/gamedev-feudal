@@ -7,12 +7,14 @@ var current_ui_state: UIState = UIState.HUD_ONLY
 @onready var zone_menu: Control = $ZoneInspectionMenu
 @onready var options_menu: Control = $OptionsMenu
 @onready var hud_message: Label = %HUDMessage
+@onready var hud_instructions: Label = $HUDInstructions
 
 var _message_clear_timer: Timer
 
 func _ready() -> void:
 	EventBus.ui.zone_selected.connect(_on_zone_selected)
 	EventBus.ui.message_logged.connect(_on_message_logged)
+	_apply_key_hints()
 	# One-shot timer hides the toast a few seconds after each message
 	_message_clear_timer = Timer.new()
 	_message_clear_timer.one_shot = true
@@ -20,6 +22,21 @@ func _ready() -> void:
 	_message_clear_timer.timeout.connect(func(): hud_message.text = "")
 	add_child(_message_clear_timer)
 	change_ui_state(UIState.HUD_ONLY)
+
+## HUD shortcut line is composed from the key-binding config (single source of truth)
+func _apply_key_hints() -> void:
+	var bindings: KeyBindingSet = load("res://data/ui/keybindings.tres")
+	if bindings == null or hud_instructions == null:
+		return
+	hud_instructions.text = "%s=Mode  1-9=Zone  %s=Inspect  %s=Camp  %s=Build  %s=Forager  %s=Lumber  %s=Close" % [
+		bindings.get_display("management_mode"),
+		bindings.get_display("inspect_zone"),
+		bindings.get_display("establish_camp"),
+		bindings.get_display("order_building"),
+		bindings.get_display("post_forager"),
+		bindings.get_display("post_woodcutter"),
+		bindings.get_display("close_menu"),
+	]
 
 func _on_message_logged(message: String, level: String) -> void:
 	if hud_message == null:
@@ -31,7 +48,8 @@ func _on_message_logged(message: String, level: String) -> void:
 ## Esc closes the inspection panel (keyboard-only players cannot click Close)
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_ESCAPE and current_ui_state == UIState.INSPECTING_NODE:
+		var bindings: KeyBindingSet = load("res://data/ui/keybindings.tres")
+		if bindings and event.keycode == bindings.get_key("close_menu") and current_ui_state == UIState.INSPECTING_NODE:
 			print("DEBUG: Esc pressed — closing inspection")
 			close_menus()
 			get_viewport().set_input_as_handled()

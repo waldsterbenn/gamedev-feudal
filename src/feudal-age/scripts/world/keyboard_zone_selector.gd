@@ -21,6 +21,9 @@ func _refresh_zones() -> void:
 func _process(_delta: float) -> void:
 	if not management_active:
 		return
+	var bindings: KeyBindingSet = load("res://data/ui/keybindings.tres")
+	if bindings == null:
+		return
 	var zones := _get_zones()
 	# Number keys 1-9 select zone directly (no arrow/movement conflict)
 	for i in range(1, 10):
@@ -33,16 +36,16 @@ func _process(_delta: float) -> void:
 			EventBus.ui.message_logged.emit("Select a zone first (press 1-9).", "warn")
 		_select_zone(zones)
 	# E = Establish Camp on selected zone (wilderness only)
-	if _is_key_just_pressed(KEY_E):
+	if _is_key_just_pressed(bindings.get_key("establish_camp")):
 		_establish_camp_on_selected(zones)
 	# B = trigger build on selected zone
-	if _is_key_just_pressed(KEY_B):
+	if _is_key_just_pressed(bindings.get_key("order_building")):
 		_build_on_selected(zones)
 	# F = post 2 forager jobs on selected zone (camp only)
-	if _is_key_just_pressed(KEY_F):
+	if _is_key_just_pressed(bindings.get_key("post_forager")):
 		_post_job_on_selected(zones, "forager", 2)
 	# G = post 1 woodcutter job on selected zone (camp only) — timber regrowth
-	if _is_key_just_pressed(KEY_G):
+	if _is_key_just_pressed(bindings.get_key("post_woodcutter")):
 		_post_job_on_selected(zones, "woodcutter", 1)
 
 ## Returns the ZoneAnchor3D children of the zone container

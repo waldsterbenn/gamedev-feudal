@@ -14,6 +14,17 @@ extends PanelContainer
 @onready var post_woodcutter_button: Button = %PostWoodcutterButton
 @onready var close_button: Button = %CloseButton
 
+## Composes button labels from the key-binding config (single source of truth)
+func _apply_key_hints() -> void:
+	var bindings: KeyBindingSet = load("res://data/ui/keybindings.tres")
+	if bindings == null:
+		return
+	establish_camp_button.text = "⛺ Establish Work Camp  (%s)" % bindings.get_display("establish_camp")
+	build_button.text = "🔨 Order Construction  (%s)" % bindings.get_display("order_building")
+	post_forager_button.text = "🌿 Post 2 Forager Jobs  (%s)" % bindings.get_display("post_forager")
+	post_woodcutter_button.text = "🪵 Post Woodcutter Job  (%s)" % bindings.get_display("post_woodcutter")
+	close_button.text = "✕ Close  (%s)" % bindings.get_display("close_menu")
+
 var _active_node_id: int = -1
 
 func _ready() -> void:
@@ -24,6 +35,7 @@ func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
 	# Live refresh: the panel follows stockpile growth on every day tick
 	EventBus.day_ticked.connect(_on_day_ticked)
+	_apply_key_hints()
 
 func open_inspection_window(node_id: int) -> void:
 	print("DEBUG: open_inspection_window node_id=" + str(node_id))

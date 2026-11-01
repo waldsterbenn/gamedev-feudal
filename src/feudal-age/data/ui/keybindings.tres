@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="KeyBindingSet" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/key_binding_set.gd" id="1_kbs"]
+
+[resource]
+script = ExtResource("1_kbs")
+bindings = {
+"close_menu": "KEY_ESCAPE",
+"establish_camp": "KEY_E",
+"inspect_zone": "KEY_ENTER",
+"management_mode": "KEY_TAB",
+"order_building": "KEY_B",
+"post_forager": "KEY_F",
+"post_woodcutter": "KEY_G",
+"select_zone": "KEY_1-9"
+}
