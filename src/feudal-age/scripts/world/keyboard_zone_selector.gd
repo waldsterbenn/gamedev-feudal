@@ -47,6 +47,9 @@ func _process(_delta: float) -> void:
 	# F / Shift+F = forager ±1 on selected zone (camp only) — #73
 	if _is_key_just_pressed(bindings.get_key("post_forager")):
 		_adjust_job_on_selected(zones, "forager", 1 if not _shift_held() else -1)
+	# M / Shift+M = foreman ±1 on selected zone (camp only) — #85 (max 1)
+	if _is_key_just_pressed(bindings.get_key("post_foreman")):
+		_adjust_job_on_selected(zones, "foreman", 1 if not _shift_held() else -1)
 	# C = cycle the blueprint selection in the inspection panel
 	if _is_key_just_pressed(bindings.get_key("cycle_blueprint")):
 		EventBus.ui.blueprint_cycle_requested.emit()

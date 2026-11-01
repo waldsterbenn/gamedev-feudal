@@ -14,6 +14,18 @@ var _registered_populants: Dictionary = {}
 func _enter_tree() -> void:
 	ServiceLocator.register_management_service(self)
 
+## Wire a zone's starving signal to a UI toast. Done at establish_camp —
+## starvation only matters once a camp exists. Kept in the API layer (Node):
+## ZoneNode stays signal-only and compiles standalone in --script mode (#85).
+func _wire_starving_toast(node: ZoneNode) -> void:
+	if not node.populants_starving.is_connected(_on_populants_starving):
+		node.populants_starving.connect(_on_populants_starving)
+
+func _on_populants_starving(node_id: int, starving_count: int) -> void:
+	var node: ZoneNode = _get_world_nodes().get(node_id)
+	var zone_name: String = node.node_name if node else "Zone %d" % node_id
+	EventBus.ui.message_logged.emit("⚠ %d starving at %s — assign foragers!" % [starving_count, zone_name], "warn")
+
 func register_populant_component(comp: ManagementPopulantComponent) -> void:
 	_registered_populants[comp.character_id] = comp
 
@@ -119,7 +131,12 @@ func get_node_inspection_data(node_id: int) -> Dictionary:
 			"builder": {
 				"assigned": node._get_assigned_count("builder"),
 			},
+			"foreman": {
+				"assigned": node._get_assigned_count("foreman"),
+				"target": node.manual_job_postings.get("foreman", 0),
+			},
 		},
+		"starving": node._last_starving_count,
 	}
 
 ## API Query: Returns the number of local workers assigned to a node
@@ -142,6 +159,32 @@ func establish_camp(node_id: int, owner_id: String = "player") -> void:
 	var tier_name = ZoneNode.SettlementTier.keys()[node.current_tier]
 	settlement_tier_changed.emit(node_id, tier_name)
 	EventBus.ui.message_logged.emit("Camp established at %s." % node.node_name, "info")
+	_wire_starving_toast(node)
+	_auto_queue_tent(node)
+
+## Auto-queues a Tent on camp establishment (#85): the camp needs housing
+## immediately; the tent builds through the normal #70 queue (shortfall ->
+## builders gather -> resume). Skipped if a tent is already queued/completed.
+func _auto_queue_tent(node: ZoneNode) -> void:
+	for building in node.buildings:
+		if building.blueprint.building_id == "tent":
+			return
+	var tent_bp: BuildingData = load("res://data/blueprints/tent.tres")
+	order_building(node.node_id, tent_bp)
+
+## Housing capacity: sum over COMPLETED housing buildings (#85). A camp
+## before its tent completes has 0 capacity — but residents already placed
+## by the world initializer are never evicted.
+func get_housing_capacity(node_id: int) -> int:
+	var nodes = _get_world_nodes()
+	var node: ZoneNode = nodes.get(node_id)
+	if not node:
+		return 0
+	var capacity: int = 0
+	for building in node.buildings:
+		if building.is_completed and building.blueprint.housing_capacity > 0:
+			capacity += building.blueprint.housing_capacity
+	return capacity
 
 ## Executed when the player issues a build blueprint command
 func order_building(node_id: int, blueprint: BuildingData) -> bool:
@@ -238,6 +281,15 @@ func assign_populant_to_node(character_id: int, target_node_id: int) -> bool:
 		
 	var node: ZoneNode = nodes[target_node_id]
 	var populant_comp = _get_npc_management_populant_component(character_id)
+	
+	# Housing cap (#85): a zone cannot hold more residents than its completed
+	# housing (tents) support. Enforced only once housing EXISTS — world-init
+	# placements happen before any tent completes and always pass.
+	var residents: int = node.local_workers.size()
+	var capacity: int = get_housing_capacity(target_node_id)
+	if capacity > 0 and residents >= capacity and (populant_comp == null or populant_comp.assigned_node_id != target_node_id):
+		EventBus.ui.message_logged.emit("%s is full — build another Tent (%d/%d residents)." % [node.node_name, residents, capacity], "warn")
+		return false
 	
 	if not populant_comp or populant_comp.serving_lord_id == "none":
 		return false

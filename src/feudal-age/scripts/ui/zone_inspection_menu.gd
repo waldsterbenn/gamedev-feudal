@@ -16,6 +16,8 @@ extends PanelContainer
 @onready var woodcutter_label: Label = %WoodcutterLabel
 @onready var forager_label: Label = %ForagerLabel
 @onready var builder_label: Label = %BuilderLabel
+@onready var foreman_label: Label = %ForemanLabel
+@onready var starving_label: Label = %StarvingLabel
 @onready var post_forager_button: Button = %PostForagerButton
 @onready var post_woodcutter_button: Button = %PostWoodcutterButton
 @onready var close_button: Button = %CloseButton
@@ -37,8 +39,9 @@ var _active_node_id: int = -1
 ## Slice blueprints the player can cycle and order (orderable in pinned scope #47)
 const BLUEPRINT_PATHS: Array[String] = [
 	"res://data/blueprints/tent.tres",
-	"res://data/blueprints/forager_post.tres",
-	"res://data/blueprints/charcoal_stack.tres",
+	"res://data/blueprints/forager_hut.tres",
+	"res://data/blueprints/lumber_camp.tres",
+	"res://data/blueprints/foremans_tent.tres",
 ]
 var _blueprint_index: int = 0
 
@@ -89,6 +92,12 @@ func _refresh_display_metrics() -> void:
 	woodcutter_label.text = "🪵 Woodcutter %d assigned / %d wanted" % [jobs["woodcutter"]["assigned"], jobs["woodcutter"]["target"]]
 	forager_label.text = "🌿 Forager %d assigned / %d wanted" % [jobs["forager"]["assigned"], jobs["forager"]["target"]]
 	builder_label.text = "🔨 Builders %d (free workers, auto)" % jobs["builder"]["assigned"]
+	foreman_label.text = "🎖 Foreman %d assigned / %d wanted" % [jobs["foreman"]["assigned"], jobs["foreman"]["target"]]
+	if data.get("starving", 0) > 0:
+		starving_label.text = "⚠ %d starving — assign foragers!" % data["starving"]
+		starving_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.3))
+	else:
+		starving_label.text = ""
 
 	# Per-building construction progress (#70)
 	var lines: PackedStringArray = []

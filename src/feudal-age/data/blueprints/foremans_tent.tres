@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BuildingData" load_steps=2 format=3 uid="uid://bp_foreman_01"]
+
+[ext_resource type="Script" path="res://scripts/management/resources/BuildingData.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+building_id = "foremans_tent"
+display_name = "Foreman's Tent"
+build_cost = {"Timber": 30}
+total_work_required = 50.0
+max_jobs = 1
+job_type = "foreman"
+visual_scene_path = "res://scenes/world/buildings/tent.tscn"

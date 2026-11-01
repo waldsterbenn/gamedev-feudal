@@ -13,6 +13,7 @@ class_name KeyBindingSet
 	"establish_camp": "KEY_E",
 	"order_building": "KEY_B",
 	"post_forager": "KEY_F",
+	"post_foreman": "KEY_M",
 	"post_woodcutter": "KEY_G",
 	"close_menu": "KEY_ESCAPE",
 	"debug_overlay": "KEY_F12",

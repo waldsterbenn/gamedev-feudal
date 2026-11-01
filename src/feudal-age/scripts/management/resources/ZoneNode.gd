@@ -5,6 +5,8 @@ signal building_completed(node_id: int, building_id: String)
 signal building_ordered(node_id: int, building: BuildingInstance)
 signal populants_starving(node_id: int, starving_count: int)
 
+const FOREMAN_BONUS: float = 0.25  # per assigned foreman, max_jobs=1 caps it (#85)
+
 enum SettlementTier { WILDERNESS, CAMP, FARM, MANOR, VILLAGE, TOWN }
 
 @export var node_id: int
@@ -24,6 +26,8 @@ enum SettlementTier { WILDERNESS, CAMP, FARM, MANOR, VILLAGE, TOWN }
 @export var stockpile: Dictionary = {}
 @export var allocated_construction_resources: Dictionary = {}
 @export var max_storage_capacity: int = 200
+## Starving residents from the most recent sustenance tick (UI reads; #85)
+var _last_starving_count: int = 0
 
 # Infrastructure & Workers
 @export var buildings: Array[BuildingInstance] = []
@@ -96,6 +100,20 @@ func _resolve_workforce_allocation() -> void:
 					
 		_assigned_workers_by_job[job_type] = assigned_ids
 	
+	# Foreman is a per-building assignee too (player posts targets; #85 v1)
+	var foreman_slots: int = slots.get("foreman", 0)
+	var foreman_ids: Array[int] = []
+	while foreman_slots > 0 and not unassigned_workers.is_empty():
+		var worker = unassigned_workers.pop_front()
+		foreman_ids.append(worker.character_id)
+		foreman_slots -= 1
+		for building in buildings:
+			if building.is_completed and building.blueprint.job_type == "foreman":
+				if building.assigned_worker_ids.size() < building.blueprint.max_jobs:
+					building.assigned_worker_ids.append(worker.character_id)
+					break
+	_assigned_workers_by_job["foreman"] = foreman_ids
+	
 	var free_ids: Array[int] = []
 	while not unassigned_workers.is_empty():
 		free_ids.append(unassigned_workers.pop_front().character_id)
@@ -148,7 +166,10 @@ func _deduct_sustenance_inventories() -> void:
 			hungry_mouths -= food_taken
 
 	if hungry_mouths > 0:
+		_last_starving_count = hungry_mouths
 		populants_starving.emit(node_id, hungry_mouths)
+	else:
+		_last_starving_count = 0
 
 ## Spends labor points on active construction jobs sequentially
 func _process_construction_progress() -> void:
@@ -183,26 +204,53 @@ func _process_construction_progress() -> void:
 func _execute_production_and_labor() -> void:
 	var foragers = _get_assigned_count("forager")
 	var woodcutters = _get_assigned_count("woodcutter")
+	var caps: Dictionary = _zone_storage_caps()
 	
 	# Timber Extraction Math — yield first refills any construction shortfall
-	# (builders gathering materials), the surplus goes to the stockpile (#70)
-	if woodcutters > 0 and canopy_density > 0.01:
-		var timber_yield = max(1, roundi(woodcutters * 4 * fertilities.get("Timber", 0.0) * canopy_density))
+	# (builders gathering materials), the surplus goes to the stockpile (#70).
+	# Halted at cap: no woodcutters work when Timber storage is full (#85).
+	if woodcutters > 0 and canopy_density > 0.01 and _cap_room("Timber", caps) > 0:
+		var foreman_mult: float = 1.0 + FOREMAN_BONUS * _get_assigned_count("foreman")
+		var timber_yield = max(1, roundi(woodcutters * 4 * fertilities.get("Timber", 0.0) * canopy_density * foreman_mult))
+		# Respect the cap room — production halts at the storage cap, never overflows
+		var cap_room: int = _cap_room("Timber", caps)
+		timber_yield = min(timber_yield, cap_room)
 		var shortfall: int = _construction_shortfall()
 		var to_allocated: int = min(timber_yield, shortfall)
 		if to_allocated > 0:
 			allocated_construction_resources["Timber"] = allocated_construction_resources.get("Timber", 0) + to_allocated
 		stockpile["Timber"] = stockpile.get("Timber", 0) + timber_yield - to_allocated
 		canopy_density = max(0.0, canopy_density - (timber_yield * 0.002))
-		
-	# Linked Ecosystem Foraging Math
+	
+	# Linked Ecosystem Foraging Math — halts per-resource at cap (#85)
 	if foragers > 0:
-		var berry_yield = roundi(foragers * 5 * fertilities.get("Berries", 0.0))
-		# Shifting mushroom yields based directly on how badly the canopy is clear-cut
-		var mushroom_yield = roundi(foragers * 3 * fertilities.get("Mushrooms", 0.0) * canopy_density)
-		
-		stockpile["Berries"] = stockpile.get("Berries", 0) + berry_yield
-		stockpile["Mushrooms"] = stockpile.get("Mushrooms", 0) + mushroom_yield
+		var foreman_mult: float = 1.0 + FOREMAN_BONUS * _get_assigned_count("foreman")
+		var berry_room: int = _cap_room("Berries", caps)
+		var mushroom_room: int = _cap_room("Mushrooms", caps)
+		if berry_room > 0:
+			var berry_yield = min(roundi(foragers * 5 * fertilities.get("Berries", 0.0) * foreman_mult), berry_room)
+			stockpile["Berries"] = stockpile.get("Berries", 0) + berry_yield
+		if mushroom_room > 0:
+			# Shifting mushroom yields based directly on how badly the canopy is clear-cut
+			var mushroom_yield = min(roundi(foragers * 3 * fertilities.get("Mushrooms", 0.0) * canopy_density * foreman_mult), mushroom_room)
+			stockpile["Mushrooms"] = stockpile.get("Mushrooms", 0) + mushroom_yield
+
+## Sums the per-resource caps of COMPLETED buildings (#85: caps stack).
+func _zone_storage_caps() -> Dictionary:
+	var caps: Dictionary = {}
+	for building in buildings:
+		if not building.is_completed:
+			continue
+		for resource_name in building.blueprint.storage_caps:
+			caps[resource_name] = caps.get(resource_name, 0) + int(building.blueprint.storage_caps[resource_name])
+	return caps
+
+## How much more of a resource can be stored (999999 when uncapped —
+## production never halts for uncapped resources).
+func _cap_room(resource_name: String, caps: Dictionary) -> int:
+	if not caps.has(resource_name):
+		return 999999
+	return max(0, caps[resource_name] - stockpile.get(resource_name, 0))
 
 ## Audits storage stockpile and trims excess to stay below capacity limits
 func _enforce_storage_caps() -> void:
