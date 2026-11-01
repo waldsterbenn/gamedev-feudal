@@ -118,6 +118,68 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "🪵 Post Woodcutter Job"
 
+[node name="HSeparator4" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="WorkersHeader" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "👷 Workers (assigned/target)"
+
+[node name="WoodcutterRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="WoodcutterLabel" type="Label" parent="MarginContainer/VBoxContainer/WoodcutterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🪵 Woodcutter 0/0"
+
+[node name="WoodcutterMinusButton" type="Button" parent="MarginContainer/VBoxContainer/WoodcutterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "−"
+
+[node name="WoodcutterPlusButton" type="Button" parent="MarginContainer/VBoxContainer/WoodcutterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+"
+
+[node name="ForagerRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ForagerLabel" type="Label" parent="MarginContainer/VBoxContainer/ForagerRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🌿 Forager 0/0"
+
+[node name="ForagerMinusButton" type="Button" parent="MarginContainer/VBoxContainer/ForagerRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "−"
+
+[node name="ForagerPlusButton" type="Button" parent="MarginContainer/VBoxContainer/ForagerRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+"
+
+[node name="BuilderRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="BuilderLabel" type="Label" parent="MarginContainer/VBoxContainer/BuilderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🔨 Builders 0 (auto)"
+
+[node name="HSeparator5" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="BuildingsListLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "🔨 No buildings yet"
+
 [node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2

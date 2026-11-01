@@ -6,4 +6,5 @@ class_name BuildingData
 @export var build_cost: Dictionary = {"Timber": 25}
 @export var total_work_required: float = 50.0 
 @export var max_jobs: int = 2
-@export var job_type: String           
+@export var job_type: String
+@export var visual_scene_path: String = ""   # primitive scene spawned in-world on order (#70)         

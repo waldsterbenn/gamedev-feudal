@@ -99,7 +99,27 @@ func get_node_inspection_data(node_id: int) -> Dictionary:
 		"berry_stock": node.stockpile.get("Berries", 0),
 		"mushroom_stock": node.stockpile.get("Mushrooms", 0),
 		"timber_stock": node.stockpile.get("Timber", 0),
-		"is_camp_creatable": (node.current_tier == ZoneNode.SettlementTier.WILDERNESS)
+		"is_camp_creatable": (node.current_tier == ZoneNode.SettlementTier.WILDERNESS),
+		"buildings": node.buildings.map(func(b) -> Dictionary:
+			return {
+				"name": b.blueprint.display_name,
+				"progress": b.construction_progress,
+				"total": b.blueprint.total_work_required,
+				"completed": b.is_completed,
+			}),
+		"job_assignments": {
+			"forager": {
+				"assigned": node._get_assigned_count("forager"),
+				"target": node.manual_job_postings.get("forager", 0),
+			},
+			"woodcutter": {
+				"assigned": node._get_assigned_count("woodcutter"),
+				"target": node.manual_job_postings.get("woodcutter", 0),
+			},
+			"builder": {
+				"assigned": node._get_assigned_count("builder"),
+			},
+		},
 	}
 
 ## API Query: Returns the number of local workers assigned to a node
@@ -130,15 +150,17 @@ func order_building(node_id: int, blueprint: BuildingData) -> bool:
 	if not node:
 		return false
 		
-	if not node.has_available_resources(blueprint.build_cost):
-		construction_failed_no_resources.emit(node_id, blueprint.building_id)
-		EventBus.ui.message_logged.emit("Not enough resources for %s (needs %s)." % [blueprint.display_name, str(blueprint.build_cost)], "warn")
-		return false
-		
+	# Slice rule (#70): orders are allowed ANYTIME. Whatever is affordable is
+	# allocated now; the shortfall stalls construction while builders gather.
+	var paid := {}
 	for resource_name in blueprint.build_cost:
 		var cost: int = blueprint.build_cost[resource_name]
-		node.stockpile[resource_name] -= cost
-		node.allocated_construction_resources[resource_name] = node.allocated_construction_resources.get(resource_name, 0) + cost
+		var available: int = node.stockpile.get(resource_name, 0)
+		var used: int = min(cost, available)
+		paid[resource_name] = used
+		if used > 0:
+			node.stockpile[resource_name] = available - used
+			node.allocated_construction_resources[resource_name] = node.allocated_construction_resources.get(resource_name, 0) + used
 		
 	var new_building = BuildingInstance.new()
 	new_building.blueprint = blueprint
@@ -146,10 +168,46 @@ func order_building(node_id: int, blueprint: BuildingData) -> bool:
 	new_building.construction_progress = 0.0
 	
 	node.buildings.append(new_building)
-	EventBus.ui.message_logged.emit("%s construction started (work %d)." % [blueprint.display_name, blueprint.total_work_required], "info")
+	# World visual spawn (#70): the zone anchor instantiates the blueprint scene
+	node.building_ordered.emit(node_id, new_building)
+	
+	var missing_parts: PackedStringArray = []
+	for resource_name in blueprint.build_cost:
+		var missing: int = blueprint.build_cost[resource_name] - paid[resource_name]
+		if missing > 0:
+			missing_parts.append("%d %s" % [missing, resource_name])
+	if missing_parts.is_empty():
+		EventBus.ui.message_logged.emit("%s construction started (work %d)." % [blueprint.display_name, blueprint.total_work_required], "info")
+	else:
+		EventBus.ui.message_logged.emit("%s construction ordered — missing %s; builders will gather it." % [blueprint.display_name, ", ".join(missing_parts)], "warn")
 	return true
 
-## Executed when the player posts a manual job opening from the UI
+## Adjusts the player-controlled target for a production job (#70). The sum of
+## all targets can never exceed the zone's worker count.
+func adjust_job_target(node_id: int, job_type: String, delta: int) -> bool:
+	var nodes = _get_world_nodes()
+	var node: ZoneNode = nodes.get(node_id)
+	if not node:
+		return false
+	var current: int = node.manual_job_postings.get(job_type, 0)
+	var desired: int = current + delta
+	var other_targets: int = 0
+	for jt in node.manual_job_postings:
+		if jt != job_type:
+			other_targets += node.manual_job_postings[jt]
+	var workers: int = node.local_workers.size()
+	if desired > workers - other_targets:
+		EventBus.ui.message_logged.emit("Not enough free workers at %s (%d workers, %d on other tasks)." % [node.node_name, workers, other_targets], "warn")
+		return false
+	if desired < 0:
+		EventBus.ui.message_logged.emit("No %s jobs assigned — nothing to remove." % job_type.capitalize(), "warn")
+		return false
+	node.manual_job_postings[job_type] = desired
+	EventBus.ui.message_logged.emit("%s target set to %d at %s." % [job_type.capitalize(), desired, node.node_name], "info")
+	return true
+
+## Executed when the player posts a manual job opening from the UI —
+## delegates to the capped adjust_job_target (#70)
 func post_manual_job(node_id: int, job_type: String, slots: int = 2) -> bool:
 	var nodes = _get_world_nodes()
 	var node: ZoneNode = nodes.get(node_id)
@@ -160,9 +218,7 @@ func post_manual_job(node_id: int, job_type: String, slots: int = 2) -> bool:
 		operation_failed.emit("Cannot post jobs at a wilderness zone — establish a camp first.")
 		EventBus.ui.message_logged.emit("Post jobs fails — establish a camp first.", "warn")
 		return false
-	node.manual_job_postings[job_type] = node.manual_job_postings.get(job_type, 0) + slots
-	EventBus.ui.message_logged.emit("%d %s job slot(s) posted at %s." % [slots, job_type, node.node_name], "info")
-	return true
+	return adjust_job_target(node_id, job_type, slots)
 
 ## Binds an NPC's management component profile to a specific Lord faction
 func recruit_populant_to_faction(character_id: int, lord_id: String = "player") -> void:

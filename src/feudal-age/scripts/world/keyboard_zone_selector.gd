@@ -78,18 +78,11 @@ func _build_on_selected(zones: Array) -> void:
 	var anchor: ZoneAnchor3D = zones[selected_index]
 	if anchor.zone_node == null:
 		return
+	# Decoupled (#70): the panel applies its selected blueprint — the keyboard
+	# never picks the blueprint itself.
 	EventBus.ui.zone_selected.emit(anchor.zone_node)
-	var api = ServiceLocator.get_management_service()
-	if api == null:
-		EventBus.ui.debug("Build failed — ManagementAPI not available")
-		return
-	var bp_path := "res://data/blueprints/tent.tres"
-	if not ResourceLoader.exists(bp_path):
-		EventBus.ui.debug("Build failed — blueprint missing")
-		return
-	var bp = load(bp_path)
-	var ok: bool = api.order_building(anchor.zone_node.node_id, bp)
-	EventBus.ui.debug("Keyboard Build result: " + " " + str(ok))
+	EventBus.ui.blueprint_order_requested.emit()
+	EventBus.ui.debug("Keyboard Build request emitted (panel applies its selection)")
 
 func _establish_camp_on_selected(zones: Array) -> void:
 	if selected_index < 0 or selected_index >= zones.size():

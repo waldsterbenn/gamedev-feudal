@@ -318,6 +318,8 @@ var api: Node = service_locator.get_management_service() if service_locator else
 
 Always load project scenes (`GameCoordinator.tscn`, etc.) inside `_process()`, not `_init()` — the autoload registration completes during the first process frame. For deterministic data-layer driving (e.g. establishing a camp, assigning a worker, running ticks), call `_run_data_layer_setup()` after a small frame delay (`_frames_waited >= 5`) and stop the GC's real-time timer (`get_children()` loop finding `Timer`) before issuing ticks manually.
 
+When a smoke test asserts resource production growth, read the allocation priority table FIRST — workers are assigned to open jobs by a fixed hierarchy, and construction slots (several per incomplete building) preempt production jobs, so a stalled stockpile during construction is the scheduler correctly starving the producer, not broken production code. Assert growth while no construction is open (or after granting enough workers), and sequence smoke assertions to mirror the player flow rather than asserting everything after one setup burst.
+
 Always validate smoke scripts (`tests/smoke_slice.gd`) and repro instruments (`tests/debug_populants.gd`, `tests/debug_step.gd`) with `python ./skills/godot-gdscript/scripts/validate_godot.py <file>`. Keep debug scripts in-tree (`tests/debug_invest_*.gd`) rather than deleting them — they are the reproducible evidence for any future registration or tick-economy bug.
 
 See `references/headless-smoke.md` for the full smoke-test recipe (data-layer seeding, tick loop, assertions, exit 0/1).

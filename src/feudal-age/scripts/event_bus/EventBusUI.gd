@@ -7,6 +7,7 @@ signal management_mode_changed(is_active: bool)
 signal zone_selected(zone_node: ZoneNode)
 signal zone_deselected
 signal blueprint_cycle_requested
+signal blueprint_order_requested
 signal debug_line(text: String)
 
 ## Shared debug channel: prints to the console AND feeds the in-game

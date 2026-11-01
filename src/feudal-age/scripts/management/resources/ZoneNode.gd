@@ -2,6 +2,7 @@ extends Resource
 class_name ZoneNode
 
 signal building_completed(node_id: int, building_id: String)
+signal building_ordered(node_id: int, building: BuildingInstance)
 signal populants_starving(node_id: int, starving_count: int)
 
 enum SettlementTier { WILDERNESS, CAMP, FARM, MANOR, VILLAGE, TOWN }
@@ -52,13 +53,13 @@ func process_management_tick() -> void:
 	_execute_production_and_labor()  # Step 4: Environmental Extraction Mechanics
 	_enforce_storage_caps()          # Step 5: Warehouse Auditing
 
-## Gathers open jobs, adding 3 builder slots for each incomplete building instance
+## Gathers open jobs: player-controlled targets (manual_job_postings) plus
+## automatic slots from completed production buildings. Builders are NOT
+## slot-based (#70) — every free worker builds while construction runs.
 func get_total_job_slots() -> Dictionary:
 	var slots = manual_job_postings.duplicate()
 	for building in buildings:
-		if not building.is_completed:
-			slots["builder"] = slots.get("builder", 0) + 3
-		else:
+		if building.is_completed:
 			var job = building.blueprint.job_type
 			if job != "":
 				slots[job] = slots.get(job, 0) + building.blueprint.max_jobs
@@ -69,7 +70,12 @@ func _get_assigned_count(job_type: String) -> int:
 		return _assigned_workers_by_job[job_type].size()
 	return 0
 
-## Resolves workforce allocation by matching local workers to available jobs based on priority
+## Resolves workforce allocation (#70 model):
+## 1) Targeted production jobs (food first, then raw extraction) — the
+##    player-controlled counts (manual_job_postings + completed building slots).
+## 2) Every remaining free worker builds while construction runs.
+## 3) If queued construction still lacks materials, the builders are
+##    temporarily reassigned as woodcutters to gather the shortfall first.
 func _resolve_workforce_allocation() -> void:
 	_assigned_workers_by_job.clear()
 	for building in buildings:
@@ -78,25 +84,60 @@ func _resolve_workforce_allocation() -> void:
 	var unassigned_workers = local_workers.duplicate()
 	var slots = get_total_job_slots()
 	
-	for job_type in JobPriorities.HIERARCHY:
+	for job_type in ["forager", "woodcutter"]:
 		var open_slots = slots.get(job_type, 0)
-		if open_slots <= 0:
-			continue
-			
 		var assigned_ids: Array[int] = []
 		while open_slots > 0 and not unassigned_workers.is_empty():
 			var worker = unassigned_workers.pop_front()
 			assigned_ids.append(worker.character_id)
 			open_slots -= 1
 			
-			if job_type != "builder":
-				for building in buildings:
-					if building.is_completed and building.blueprint.job_type == job_type:
-						if building.assigned_worker_ids.size() < building.blueprint.max_jobs:
-							building.assigned_worker_ids.append(worker.character_id)
-							break
-							
+			for building in buildings:
+				if building.is_completed and building.blueprint.job_type == job_type:
+					if building.assigned_worker_ids.size() < building.blueprint.max_jobs:
+						building.assigned_worker_ids.append(worker.character_id)
+						break
+					
 		_assigned_workers_by_job[job_type] = assigned_ids
+	
+	if not _has_incomplete_building():
+		return
+	
+	var free_ids: Array[int] = []
+	while not unassigned_workers.is_empty():
+		free_ids.append(unassigned_workers.pop_front().character_id)
+	
+	if _construction_shortfall() > 0:
+		# Temp reassignment: all free workers gather Timber until covered.
+		var gatherers: Array[int] = _assigned_workers_by_job.get("woodcutter", [])
+		gatherers.append_array(free_ids)
+		_assigned_workers_by_job["woodcutter"] = gatherers
+	else:
+		_assigned_workers_by_job["builder"] = free_ids
+
+func _has_incomplete_building() -> bool:
+	for building in buildings:
+		if not building.is_completed:
+			return true
+	return false
+
+## Total missing materials across queued construction. Resources are assigned
+## to buildings sequentially (matching the completion flush), so a large
+## zone-level allocation still leaves later buildings short.
+func _construction_shortfall() -> int:
+	var shortfall := 0
+	for resource_name in allocated_construction_resources.keys():
+		var available: int = allocated_construction_resources[resource_name]
+		for building in buildings:
+			if building.is_completed:
+				continue
+			var cost: int = building.blueprint.build_cost.get(resource_name, 0)
+			if available >= cost:
+				available -= cost
+			else:
+				shortfall += cost - available
+				available = 0
+	return shortfall
 
 ## Processes daily food consumption across all checked residents
 func _deduct_sustenance_inventories() -> void:
@@ -120,6 +161,10 @@ func _deduct_sustenance_inventories() -> void:
 func _process_construction_progress() -> void:
 	var active_builders = _get_assigned_count("builder")
 	if active_builders <= 0:
+		return
+	
+	# Materials not fully covered yet — builders are gathering this tick (#70)
+	if _construction_shortfall() > 0:
 		return
 		
 	var total_labor_pool: float = active_builders * 10.0 # 10 Labor power per worker
@@ -146,10 +191,15 @@ func _execute_production_and_labor() -> void:
 	var foragers = _get_assigned_count("forager")
 	var woodcutters = _get_assigned_count("woodcutter")
 	
-	# Timber Extraction Math
+	# Timber Extraction Math — yield first refills any construction shortfall
+	# (builders gathering materials), the surplus goes to the stockpile (#70)
 	if woodcutters > 0 and canopy_density > 0.01:
 		var timber_yield = max(1, roundi(woodcutters * 4 * fertilities.get("Timber", 0.0) * canopy_density))
-		stockpile["Timber"] = stockpile.get("Timber", 0) + timber_yield
+		var shortfall: int = _construction_shortfall()
+		var to_allocated: int = min(timber_yield, shortfall)
+		if to_allocated > 0:
+			allocated_construction_resources["Timber"] = allocated_construction_resources.get("Timber", 0) + to_allocated
+		stockpile["Timber"] = stockpile.get("Timber", 0) + timber_yield - to_allocated
 		canopy_density = max(0.0, canopy_density - (timber_yield * 0.002))
 		
 	# Linked Ecosystem Foraging Math
