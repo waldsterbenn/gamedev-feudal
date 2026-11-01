@@ -99,6 +99,7 @@ func _on_simulation_tick_elapsed() -> void:
 	print("GC: Processing Day Ticks: ", _current_game_day)
 	for module in modules:
 		module.process_tick(game_context)
+	EventBus.day_ticked.emit(_current_game_day)
 
 # ---------------------------------------------------------------------------
 # Public API

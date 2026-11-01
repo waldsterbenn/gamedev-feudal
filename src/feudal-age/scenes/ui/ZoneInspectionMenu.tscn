@@ -98,6 +98,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "🔨 Order Construction"
 
+[node name="PostForagerButton" type="Button" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "🌿 Post 2 Forager Jobs"
+
 [node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2

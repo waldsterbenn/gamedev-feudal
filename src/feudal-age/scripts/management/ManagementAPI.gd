@@ -145,6 +145,19 @@ func order_building(node_id: int, blueprint: BuildingData) -> bool:
 	node.buildings.append(new_building)
 	return true
 
+## Executed when the player posts a manual job opening from the UI
+func post_manual_job(node_id: int, job_type: String, slots: int = 2) -> bool:
+	var nodes = _get_world_nodes()
+	var node: ZoneNode = nodes.get(node_id)
+	if not node:
+		operation_failed.emit("Unknown node.")
+		return false
+	if node.current_tier == ZoneNode.SettlementTier.WILDERNESS:
+		operation_failed.emit("Cannot post jobs at a wilderness zone — establish a camp first.")
+		return false
+	node.manual_job_postings[job_type] = node.manual_job_postings.get(job_type, 0) + slots
+	return true
+
 ## Binds an NPC's management component profile to a specific Lord faction
 func recruit_populant_to_faction(character_id: int, lord_id: String = "player") -> void:
 	var populant_comp = _get_npc_management_populant_component(character_id)

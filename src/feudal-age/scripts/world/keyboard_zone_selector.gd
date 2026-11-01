@@ -30,9 +30,15 @@ func _process(_delta: float) -> void:
 	# Enter = open inspection on selected zone
 	if Input.is_action_just_pressed("ui_accept"):
 		_select_zone(zones)
+	# E = Establish Camp on selected zone (wilderness only)
+	if _is_key_just_pressed(KEY_E):
+		_establish_camp_on_selected(zones)
 	# B = trigger build on selected zone
 	if _is_key_just_pressed(KEY_B):
 		_build_on_selected(zones)
+	# F = post 2 forager jobs on selected zone (camp only)
+	if _is_key_just_pressed(KEY_F):
+		_post_forager_on_selected(zones)
 
 ## Returns the ZoneAnchor3D children of the zone container
 func _get_zones() -> Array:
@@ -72,6 +78,36 @@ func _build_on_selected(zones: Array) -> void:
 	var bp = load(bp_path)
 	var ok: bool = api.order_building(anchor.zone_node.node_id, bp)
 	print("DEBUG: Keyboard Build result: ", ok)
+
+func _establish_camp_on_selected(zones: Array) -> void:
+	if selected_index < 0 or selected_index >= zones.size():
+		print("DEBUG: Establish Camp pressed but no zone selected — press 1-9 first")
+		return
+	var anchor: ZoneAnchor3D = zones[selected_index]
+	if anchor.zone_node == null:
+		return
+	EventBus.ui.zone_selected.emit(anchor.zone_node)
+	var api = ServiceLocator.get_management_service()
+	if api == null:
+		print("DEBUG: Establish Camp failed — ManagementAPI not available")
+		return
+	print("DEBUG: Keyboard Establish Camp on node=", anchor.zone_node.node_id)
+	api.establish_camp(anchor.zone_node.node_id)
+
+func _post_forager_on_selected(zones: Array) -> void:
+	if selected_index < 0 or selected_index >= zones.size():
+		print("DEBUG: Post Forager pressed but no zone selected — press 1-9 first")
+		return
+	var anchor: ZoneAnchor3D = zones[selected_index]
+	if anchor.zone_node == null:
+		return
+	EventBus.ui.zone_selected.emit(anchor.zone_node)
+	var api = ServiceLocator.get_management_service()
+	if api == null:
+		print("DEBUG: Post Forager failed — ManagementAPI not available")
+		return
+	var ok: bool = api.post_manual_job(anchor.zone_node.node_id, "forager", 2)
+	print("DEBUG: Keyboard Post Forager result: ", ok)
 
 func _is_key_just_pressed(key_code: int) -> bool:
 	var currently_pressed: bool = Input.is_key_pressed(key_code)
