@@ -21,6 +21,7 @@ func _ready() -> void:
 	# TODO(event-system): auto-refresh on day tick via the replacement for legacy EventBus.day_changed
 
 func open_inspection_window(node_id: int) -> void:
+	print("DEBUG: open_inspection_window node_id=" + str(node_id))
 	_active_node_id = node_id
 	_refresh_display_metrics()
 
@@ -63,9 +64,11 @@ func _on_build_button_pressed() -> void:
 	var tent_path := "res://data/blueprints/tent.tres"
 	if api and ResourceLoader.exists(tent_path):
 		var tent_blueprint: BuildingData = load(tent_path)
+		print("DEBUG: Attempted to order building (node=" + str(_active_node_id) + ")")
 		if api.order_building(_active_node_id, tent_blueprint):
+			print("DEBUG: Building order succeeded")
 			_refresh_display_metrics()
-	else:
+		else:
 		# TODO(event-system): surface this via the replacement for legacy EventBus.message_logged
 		print("No blueprints available yet.")
 
@@ -74,6 +77,7 @@ func _on_close_pressed() -> void:
 	close_menus_fallback()
 
 func close_menus_fallback() -> void:
+	print("DEBUG: close_menus_fallback (zone inspection closed)")
 	var coordinator := get_parent()
 	if coordinator and coordinator.has_method("close_menus"):
 		coordinator.close_menus()

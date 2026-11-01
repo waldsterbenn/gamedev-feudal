@@ -8,6 +8,9 @@ description: Use this skill when working on any Godot 4.6 task — writing GDScr
 ## Standing preference (for this user)
 Direct, terminal-first, concise. Verify with `python validate_godot.py` before presenting; report execution results (`PASS`, `FAIL`, exit code) rather than describing intent. No drive-by refactors; touch only what the task needs.
 
+### First-class gate: never deliver uncompilable Godot code
+Always verify `.gd`, `.tscn`, `.tres` with `python ./scripts/validate_godot.py` before committing or reporting. Confirm the headless gate (`godot --path src/feudal-age --headless --quit`) exits 0 and shows no `SCRIPT ERROR` or `Parse Error`. If it fails, fix before reporting — presenting broken scenes/scripts to the user breaks their manual test and wastes the verification cycle.
+
 ## MANDATORY: Validate After Every File Write
 
 After writing or editing any `.tscn`, `.tres`, or `.gd` file, run:
