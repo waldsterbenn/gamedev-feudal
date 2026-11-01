@@ -41,15 +41,18 @@ func _process(_delta: float) -> void:
 	# B = trigger build on selected zone
 	if _is_key_just_pressed(bindings.get_key("order_building")):
 		_build_on_selected(zones)
-	# F = post 2 forager jobs on selected zone (camp only)
-	if _is_key_just_pressed(bindings.get_key("post_forager")):
-		_post_job_on_selected(zones, "forager", 2)
-	# G = post 1 woodcutter job on selected zone (camp only) — timber regrowth
+	# G / Shift+G = woodcutter ±1 on selected zone (camp only) — #73
 	if _is_key_just_pressed(bindings.get_key("post_woodcutter")):
-		_post_job_on_selected(zones, "woodcutter", 1)
+		_adjust_job_on_selected(zones, "woodcutter", 1 if not _shift_held() else -1)
+	# F / Shift+F = forager ±1 on selected zone (camp only) — #73
+	if _is_key_just_pressed(bindings.get_key("post_forager")):
+		_adjust_job_on_selected(zones, "forager", 1 if not _shift_held() else -1)
 	# C = cycle the blueprint selection in the inspection panel
 	if _is_key_just_pressed(bindings.get_key("cycle_blueprint")):
 		EventBus.ui.blueprint_cycle_requested.emit()
+
+func _shift_held() -> bool:
+	return Input.is_key_pressed(KEY_SHIFT)
 
 ## Returns the ZoneAnchor3D children of the zone container
 func _get_zones() -> Array:
@@ -100,10 +103,11 @@ func _establish_camp_on_selected(zones: Array) -> void:
 	EventBus.ui.debug("Keyboard Establish Camp on node=" + " " + str(anchor.zone_node.node_id))
 	api.establish_camp(anchor.zone_node.node_id)
 
-func _post_job_on_selected(zones: Array, job_type: String, slots: int) -> void:
+## Adjusts the desired worker count for a job on the selected zone (#73)
+func _adjust_job_on_selected(zones: Array, job_type: String, delta: int) -> void:
 	if selected_index < 0 or selected_index >= zones.size():
 		EventBus.ui.message_logged.emit("Select a zone first (press 1-9).", "warn")
-		EventBus.ui.debug("Post " + " " + str(job_type) + " " + " pressed but no zone selected")
+		EventBus.ui.debug("Adjust " + job_type + " pressed but no zone selected — press 1-9 first")
 		return
 	var anchor: ZoneAnchor3D = zones[selected_index]
 	if anchor.zone_node == null:
@@ -113,8 +117,8 @@ func _post_job_on_selected(zones: Array, job_type: String, slots: int) -> void:
 	if api == null:
 		EventBus.ui.message_logged.emit("Management service unavailable.", "warn")
 		return
-	var ok: bool = api.post_manual_job(anchor.zone_node.node_id, job_type, slots)
-	EventBus.ui.debug("Keyboard Post " + " " + str(job_type) + " " + " result: " + " " + str(ok))
+	var ok: bool = api.adjust_job_target(anchor.zone_node.node_id, job_type, delta)
+	EventBus.ui.debug("Keyboard adjust %s %+d result: %s" % [job_type, delta, str(ok)])
 
 func _is_key_just_pressed(key_code: int) -> bool:
 	var currently_pressed: bool = Input.is_key_pressed(key_code)

@@ -14,11 +14,7 @@ extends PanelContainer
 @onready var blueprint_selection_label: Label = %BlueprintSelectionLabel
 @onready var buildings_list_label: Label = %BuildingsListLabel
 @onready var woodcutter_label: Label = %WoodcutterLabel
-@onready var woodcutter_minus_button: Button = %WoodcutterMinusButton
-@onready var woodcutter_plus_button: Button = %WoodcutterPlusButton
 @onready var forager_label: Label = %ForagerLabel
-@onready var forager_minus_button: Button = %ForagerMinusButton
-@onready var forager_plus_button: Button = %ForagerPlusButton
 @onready var builder_label: Label = %BuilderLabel
 @onready var post_forager_button: Button = %PostForagerButton
 @onready var post_woodcutter_button: Button = %PostWoodcutterButton
@@ -32,8 +28,8 @@ func _apply_key_hints() -> void:
 	establish_camp_button.text = "⛺ Establish Work Camp  (%s)" % bindings.get_display("establish_camp")
 	build_button.text = "🔨 Order Construction  (%s)" % bindings.get_display("order_building")
 	cycle_blueprint_button.text = "🔁 Cycle Blueprint  (%s)" % bindings.get_display("cycle_blueprint")
-	post_forager_button.text = "🌿 Post 2 Forager Jobs  (%s)" % bindings.get_display("post_forager")
-	post_woodcutter_button.text = "🪵 Post Woodcutter Job  (%s)" % bindings.get_display("post_woodcutter")
+	post_forager_button.text = "🌿 Forager +1  (%s / Shift+%s)" % [bindings.get_display("post_forager"), bindings.get_display("post_forager")]
+	post_woodcutter_button.text = "🪵 Woodcutter +1  (%s / Shift+%s)" % [bindings.get_display("post_woodcutter"), bindings.get_display("post_woodcutter")]
 	close_button.text = "✕ Close  (%s)" % bindings.get_display("close_menu")
 
 var _active_node_id: int = -1
@@ -58,11 +54,6 @@ func _ready() -> void:
 	# Keyboard blueprint cycling / ordering (C and B keys emit the requests)
 	EventBus.ui.blueprint_cycle_requested.connect(_cycle_blueprint)
 	EventBus.ui.blueprint_order_requested.connect(_on_build_button_pressed)
-	# Worker control ([+/-] rows)
-	woodcutter_minus_button.pressed.connect(_on_job_adjust.bind("woodcutter", -1))
-	woodcutter_plus_button.pressed.connect(_on_job_adjust.bind("woodcutter", 1))
-	forager_minus_button.pressed.connect(_on_job_adjust.bind("forager", -1))
-	forager_plus_button.pressed.connect(_on_job_adjust.bind("forager", 1))
 	_apply_key_hints()
 
 func open_inspection_window(node_id: int) -> void:
@@ -87,11 +78,12 @@ func _refresh_display_metrics() -> void:
 	berries_label.text = "🫐 " + str(data["berry_stock"])
 	mushrooms_label.text = "🍄 " + str(data["mushroom_stock"])
 
-	# Per-job worker assignment rows (#70)
+	# Per-job worker assignment rows (#73): total in header, assigned/target per row
 	var jobs: Dictionary = data["job_assignments"]
-	woodcutter_label.text = "🪵 Woodcutter %d/%d" % [jobs["woodcutter"]["assigned"], jobs["woodcutter"]["target"]]
-	forager_label.text = "🌿 Forager %d/%d" % [jobs["forager"]["assigned"], jobs["forager"]["target"]]
-	builder_label.text = "🔨 Builders %d (auto)" % jobs["builder"]["assigned"]
+	workers_label.text = "👷 Workers: %d total" % api.get_node_worker_count(_active_node_id)
+	woodcutter_label.text = "🪵 Woodcutter %d assigned / %d wanted" % [jobs["woodcutter"]["assigned"], jobs["woodcutter"]["target"]]
+	forager_label.text = "🌿 Forager %d assigned / %d wanted" % [jobs["forager"]["assigned"], jobs["forager"]["target"]]
+	builder_label.text = "🔨 Builders %d (free workers, auto)" % jobs["builder"]["assigned"]
 
 	# Per-building construction progress (#70)
 	var lines: PackedStringArray = []
@@ -101,10 +93,6 @@ func _refresh_display_metrics() -> void:
 		else:
 			lines.append("🔨 %s — %d/%d" % [b["name"], int(b["progress"]), int(b["total"])])
 	buildings_list_label.text = "\n".join(lines)
-
-	# Count workers from the API
-	var worker_count: int = api.get_node_worker_count(_active_node_id)
-	workers_label.text = str(worker_count) + " workers"
 
 	# Show contextual action buttons based on settlement state
 	var is_wilderness: bool = data["is_camp_creatable"]
@@ -123,18 +111,10 @@ func _on_establish_camp_pressed() -> void:
 		_refresh_display_metrics()
 
 func _on_post_forager_pressed() -> void:
-	_post_job("forager", 2)
+	_post_job("forager", 1)
 
 func _on_post_woodcutter_pressed() -> void:
 	_post_job("woodcutter", 1)
-
-## [+/-] worker control rows (#70)
-func _on_job_adjust(job_type: String, delta: int) -> void:
-	if _active_node_id == -1:
-		return
-	var api = ServiceLocator.get_management_service()
-	if api and api.adjust_job_target(_active_node_id, job_type, delta):
-		_refresh_display_metrics()
 
 func _post_job(job_type: String, slots: int) -> void:
 	EventBus.ui.debug("Post " + " " + str(job_type) + " " + " Job pressed (node=" + " " + str(_active_node_id) + " " + ")")
