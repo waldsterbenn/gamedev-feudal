@@ -7,7 +7,7 @@ extends PanelContainer
 @onready var timber_label: Label = %TimberValueLabel
 @onready var berries_label: Label = %BerriesValueLabel
 @onready var mushrooms_label: Label = %MushroomsValueLabel
-@onready var workers_label: Label = %WorkersLabel
+@onready var peasants_label: Label = %WorkersHeader
 @onready var establish_camp_button: Button = %EstablishCampButton
 @onready var build_button: Button = %BuildButton
 @onready var cycle_blueprint_button: Button = %CycleBlueprintButton
@@ -78,9 +78,13 @@ func _refresh_display_metrics() -> void:
 	berries_label.text = "🫐 " + str(data["berry_stock"])
 	mushrooms_label.text = "🍄 " + str(data["mushroom_stock"])
 
-	# Per-job worker assignment rows (#73): total in header, assigned/target per row
+	# Per-job worker assignment rows (#73): Peasants tally lives ONLY in the
+	# lower workers section — "Peasants" = sum of all assignees (woodcutter
+	# + forager + builders). Unassigned peasants tally as builders while
+	# construction runs (ZoneNode._resolve_workforce_allocation).
 	var jobs: Dictionary = data["job_assignments"]
-	workers_label.text = "👷 Workers: %d total" % api.get_node_worker_count(_active_node_id)
+	var peasant_count: int = jobs["woodcutter"]["assigned"] + jobs["forager"]["assigned"] + jobs["builder"]["assigned"]
+	peasants_label.text = "👷 Peasants: %d" % peasant_count
 	woodcutter_label.text = "🪵 Woodcutter %d assigned / %d wanted" % [jobs["woodcutter"]["assigned"], jobs["woodcutter"]["target"]]
 	forager_label.text = "🌿 Forager %d assigned / %d wanted" % [jobs["forager"]["assigned"], jobs["forager"]["target"]]
 	builder_label.text = "🔨 Builders %d (free workers, auto)" % jobs["builder"]["assigned"]
