@@ -25,8 +25,19 @@ Three minimal `.tscn` scenes (format=3, primitive BoxShape3D/CylinderShape3D, la
 ## Validation
 - `.tres`: `validate_godot.py` — PASSED (3 files)
 - `.tscn`: `validate_godot.py` — PASSED (header format correct; `.uid` warning is expected)
-- No production logic changed — `NPC.gd`, `ManagementAPI.gd`, `ManagementPopulantComponent.gd` untouched; `tests/smoke_slice.gd` still passes on master (`Timber=9`, `PASS`).
+- No production logic changed — `NPC.gd`, `ManagementAPI.gd`, `ManagementPopulantComponent.gd` untouched; `tests/smoke_slice.gd` still passes (with #53 testability additions: `Timber=39`, `PASS`).
 - `docs/qa/testing-plan.md` (merged in PR #63) documents the gate; this file (`findings/08-...`) fits the wayfinder convention (ticket #53's resolution artifact, linked from the issue).
+
+## Manual game testing (2026-11-01, user-verified)
+
+Player-facing testability additions (PR #64):
+- `KeyboardZoneSelector` (`scripts/world/keyboard_zone_selector.gd`, node in `World.tscn`): Tab toggles management mode; number keys `1`–`9` select a zone; `Enter` opens inspection; `B` orders the tent on the selected zone. Emits `EventBus.ui.zone_selected` with the anchor's `zone_node` resource (matching the `UICoordinator._on_zone_selected` contract). Key detection uses edge-tracking (`is_key_pressed` + previous-state map) — Godot 4.7 has no static `Input.is_key_just_pressed()`.
+- Zone detection must use `child is ZoneAnchor3D` — `get_class()` returns the engine class (`Area3D`), and `has_node("ZoneNode")` fails because `ZoneNode` is a Resource, not a child node.
+- HUD instruction label added to `UICoordinator.tscn` (Tab/Number/Enter/B shortcuts).
+- Interaction logging in `zone_inspection_menu.gd`: inspection open/close and build-order attempts print to console.
+- Zone 1 (Ironwood Hollow) starts with `initial_stockpile` (Timber 30, Berries 10, Mushrooms 10) seeded in `WorldInitializer.gd` — tent costs 25 Timber, so the player can build on day 1.
+
+Verified in-game by the user: Tab → zones appear; `1`+`Enter` → inspection panel; `B` → `Keyboard Build result: true`, tent mesh spawns in the zone; subsequent `B` correctly refused (`false`) once stockpile drops below cost (economic gate works).
 
 ## Dependencies / next
 
