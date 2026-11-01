@@ -20,6 +20,7 @@ extends PanelContainer
 @onready var starving_label: Label = %StarvingLabel
 @onready var post_forager_button: Button = %PostForagerButton
 @onready var post_woodcutter_button: Button = %PostWoodcutterButton
+@onready var post_foreman_button: Button = %PostForemanButton
 @onready var close_button: Button = %CloseButton
 
 ## Composes button labels from the key-binding config (single source of truth)
@@ -32,6 +33,7 @@ func _apply_key_hints() -> void:
 	cycle_blueprint_button.text = "🔁 Cycle Blueprint  (%s)" % bindings.get_display("cycle_blueprint")
 	post_forager_button.text = "🌿 Forager +1  (%s / Shift+%s)" % [bindings.get_display("post_forager"), bindings.get_display("post_forager")]
 	post_woodcutter_button.text = "🪵 Woodcutter +1  (%s / Shift+%s)" % [bindings.get_display("post_woodcutter"), bindings.get_display("post_woodcutter")]
+	post_foreman_button.text = "🎖 Foreman +1  (%s / Shift+%s)" % [bindings.get_display("post_foreman"), bindings.get_display("post_foreman")]
 	close_button.text = "✕ Close  (%s)" % bindings.get_display("close_menu")
 
 var _active_node_id: int = -1
@@ -51,6 +53,7 @@ func _ready() -> void:
 	cycle_blueprint_button.pressed.connect(_cycle_blueprint)
 	post_forager_button.pressed.connect(_on_post_forager_pressed)
 	post_woodcutter_button.pressed.connect(_on_post_woodcutter_pressed)
+	post_foreman_button.pressed.connect(_on_post_foreman_pressed)
 	close_button.pressed.connect(_on_close_pressed)
 	# Live refresh: the panel follows stockpile growth on every day tick
 	EventBus.day_ticked.connect(_on_day_ticked)
@@ -81,19 +84,23 @@ func _refresh_display_metrics() -> void:
 	berries_label.text = "🫐 " + str(data["berry_stock"])
 	mushrooms_label.text = "🍄 " + str(data["mushroom_stock"])
 
-	# Per-job worker assignment rows (#73): Peasants tally lives ONLY in the
-	# lower workers section — "Peasants" = ALL peasants resident at the zone
-	# (local_workers), not the sum of assignees: free peasants with no open
-	# construction and no posted jobs are still peasants here (playtest
-	# 2026-11-01: camp starts with 2, tally must show 2 immediately).
+	# Per-job rows show ASSIGNED / CAP where cap = completed-building slots
+	# (#88): "wanted" targets no longer render — buildings define capacity.
 	var jobs: Dictionary = data["job_assignments"]
+	var caps: Dictionary = data["job_caps"]
 	var peasant_count: int = api.get_node_worker_count(_active_node_id)
 	peasants_label.text = "👷 Peasants: %d" % peasant_count
-	woodcutter_label.text = "🪵 Woodcutter %d assigned / %d wanted" % [jobs["woodcutter"]["assigned"], jobs["woodcutter"]["target"]]
-	forager_label.text = "🌿 Forager %d assigned / %d wanted" % [jobs["forager"]["assigned"], jobs["forager"]["target"]]
+	woodcutter_label.text = "🪵 Woodcutter %d/%d" % [jobs["woodcutter"]["assigned"], caps["woodcutter"]]
+	forager_label.text = "🌿 Forager %d/%d" % [jobs["forager"]["assigned"], caps["forager"]]
 	builder_label.text = "🔨 Builders %d (free workers, auto)" % jobs["builder"]["assigned"]
-	foreman_label.text = "🎖 Foreman %d assigned / %d wanted" % [jobs["foreman"]["assigned"], jobs["foreman"]["target"]]
-	if data.get("starving", 0) > 0:
+	if jobs["foreman"]["assigned"] > 0:
+		foreman_label.text = "🎖 Foreman %d/%d · production +%d%%" % [jobs["foreman"]["assigned"], caps["foreman"], int(jobs["foreman"]["assigned"] * 25)]
+	else:
+		foreman_label.text = "🎖 Foreman %d/%d · +25%% production per foreman" % [jobs["foreman"]["assigned"], caps["foreman"]]
+	if data.get("famine", 0) > 0:
+		starving_label.text = "🌾 %d living off the land — no food stores!" % data["famine"]
+		starving_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.3))
+	elif data.get("starving", 0) > 0:
 		starving_label.text = "⚠ %d starving — assign foragers!" % data["starving"]
 		starving_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.3))
 	else:
@@ -129,6 +136,9 @@ func _on_post_forager_pressed() -> void:
 
 func _on_post_woodcutter_pressed() -> void:
 	_post_job("woodcutter", 1)
+
+func _on_post_foreman_pressed() -> void:
+	_post_job("foreman", 1)
 
 func _post_job(job_type: String, slots: int) -> void:
 	EventBus.ui.debug("Post " + " " + str(job_type) + " " + " Job pressed (node=" + " " + str(_active_node_id) + " " + ")")

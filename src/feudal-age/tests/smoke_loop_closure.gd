@@ -94,10 +94,24 @@ func _run_loop_setup() -> void:
 		_fail("tent construction did not complete after %d uninterrupted builder ticks" % TICKS_TO_RUN)
 		return
 
-	# STEP 4: post forager jobs via the manual-posting API (adds 2 slots)
+	# STEP 4: a completed Forager Hut is required before forager slots exist
+	# (#88: buildings define capacity). Order + force-complete one.
+	var hut_bp: BuildingData = load(FORAGER_PATH)
+	api.order_building(ZONE_ID, hut_bp)
+	var hut_completed: bool = false
+	for building in zone.buildings:
+		if building.blueprint.building_id == "forager_hut":
+			building.is_completed = true
+			building.construction_progress = building.blueprint.total_work_required
+			hut_completed = true
+	if not hut_completed:
+		_fail("forager_hut not in queue after order")
+		return
+
+	# STEP 4b: post forager jobs via the manual-posting API (adds 2 slots)
 	var posted: bool = api.post_manual_job(ZONE_ID, "forager", 2)
 	if not posted:
-		_fail("post_manual_job(forager) refused at CAMP tier")
+		_fail("post_manual_job(forager) refused with completed Forager Hut")
 		return
 	_forager_posted = true
 
@@ -157,9 +171,16 @@ func _verify_and_quit() -> void:
 		return
 
 	print("SMOKE: forager production verified — Berries +%d, Mushrooms +%d" % [berries_delta, mushrooms_delta])
-	# TIMBER-GROWTH acceptance (#47/#68): with the tent complete there are no
-	# open builder slots, so a posted woodcutter job must pull the woodcutter
-	# worker into production — Timber must strictly increase over N ticks.
+	# TIMBER-GROWTH acceptance (#47/#68): a completed Lumber Camp is required
+	# before woodcutter slots exist (#88: buildings define capacity). Order +
+	# force-complete one, then the posted woodcutter job must pull the
+	# woodcutter worker into production — Timber must strictly increase.
+	var lumber_bp: BuildingData = load("res://data/blueprints/lumber_camp.tres")
+	api.order_building(ZONE_ID, lumber_bp)
+	for building in zone.buildings:
+		if building.blueprint.building_id == "lumber_camp":
+			building.is_completed = true
+			building.construction_progress = building.blueprint.total_work_required
 	var woodcutter_ok: bool = api.post_manual_job(ZONE_ID, "woodcutter", 1)
 	if not woodcutter_ok:
 		_fail("post_manual_job(woodcutter) refused")

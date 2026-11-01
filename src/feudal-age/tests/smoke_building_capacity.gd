@@ -127,6 +127,34 @@ func _process(_delta: float) -> bool:
 				_fail("residents %d != 4 after cap enforcement" % _zone.local_workers.size())
 				return true
 			print("SMOKE: housing cap verified — 4/4 residents, 5th refused")
+			_stage = 7
+		7:
+			# Famine (#88): drain all food -> tick -> everyone off the land,
+			# no workplaces manned, desperate trickle refills the stockpile.
+			_zone.stockpile["Berries"] = 0
+			_zone.stockpile["Mushrooms"] = 0
+			_tick()
+			if _zone._get_assigned_count("off_the_land") != 4:
+				_fail("famine: expected 4 off the land, got %d" % _zone._get_assigned_count("off_the_land"))
+				return true
+			if _zone._get_assigned_count("forager") != 0 or _zone._get_assigned_count("builder") != 0:
+				_fail("famine: workplaces still manned (forager=%d builder=%d)" % [
+					_zone._get_assigned_count("forager"), _zone._get_assigned_count("builder")])
+				return true
+			var food: int = _zone.stockpile.get("Berries", 0) + _zone.stockpile.get("Mushrooms", 0)
+			if food <= 0:
+				_fail("famine: desperate forage trickle did not refill the stockpile")
+				return true
+			print("SMOKE: famine verified — 4 off the land, workplaces unmanned, trickle +%d food" % food)
+			_stage = 8
+		8:
+			# Recovery: stockpile food >= residents -> normal tick re-mans
+			# workplaces from the persisted postings.
+			_tick()
+			if _zone._get_assigned_count("forager") != 2:
+				_fail("famine recovery failed — foragers assigned %d != 2" % _zone._get_assigned_count("forager"))
+				return true
+			print("SMOKE: famine recovery verified — workplaces re-manned from postings")
 			print("SMOKE: PASS")
 			quit(0)
 			return true
