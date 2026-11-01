@@ -12,6 +12,7 @@ func _ready() -> void:
 			"name": "Ironwood Hollow",
 			"pos": Vector3(12.0, 79.129, 12.0),
 			"fertilities": {"Timber": 0.8, "Cereals": 0.3, "Berries": 0.5, "Mushrooms": 0.4},
+			"initial_stockpile": {"Timber": 30, "Berries": 10, "Mushrooms": 10},
 			"initial_populants": [
 				{"offset": Vector3(1.5, 0.0, 1.5), "qualification": "woodcutter"},
 				{"offset": Vector3(-2.0, 0.0, 1.0), "qualification": "unskilled"}
@@ -65,6 +66,8 @@ func _ready() -> void:
 		zone_node.node_name = data["name"]
 		zone_node.fertilities = data["fertilities"]
 		zone_node.current_tier = ZoneNode.SettlementTier.WILDERNESS
+		if data.has("initial_stockpile"):
+			zone_node.stockpile = data["initial_stockpile"].duplicate()
 
 		# 2. Spawn visual anchor via ZoneCoordinator
 		var zone_pos: Vector3 = data["pos"]
