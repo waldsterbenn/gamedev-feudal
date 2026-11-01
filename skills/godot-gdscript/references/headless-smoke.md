@@ -27,7 +27,7 @@ For reproducible assertions (e.g. `ManagementAPI.establish_camp()` + `assign_pop
 1. Wait `>= 5` frames after `_gc` instantiation so `WorldInitializer._ready()` and `ManagementPopulantComponent._ready()` complete.
 2. Read `api._registered_populants` to verify registrations (expect all IDs 1–N, not only key `0`).
 3. Re-issue `recruit_populant_to_faction()` and `assign_populant_to_node()` through the public API (boot-time assignment may fail because component `_ready()` hasn't fired yet; the `NPC.gd` fix sets `character_id` before `add_child()`, so this is mainly defensive).
-4. Set `manual_job_postings` on the zone (`{"woodcutter": 1}`) to simulate completed-building job slots — without `.tres` blueprints + `.tscn` scenes, no completed buildings exist, so no `woodcutter` slots are created.
+4. Set `manual_job_postings` on the zone (`{"woodcutter": 1}`) — this IS the player's desired count and the only assignment driver; completed buildings never auto-grab workers. Free workers (total minus all targets) act as builders automatically while construction is open. Check the live `get_total_job_slots()` / `_resolve_workforce_allocation()` implementation before writing allocation-dependent assertions — the model is gameplay-driven and has changed before.
 5. Stop the GC's `Timer` (`for child in _gc.get_children(): if child is Timer: child.stop()`), then issue ticks manually via `_on_simulation_tick_elapsed()` rather than relying on real-time delays.
 6. Assert `zone.stockpile.get("Timber", 0) > 0` after `>= 3` ticks; optionally assert `canopy_density < 1.0` for ecological-observable verification.
 7. Call `quit(0)` on PASS, `quit(1)` on FAIL.
