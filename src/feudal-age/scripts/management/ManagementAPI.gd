@@ -35,6 +35,8 @@ func _wire_starving_toast(node: ZoneNode) -> void:
 		node.zone_famine.connect(_on_zone_famine)
 	if not node.zone_famine_ended.is_connected(_on_zone_famine_ended):
 		node.zone_famine_ended.connect(_on_zone_famine_ended)
+	if not node.storage_discarded.is_connected(_on_storage_discarded):
+		node.storage_discarded.connect(_on_storage_discarded)
 
 func _on_populants_starving(node_id: int, starving_count: int) -> void:
 	var node: ZoneNode = _get_world_nodes().get(node_id)
@@ -45,6 +47,11 @@ func _on_zone_famine(node_id: int, off_the_land_count: int) -> void:
 	var node: ZoneNode = _get_world_nodes().get(node_id)
 	var zone_name: String = node.node_name if node else "Zone %d" % node_id
 	EventBus.ui.message_logged.emit("🌾 Famine at %s — %d living off the land, workplaces unmanned." % [zone_name, off_the_land_count], "warn")
+
+func _on_storage_discarded(node_id: int, amount: int) -> void:
+	var node: ZoneNode = _get_world_nodes().get(node_id)
+	var zone_name: String = node.node_name if node else "Zone %d" % node_id
+	EventBus.ui.message_logged.emit("📦 Storage full at %s — %d items discarded. Consume or expand storage." % [zone_name, amount], "warn")
 
 func _on_zone_famine_ended(node_id: int, food_stock: int) -> void:
 	var node: ZoneNode = _get_world_nodes().get(node_id)

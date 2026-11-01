@@ -6,6 +6,7 @@ signal building_ordered(node_id: int, building: BuildingInstance)
 signal populants_starving(node_id: int, starving_count: int)
 signal zone_famine(node_id: int, off_the_land_count: int)
 signal zone_famine_ended(node_id: int, food_stock: int)
+signal storage_discarded(node_id: int, amount: int)
 
 const TRICKLE_RATE: float = 0.30   # desperate forage: 30% of forager yield per resting resident (#92)
 const FAMINE_DEBT_RATE: int = 2    # ration debt accrued per resident per famine day (#91 v4)
@@ -35,6 +36,10 @@ enum SettlementTier { WILDERNESS, CAMP, FARM, MANOR, VILLAGE, TOWN }
 @export var stockpile: Dictionary = {}
 @export var allocated_construction_resources: Dictionary = {}
 @export var max_storage_capacity: int = 200
+## Headroom above stacked caps for famine-scavenge overflow (the trickle
+## deliberately bypasses per-resource caps so recovery can't deadlock on a
+## full pantry) — the audit tolerates this much before discarding.
+const CAP_AUDIT_HEADROOM: int = 40
 ## Starving residents from the most recent sustenance tick (UI reads; #85)
 var _last_starving_count: int = 0
 ## STICKY famine state (#92): true from the day residents go unfed until
@@ -343,6 +348,11 @@ func _execute_production_and_labor() -> void:
 			var floor_target: int = 0
 			if famine_deficit > 0:
 				floor_target = resting * FAMINE_DEBT_RATE + maxi(1, residents_count / 4)
+			# NOTE: floor_extra and the trickle are deliberately NOT clamped
+			# to per-resource caps — clamping deadlocks recovery when the
+			# pantry is already full while the ledger is in deficit (nothing
+			# could ever be repaid/banked). The cap audit grants headroom
+			# above the stacked caps for exactly this scavenge overflow.
 			var floor_extra: int = maxi(0, floor_target - (trickle_berries + trickle_mushrooms))
 			trickle_berries += floor_extra
 			var gross: int = maxi(trickle_berries + trickle_mushrooms, floor_target)
@@ -407,22 +417,33 @@ func _cap_room(resource_name: String, caps: Dictionary) -> int:
 		return 999999
 	return max(0, caps[resource_name] - stockpile.get(resource_name, 0))
 
-## Audits storage stockpile and trims excess to stay below capacity limits
+## Audits storage stockpile and trims excess to stay below capacity limits.
+## The effective total capacity is the zone's OWN stacked caps (#85), not
+## the legacy fixed 200 — a fixed total silently discards produced goods
+## whenever stacked caps exceed it (live play: Timber "draining" with
+## nothing being built — the audit was deleting stock every tick, 59×).
+## Production clamps per-resource, so the audit is a safety net.
 func _enforce_storage_caps() -> void:
+	var caps: Dictionary = _zone_storage_caps()
+	var caps_total: int = 0
+	for resource_name in caps:
+		caps_total += int(caps[resource_name])
+	var effective_capacity: int = maxi(max_storage_capacity, caps_total + CAP_AUDIT_HEADROOM)
 	var total_items: int = 0
 	for resource in stockpile:
 		total_items += stockpile[resource]
-		
-	if total_items > max_storage_capacity:
-		var excess: int = total_items - max_storage_capacity
-		# TODO(event-system): surface this via the replacement for legacy EventBus.message_logged
-		push_warning("Node " + str(node_id) + " stockpile exceeded storage capacity! Discarding " + str(excess) + " excess items.")
-		
-		for resource in stockpile:
-			if excess <= 0:
-				break
-			var amount = stockpile[resource]
-			if amount > 0:
-				var discard = min(excess, amount)
-				stockpile[resource] -= discard
-				excess -= discard
+
+	if total_items > effective_capacity:
+		var excess: int = total_items - effective_capacity
+		storage_discarded.emit(node_id, excess)  # toast via API layer (ZoneNode stays signal-only)
+		# Fair discard: round-robin across resources, not first-key-first.
+		var discarded: bool = true
+		while excess > 0 and discarded:
+			discarded = false
+			for resource in stockpile:
+				if excess <= 0:
+					break
+				if stockpile[resource] > 0:
+					stockpile[resource] -= 1
+					excess -= 1
+					discarded = true
