@@ -299,6 +299,9 @@ godot --path ./src/my-project --editor --quit --headless
 
 ## Pitfalls
 
+- `OS.find_keycode_from_string()` takes BARE keycode names ("E", "ESCAPE", "TAB", "F12") — `KEY_`-prefixed strings return `KEY_NONE` (verified on 4.7.2). Same for `.tres` keybinding configs: store bare names. `OS.get_keycode_string()` output also has no `KEY_` prefix.
+- Adding a new `class_name` script and running `--headless --quit` immediately → `Could not find type "X" in current scope` parse errors. The global class cache (`.godot/global_script_class_cache.cfg`) only updates on an editor scan: run `godot --path <proj> --headless --editor --quit` once after adding new `class_name` scripts, then re-run the gate.
+- `pgrep -f "godot --path <proj>"` matches its own Hermes shell wrapper command line (the pattern string appears in `bash -c ...`) — kills your own command with SIGKILL instead of the game. Verify with `pgrep -af` (shows the actual process args) or check `ps -p <pid>` before killing.
 - Don't use `global` incorrectly in GDScript 4 — `global` references an external variable; declaring one uses `var`. Incorrect use (`global _frames` inside a function when `_frames` is declared at module level) causes parse errors.
 - Don't use `?:` ternary syntax — GDScript 4 uses `if-else` expressions (`value if condition else other`), not C-style ternary. `quit(ok ? 0 : 1)` fails at parse time; replace with explicit `if ok: ... else: ...` blocks.
 - Broken `.tscn` `.gd` references — after renaming/moving scripts (`NpcPeasant.gd` → `NPC.gd`), grep all `.tscn` (`grep -r 'old_name' src/feudal-age/scenes/`) and patch the `ext_resource` path before opening the scene in the editor. A missing script produces "Failed loading resource" and "Cannot set object script" errors.

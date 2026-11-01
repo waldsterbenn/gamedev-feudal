@@ -106,18 +106,10 @@ func _on_build_button_pressed() -> void:
 			EventBus.ui.debug("Building order succeeded")
 			_refresh_display_metrics()
 	else:
-		# TODO(event-system): surface this via the replacement for legacy EventBus.message_logged
-		EventBus.ui.debug("No blueprints available yet.")
+		EventBus.ui.message_logged.emit("No blueprints available yet.", "warn")
 
 func _on_close_pressed() -> void:
-	# TODO(event-system): emit zone-deselected via the replacement for legacy EventBus
-	close_menus_fallback()
-
-func close_menus_fallback() -> void:
-	EventBus.ui.debug("close_menus_fallback (zone inspection closed)")
-	var coordinator := get_parent()
-	if coordinator and coordinator.has_method("close_menus"):
-		coordinator.close_menus()
+	EventBus.ui.zone_deselected.emit()
 
 ## Live-refresh while the panel is visible on each day tick
 func _on_day_ticked(day: int) -> void:
