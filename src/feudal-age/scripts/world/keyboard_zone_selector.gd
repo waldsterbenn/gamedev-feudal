@@ -16,14 +16,14 @@ func _process(_delta: float) -> void:
 	# Number keys 1-9 select zone directly (no arrow conflict)
 	for i in range(1, 10):
 		if zones.size() > i - 1:
-			if Input.is_key_just_pressed(KEY_1 + i - 1):
+			if Input.is_key_pressed(KEY_1 + i - 1):
 				selected_index = i - 1
 				_select_zone()
 	# Enter = open inspection
 	if Input.is_action_just_pressed("ui_accept"):
 		_select_zone()
 	# B = trigger build (after inspection is open)
-	if Input.is_key_just_pressed(KEY_B):
+	if Input.is_key_pressed(KEY_B):
 		if selected_index >= 0 and selected_index < zones.size():
 			var zone = zones[selected_index]
 			var zi = zone.get_node("ZoneNode") if zone.has_node("ZoneNode") else zone
