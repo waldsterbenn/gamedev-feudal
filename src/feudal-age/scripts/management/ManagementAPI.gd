@@ -182,28 +182,32 @@ func order_building(node_id: int, blueprint: BuildingData) -> bool:
 		EventBus.ui.message_logged.emit("%s construction ordered — missing %s; builders will gather it." % [blueprint.display_name, ", ".join(missing_parts)], "warn")
 	return true
 
-## Adjusts the player-controlled target for a production job (#70). The sum of
-## all targets can never exceed the zone's worker count.
+## Adjusts the player-controlled desired count for a production job (#73).
+## Decreases clamp at 0; increases refuse only when no free workers remain.
+## manual_job_postings IS the desired total — buildings never auto-grab.
 func adjust_job_target(node_id: int, job_type: String, delta: int) -> bool:
 	var nodes = _get_world_nodes()
 	var node: ZoneNode = nodes.get(node_id)
 	if not node:
 		return false
 	var current: int = node.manual_job_postings.get(job_type, 0)
-	var desired: int = current + delta
 	var other_targets: int = 0
 	for jt in node.manual_job_postings:
 		if jt != job_type:
 			other_targets += node.manual_job_postings[jt]
 	var workers: int = node.local_workers.size()
-	if desired > workers - other_targets:
-		EventBus.ui.message_logged.emit("Not enough free workers at %s (%d workers, %d on other tasks)." % [node.node_name, workers, other_targets], "warn")
-		return false
+	var desired: int = current + delta
 	if desired < 0:
-		EventBus.ui.message_logged.emit("No %s jobs assigned — nothing to remove." % job_type.capitalize(), "warn")
+		desired = 0
+	if delta > 0 and desired > workers - other_targets:
+		EventBus.ui.message_logged.emit("Not enough free workers at %s (%d total, %d on other tasks)." % [node.node_name, workers, other_targets], "warn")
+		return false
+	if desired == current:
+		if delta < 0:
+			EventBus.ui.message_logged.emit("No %s jobs to remove at %s." % [job_type.capitalize(), node.node_name], "warn")
 		return false
 	node.manual_job_postings[job_type] = desired
-	EventBus.ui.message_logged.emit("%s target set to %d at %s." % [job_type.capitalize(), desired, node.node_name], "info")
+	EventBus.ui.message_logged.emit("%s workers: %d -> %d at %s." % [job_type.capitalize(), current, desired, node.node_name], "info")
 	return true
 
 ## Executed when the player posts a manual job opening from the UI —

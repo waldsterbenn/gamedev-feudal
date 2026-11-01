@@ -123,7 +123,7 @@ layout_mode = 2
 
 [node name="WorkersHeader" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "👷 Workers (assigned/target)"
+text = "👷 Workers: 0 total"
 
 [node name="WoodcutterRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -132,17 +132,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "🪵 Woodcutter 0/0"
-
-[node name="WoodcutterMinusButton" type="Button" parent="MarginContainer/VBoxContainer/WoodcutterRow"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "−"
-
-[node name="WoodcutterPlusButton" type="Button" parent="MarginContainer/VBoxContainer/WoodcutterRow"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "+"
+text = "🪵 Woodcutter 0 assigned / 0 wanted"
 
 [node name="ForagerRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -151,17 +141,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "🌿 Forager 0/0"
-
-[node name="ForagerMinusButton" type="Button" parent="MarginContainer/VBoxContainer/ForagerRow"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "−"
-
-[node name="ForagerPlusButton" type="Button" parent="MarginContainer/VBoxContainer/ForagerRow"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "+"
+text = "🌿 Forager 0 assigned / 0 wanted"
 
 [node name="BuilderRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -170,7 +150,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "🔨 Builders 0 (auto)"
+text = "🔨 Builders 0 (free workers, auto)"
 
 [node name="HSeparator5" type="HSeparator" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2

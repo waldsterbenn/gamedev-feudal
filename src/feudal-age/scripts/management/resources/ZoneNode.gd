@@ -53,17 +53,11 @@ func process_management_tick() -> void:
 	_execute_production_and_labor()  # Step 4: Environmental Extraction Mechanics
 	_enforce_storage_caps()          # Step 5: Warehouse Auditing
 
-## Gathers open jobs: player-controlled targets (manual_job_postings) plus
-## automatic slots from completed production buildings. Builders are NOT
-## slot-based (#70) — every free worker builds while construction runs.
+## Gathers open jobs: ONLY the player-controlled targets (#73). Completed
+## buildings enable job types but never auto-grab workers — the player
+## decides how many workers work each job via the modifier keys / panel.
 func get_total_job_slots() -> Dictionary:
-	var slots = manual_job_postings.duplicate()
-	for building in buildings:
-		if building.is_completed:
-			var job = building.blueprint.job_type
-			if job != "":
-				slots[job] = slots.get(job, 0) + building.blueprint.max_jobs
-	return slots
+	return manual_job_postings.duplicate()
 
 func _get_assigned_count(job_type: String) -> int:
 	if _assigned_workers_by_job.has(job_type):

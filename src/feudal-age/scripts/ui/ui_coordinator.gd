@@ -36,8 +36,9 @@ func _apply_key_hints() -> void:
 		"%s = Inspect zone" % bindings.get_display("inspect_zone"),
 		"%s = Establish camp" % bindings.get_display("establish_camp"),
 		"%s = Order construction" % bindings.get_display("order_building"),
-		"%s = Post forager jobs" % bindings.get_display("post_forager"),
-		"%s = Post woodcutter job" % bindings.get_display("post_woodcutter"),
+		"%s = Cycle blueprint" % bindings.get_display("cycle_blueprint"),
+		"%s / Shift+%s = Woodcutter +1 / -1" % [bindings.get_display("post_woodcutter"), bindings.get_display("post_woodcutter")],
+		"%s / Shift+%s = Forager +1 / -1" % [bindings.get_display("post_forager"), bindings.get_display("post_forager")],
 		"%s = Close panel" % bindings.get_display("close_menu"),
 	]
 	hud_instructions.text = "\n".join(entries)
