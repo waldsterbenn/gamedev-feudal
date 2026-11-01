@@ -1,6 +1,6 @@
 
 extends Node
-@export var zone_container_path: NodePath
+@export var zone_container_path: NodePath = NodePath("../ZoneContainer")
 var zones: Array = []
 var selected_index: int = -1
 func _ready() -> void:

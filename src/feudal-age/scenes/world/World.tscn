@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://cqlgltpkfbb53" path="res://scripts/world/WorldInitializer.gd" id="11_init"]
 [ext_resource type="PackedScene" path="res://scenes/ui/UICoordinator.tscn" id="12"]
 [ext_resource type="Script" uid="uid://50ugxoykjwid" path="res://scripts/world/NPCCoordinator.gd" id="13_npc_coord"]
+[ext_resource type="Script" path="res://scripts/world/keyboard_zone_selector.gd" id="14_selector"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_world"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -55,3 +56,6 @@ container_path = NodePath("../NPCContainer")
 
 [node name="WorldInitializer" type="Node" parent="." unique_id=1125366125]
 script = ExtResource("11_init")
+
+[node name="KeyboardZoneSelector" type="Node" parent="." unique_id=999]
+script = ExtResource("14_selector")
