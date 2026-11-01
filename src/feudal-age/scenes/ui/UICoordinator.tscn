@@ -1,10 +1,14 @@
-[gd_scene format=3 uid="uid://vng17ts6kmiy"]
+[gd_scene load_steps=3 format=3 uid="uid://vng17ts6kmiy"]
 
 [ext_resource type="Script" uid="uid://fh4o8gx5oefa" path="res://scripts/ui/ui_coordinator.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ZoneInspectionMenu.tscn" id="3_zone_menu"]
 [ext_resource type="Script" uid="uid://c5p76eomt7e88" path="res://scripts/ui/management_mode_controller.gd" id="4_mgmt_ctrl"]
 [ext_resource type="PackedScene" path="res://scenes/ui/DebugConsole.tscn" id="5_dbg"]
 [ext_resource type="Script" path="res://scripts/ui/contextual_key_hints.gd" id="6_hints"]
+
+[sub_resource type="SystemFont" id="SystemFont_bold"]
+font_names = PackedStringArray("sans-serif")
+font_weight = 700
 
 [node name="UICoordinator" type="CanvasLayer" unique_id=2046750659]
 script = ExtResource("1_script")
@@ -47,14 +51,19 @@ theme_override_constants/line_spacing = 2
 
 [node name="HUDMessage" type="Label" parent="." unique_id=2058164522]
 unique_name_in_owner = true
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
+anchors_preset = 0
 anchor_right = 1.0
 offset_left = 360.0
-offset_top = -170.0
+offset_top = 16.0
 offset_right = -16.0
-offset_bottom = -130.0
-grow_vertical = 0
+offset_bottom = 60.0
+grow_horizontal = 1
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_fonts/font = SubResource("SystemFont_bold")
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.08, 0.05, 1)
+theme_override_constants/outline_size = 6
 
 [node name="DebugConsole" parent="." unique_id=947416520 instance=ExtResource("5_dbg")]

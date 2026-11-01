@@ -79,11 +79,12 @@ func _refresh_display_metrics() -> void:
 	mushrooms_label.text = "🍄 " + str(data["mushroom_stock"])
 
 	# Per-job worker assignment rows (#73): Peasants tally lives ONLY in the
-	# lower workers section — "Peasants" = sum of all assignees (woodcutter
-	# + forager + builders). Unassigned peasants tally as builders while
-	# construction runs (ZoneNode._resolve_workforce_allocation).
+	# lower workers section — "Peasants" = ALL peasants resident at the zone
+	# (local_workers), not the sum of assignees: free peasants with no open
+	# construction and no posted jobs are still peasants here (playtest
+	# 2026-11-01: camp starts with 2, tally must show 2 immediately).
 	var jobs: Dictionary = data["job_assignments"]
-	var peasant_count: int = jobs["woodcutter"]["assigned"] + jobs["forager"]["assigned"] + jobs["builder"]["assigned"]
+	var peasant_count: int = api.get_node_worker_count(_active_node_id)
 	peasants_label.text = "👷 Peasants: %d" % peasant_count
 	woodcutter_label.text = "🪵 Woodcutter %d assigned / %d wanted" % [jobs["woodcutter"]["assigned"], jobs["woodcutter"]["target"]]
 	forager_label.text = "🌿 Forager %d assigned / %d wanted" % [jobs["forager"]["assigned"], jobs["forager"]["target"]]
