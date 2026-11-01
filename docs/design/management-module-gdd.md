@@ -127,3 +127,51 @@ Phase One utilizes a **Localized Inventory Model**. Each territory node tracks a
 *   **The Push Rule:** Workers harvesting in a node always deposit raw resources into the stockpile where the workplace sits.
 
 ```
+
+---
+
+## 7. Implemented Slice Systems (2026-11-01, through PR #93)
+
+> This section records the systems **as shipped** in the playable slice — the authoritative mechanics, not aspirations. Narrative design background: `docs/wayfinder/findings/12-famine-ration-debt-and-settlement.md`; ticket chain #85→#93.
+
+### 7.1 Building-Driven Capacity & Stockpile Caps (#85, PR #87)
+
+*   **Job caps come from buildings.** A zone's assignable count per category is capped by its completed buildings (`max_jobs` per blueprint): Lumber Camp → woodcutters, Forager Hut → foragers, Foreman's Tent → 1 foreman. Tent → housing for 4 residents each.
+*   **Tent auto-fill:** establishing a camp auto-queues the first Tent; each **completed** tent spawns new peasants up to housing capacity (first tent 2→4, +4 each) via the real `building_completed` signal.
+*   **Stockpile caps stack per resource** from completed buildings (Lumber Camp 100 Timber, Forager Hut 50 Berries / 50 Mushrooms). Production clamps at the per-resource cap.
+*   **Storage audit (fixed in PR #93):** effective capacity = `max(200, stacked caps + 40 headroom)`. Overflow is discarded **round-robin across resources** and surfaced via a `storage_discarded` signal → ManagementAPI toast (`📦 Storage full …`). The 40-item headroom absorbs famine-scavenge overflow, which deliberately bypasses per-resource caps (see 7.2). Historical bug: the audit used a fixed total of 200 and silently discarded stock whenever stacked caps exceeded it (the "phantom Timber drain" — 59 silent discards in a live session).
+
+### 7.2 Famine: Sticky Latch + Ration-Debt Ledger (#88 → PR #92 → PR #93)
+
+Famine is not a status you escape — it is a **debt you grind out of**.
+
+*   **Latch:** the day residents go unfed, the zone latches into famine (sticky). Workplaces go unmanned; every resident moves to the **"🌾 Living off the land"** category (shown like any worker row; the other category rows hide while latched).
+*   **Ration debt:** `2` rations/resident/day accrue while latched (`FAMINE_DEBT_RATE`). The ledger position is `food − famine_deficit`.
+*   **Living off the land:** latched residents gather a trickle at 30% of forager yield per resting resident (`TRICKLE_RATE 0.30`). While debt is outstanding, a scavenge floor guarantees `resting × 2 + max(1, residents / 4)` food/day — this floor deliberately ignores per-resource caps so recovery cannot deadlock on a full pantry.
+*   **Exit condition:** debt ≤ 0 **and** `food ≥ residents × 3` (`FAMINE_EXIT_BUFFER`). After exit the pantry re-banks at the organic trickle; a camp producing zero food will eat its pantry and **re-latch — by design**.
+*   **Work through starvation (`T` / inspection button):** the player may keep building while latched — construction runs at half speed and the debt **deepens** (floor gross < accrual at working counts). Progress vs. survival gamble.
+*   **Assignment lockout:** while latched, `ManagementAPI.adjust_job_target` refuses all assignments (returns `false` + explanatory toast). The +1 buttons render disabled and the G/F/M keys are refused. `order_building` is a separate path — **buildings can be queued and built during famine**.
+*   **Measured grind:** 8-resident camp with zero food production ≈ 20 famine days; 2-resident ≈ 6. Post-exit recovery adds ~3 bank days to the 3× buffer.
+*   **UI:** dark FaminePanel with bold status, explanation, work-through toggle + description, and the 🌾 row; starvation count and trend indicators stay visible.
+
+### 7.3 Camp Organization Gauge (gauge shipped in PR #93; #86 open for the deeper system)
+
+*   **Gauge 0–100**, displayed as a progressbar labeled "Organization" directly under Canopy Density in the ZoneInspectionMenu.
+*   **Flows:** foreman assigned → **+10/day**; no foreman → **−5/day** idle decay; famine → **−20/day** drain.
+*   **Bonus:** resource yield bonus = `min(org, 25)/100` — up to **+25%**, hard-capped.
+
+### 7.4 Controls (slice, config-driven `data/ui/keybindings.tres`)
+
+| Key | Action |
+| :-- | :-- |
+| `Tab` | Management mode |
+| `1–9` | Select zone |
+| `B` | Order building (cycles selection) |
+| `C` | Cycle building blueprint |
+| `G` / `Shift+G` | Woodcutter target +1 / −1 |
+| `F` / `Shift+F` | Forager target +1 / −1 |
+| `M` / `Shift+M` | Foreman target +1 / −1 |
+| `T` | Toggle work-through starvation (selected zone) |
+| `Esc` | Close inspection |
+
+All management keys are **refused during famine** except `B`/`C` (building orders) and `T` (the escape valve).
