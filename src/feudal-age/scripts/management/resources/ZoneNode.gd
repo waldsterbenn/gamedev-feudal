@@ -4,6 +4,7 @@ class_name ZoneNode
 signal building_completed(node_id: int, building_id: String)
 signal building_ordered(node_id: int, building: BuildingInstance)
 signal populants_starving(node_id: int, starving_count: int)
+signal zone_famine(node_id: int, off_the_land_count: int)
 
 const FOREMAN_BONUS: float = 0.25  # per assigned foreman, max_jobs=1 caps it (#85)
 
@@ -57,11 +58,30 @@ func process_management_tick() -> void:
 	_execute_production_and_labor()  # Step 4: Environmental Extraction Mechanics
 	_enforce_storage_caps()          # Step 5: Warehouse Auditing
 
-## Gathers open jobs: ONLY the player-controlled targets (#73). Completed
-## buildings enable job types but never auto-grab workers — the player
-## decides how many workers work each job via the modifier keys / panel.
+## Gathers open jobs: player-controlled targets CLAMPED by building capacity
+## (#85/#88): a job category only has slots from COMPLETED buildings — no
+## Lumber Camp, no woodcutter slots. manual_job_postings persist as the
+## player's preference but never exceed what buildings can hold.
 func get_total_job_slots() -> Dictionary:
-	return manual_job_postings.duplicate()
+	var slots := {}
+	for job_type in ["forager", "woodcutter", "foreman"]:
+		slots[job_type] = min(manual_job_postings.get(job_type, 0), _building_capacity(job_type))
+	return slots
+
+## Sum of max_jobs over COMPLETED buildings of a job category (#85).
+func _building_capacity(job_type: String) -> int:
+	var capacity: int = 0
+	for building in buildings:
+		if building.is_completed and building.blueprint.job_type == job_type:
+			capacity += building.blueprint.max_jobs
+	return capacity
+
+## Famine: no food in the stores at all — everyone lives off the land (#88).
+## They keep working while ANY food remains (gentle window); famine hits at 0
+## and recovers via the desperate forage trickle refilling the stockpile.
+func _is_famine() -> bool:
+	var food: int = stockpile.get("Berries", 0) + stockpile.get("Mushrooms", 0)
+	return food <= 0 and not local_workers.is_empty()
 
 func _get_assigned_count(job_type: String) -> int:
 	if _assigned_workers_by_job.has(job_type):
@@ -80,7 +100,18 @@ func _resolve_workforce_allocation() -> void:
 	_assigned_workers_by_job.clear()
 	for building in buildings:
 		building.assigned_worker_ids.clear()
-		
+	
+	# Famine (#88): nobody mans a workplace — all residents desperately live
+	# off the land (unproductive to the zone; the trickle refills the stores).
+	if _is_famine():
+		var off_the_land: Array[int] = []
+		for worker in local_workers:
+			off_the_land.append(worker.character_id)
+		_assigned_workers_by_job["off_the_land"] = off_the_land
+		_last_starving_count = 0
+		zone_famine.emit(node_id, off_the_land.size())
+		return
+	
 	var unassigned_workers = local_workers.duplicate()
 	var slots = get_total_job_slots()
 	
@@ -150,8 +181,12 @@ func _construction_shortfall() -> int:
 				available = 0
 	return shortfall
 
-## Processes daily food consumption across all checked residents
+## Processes daily food consumption across all checked residents.
+## Famine (#88): residents self-feed off the land — the stockpile is not
+## touched (it is empty by definition in famine) and nobody starves fatally.
 func _deduct_sustenance_inventories() -> void:
+	if _is_famine():
+		return
 	var hungry_mouths: int = local_workers.size()
 	if hungry_mouths <= 0:
 		return
@@ -171,8 +206,11 @@ func _deduct_sustenance_inventories() -> void:
 	else:
 		_last_starving_count = 0
 
-## Spends labor points on active construction jobs sequentially
+## Spends labor points on active construction jobs sequentially.
+## Famine (#88): construction halts — builders are off the land.
 func _process_construction_progress() -> void:
+	if _is_famine():
+		return
 	var active_builders = _get_assigned_count("builder")
 	if active_builders <= 0:
 		return
@@ -202,6 +240,18 @@ func _process_construction_progress() -> void:
 
 ## Handles raw material yields and coupled environmental degradation formulas
 func _execute_production_and_labor() -> void:
+	# Famine (#88): desperate forage trickle — everyone self-feeds off the
+	# land and scrapes ~25% of a forager's yield into the ZONE stockpile so
+	# the famine recovers slowly (no soft-lock; decided 2026-11-01).
+	if _is_famine():
+		var mouths: int = local_workers.size()
+		if mouths > 0:
+			var trickle_berries: int = roundi(mouths * 5 * fertilities.get("Berries", 0.0) * 0.25)
+			var trickle_mushrooms: int = roundi(mouths * 3 * fertilities.get("Mushrooms", 0.0) * canopy_density * 0.25)
+			stockpile["Berries"] = stockpile.get("Berries", 0) + trickle_berries
+			stockpile["Mushrooms"] = stockpile.get("Mushrooms", 0) + trickle_mushrooms
+		return
+	
 	var foragers = _get_assigned_count("forager")
 	var woodcutters = _get_assigned_count("woodcutter")
 	var caps: Dictionary = _zone_storage_caps()

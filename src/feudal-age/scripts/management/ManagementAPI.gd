@@ -14,17 +14,25 @@ var _registered_populants: Dictionary = {}
 func _enter_tree() -> void:
 	ServiceLocator.register_management_service(self)
 
-## Wire a zone's starving signal to a UI toast. Done at establish_camp —
-## starvation only matters once a camp exists. Kept in the API layer (Node):
-## ZoneNode stays signal-only and compiles standalone in --script mode (#85).
+## Wire a zone's starving + famine signals to UI toasts. Done at
+## establish_camp — food pressure only matters once a camp exists. Kept in
+## the API layer (Node): ZoneNode stays signal-only and compiles standalone
+## in --script mode (#85).
 func _wire_starving_toast(node: ZoneNode) -> void:
 	if not node.populants_starving.is_connected(_on_populants_starving):
 		node.populants_starving.connect(_on_populants_starving)
+	if not node.zone_famine.is_connected(_on_zone_famine):
+		node.zone_famine.connect(_on_zone_famine)
 
 func _on_populants_starving(node_id: int, starving_count: int) -> void:
 	var node: ZoneNode = _get_world_nodes().get(node_id)
 	var zone_name: String = node.node_name if node else "Zone %d" % node_id
 	EventBus.ui.message_logged.emit("⚠ %d starving at %s — assign foragers!" % [starving_count, zone_name], "warn")
+
+func _on_zone_famine(node_id: int, off_the_land_count: int) -> void:
+	var node: ZoneNode = _get_world_nodes().get(node_id)
+	var zone_name: String = node.node_name if node else "Zone %d" % node_id
+	EventBus.ui.message_logged.emit("🌾 Famine at %s — %d living off the land, workplaces unmanned." % [zone_name, off_the_land_count], "warn")
 
 func register_populant_component(comp: ManagementPopulantComponent) -> void:
 	_registered_populants[comp.character_id] = comp
@@ -136,7 +144,13 @@ func get_node_inspection_data(node_id: int) -> Dictionary:
 				"target": node.manual_job_postings.get("foreman", 0),
 			},
 		},
+		"job_caps": {
+			"forager": node._building_capacity("forager"),
+			"woodcutter": node._building_capacity("woodcutter"),
+			"foreman": node._building_capacity("foreman"),
+		},
 		"starving": node._last_starving_count,
+		"famine": node._get_assigned_count("off_the_land"),
 	}
 
 ## API Query: Returns the number of local workers assigned to a node
@@ -225,23 +239,32 @@ func order_building(node_id: int, blueprint: BuildingData) -> bool:
 		EventBus.ui.message_logged.emit("%s construction ordered — missing %s; builders will gather it." % [blueprint.display_name, ", ".join(missing_parts)], "warn")
 	return true
 
-## Adjusts the player-controlled desired count for a production job (#73).
-## Decreases clamp at 0; increases refuse only when no free workers remain.
-## manual_job_postings IS the desired total — buildings never auto-grab.
+## Adjusts the player-controlled desired count for a production job (#73/#88).
+## The job's capacity comes from COMPLETED buildings: no building = no slots
+## (refused with a hint which building to build); increases past capacity
+## refuse with the same hint. manual_job_postings persist as preference but
+## allocation clamps them to building capacity.
 func adjust_job_target(node_id: int, job_type: String, delta: int) -> bool:
 	var nodes = _get_world_nodes()
 	var node: ZoneNode = nodes.get(node_id)
 	if not node:
 		return false
+	var capacity: int = node._building_capacity(job_type)
 	var current: int = node.manual_job_postings.get(job_type, 0)
+	var desired: int = current + delta
+	if desired < 0:
+		desired = 0
+	if delta > 0 and desired > capacity:
+		if capacity == 0:
+			EventBus.ui.message_logged.emit("No %s slots at %s — build the %s first." % [job_type, node.node_name, _building_name_for(job_type)], "warn")
+		else:
+			EventBus.ui.message_logged.emit("All %d %s slots filled at %s — build another %s." % [capacity, job_type, node.node_name, _building_name_for(job_type)], "warn")
+		return false
 	var other_targets: int = 0
 	for jt in node.manual_job_postings:
 		if jt != job_type:
 			other_targets += node.manual_job_postings[jt]
 	var workers: int = node.local_workers.size()
-	var desired: int = current + delta
-	if desired < 0:
-		desired = 0
 	if delta > 0 and desired > workers - other_targets:
 		EventBus.ui.message_logged.emit("Not enough free workers at %s (%d total, %d on other tasks)." % [node.node_name, workers, other_targets], "warn")
 		return false
@@ -252,6 +275,14 @@ func adjust_job_target(node_id: int, job_type: String, delta: int) -> bool:
 	node.manual_job_postings[job_type] = desired
 	EventBus.ui.message_logged.emit("%s workers: %d -> %d at %s." % [job_type.capitalize(), current, desired, node.node_name], "info")
 	return true
+
+## Display name of the building that provides a job category's slots (#88).
+func _building_name_for(job_type: String) -> String:
+	match job_type:
+		"forager": return "Forager Hut"
+		"woodcutter": return "Lumber Camp"
+		"foreman": return "Foreman's Tent"
+	return job_type.capitalize()
 
 ## Executed when the player posts a manual job opening from the UI —
 ## delegates to the capped adjust_job_target (#70)
