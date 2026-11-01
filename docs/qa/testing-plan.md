@@ -2,7 +2,7 @@
 
 > **Status:** Draft
 > **Created:** 2026-04-05
-> **Last Updated:** 2026-04-05
+> **Last Updated:** 2026-11-01
 
 ## Testing Strategy
 
@@ -19,9 +19,20 @@ godot --path src/feudal-age --headless --quit
 godot --path src/feudal-age --headless --script res://tests/smoke_slice.gd
 ```
 
-The smoke boots `GameCoordinator.tscn` headless, establishes a camp at zone 1 (Ironwood Hollow), assigns the woodcutter via `ManagementAPI`, runs 3 daily ticks, and asserts real `FiefStateResource` mutation (`Timber > 0`, optional `canopy_density` drop). Repro/instrumentation scripts live beside it in `src/feudal-age/tests/` (`debug_populants.gd`, `debug_step.gd`, `debug_invest_*.gd`).
+The smoke boots `GameCoordinator.tscn` headless, establishes a camp at zone 1 (Ironwood Hollow), assigns the woodcutter via `ManagementAPI`, runs 3 daily ticks, and asserts real `FiefStateResource` mutation (`Timber > 0`, optional `canopy_density` drop). Repro/instrumentation scripts live beside it in `src/feudal-age/tests/` (`debug_populants.gd`, `debug_step.gd`, `debug_invest_*.gd`). **Probe scripts (`probe_*.gd`) are throwaway — delete after use.**
 
-Gotchas (see map #45 Notes): in `--script` SceneTree mode, load scenes in `_process()`, never `_init()` — autoload globals are not yet script identifiers; fetch autoloads via `root.get_node("ServiceLocator")`.
+**Smoke suite (run all four before presenting changes, 2026-11-01):**
+
+| Smoke | Covers |
+| :-- | :-- |
+| `smoke_slice.gd` | Boot, camp establishment, woodcutter work, Timber growth (gate backbone) |
+| `smoke_loop_closure.gd` | Full loop closure — building order, forager recruit, tent auto-fill lock |
+| `smoke_contextual_hints.gd` | HUD contextual hints |
+| `smoke_building_capacity.gd` | Building-driven caps, stockpile caps, **famine ledger math** (deficit, work-through deepen, +1/day grind, 3× buffer exit, assignment refusal) |
+
+Plus the GDScript validator: `python3 skills/godot-gdscript/scripts/validate_godot.py src/feudal-age` (must print PASSED).
+
+Gotchas (see map #45 Notes): in `--script` SceneTree mode, load scenes in `_process()`, never `_init()` — autoload globals are not yet script identifiers; fetch autoloads via `root.get_node("ServiceLocator")`. Stop the GC's realtime Timer children in probes that drive ticks manually, or stray ticks interleave. ZoneNode must stay signal-only (no EventBus autoload reference — Resource fails to compile in `--script` mode).
 
 ### Unit Testing
 - **Framework:** GUT/gdUnit4 deferred until ≥5 real units exist (decision in #55).
