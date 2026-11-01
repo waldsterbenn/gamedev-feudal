@@ -67,7 +67,9 @@ func _get_assigned_count(job_type: String) -> int:
 ## Resolves workforce allocation (#70 model):
 ## 1) Targeted production jobs (food first, then raw extraction) — the
 ##    player-controlled counts (manual_job_postings + completed building slots).
-## 2) Every remaining free worker builds while construction runs.
+## 2) Every remaining free worker is a builder — ALWAYS, not just while
+##    construction runs (playtest 2026-11-01: a fresh camp holds 2 peasants
+##    and they must tally as 2 builders from the start).
 ## 3) If queued construction still lacks materials, the builders are
 ##    temporarily reassigned as woodcutters to gather the shortfall first.
 func _resolve_workforce_allocation() -> void:
@@ -94,14 +96,11 @@ func _resolve_workforce_allocation() -> void:
 					
 		_assigned_workers_by_job[job_type] = assigned_ids
 	
-	if not _has_incomplete_building():
-		return
-	
 	var free_ids: Array[int] = []
 	while not unassigned_workers.is_empty():
 		free_ids.append(unassigned_workers.pop_front().character_id)
 	
-	if _construction_shortfall() > 0:
+	if _has_incomplete_building() and _construction_shortfall() > 0:
 		# Temp reassignment: all free workers gather Timber until covered.
 		var gatherers: Array[int] = _assigned_workers_by_job.get("woodcutter", [])
 		gatherers.append_array(free_ids)
