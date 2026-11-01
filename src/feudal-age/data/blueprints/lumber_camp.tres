@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BuildingData" load_steps=2 format=3 uid="uid://bp_lumber_01"]
+
+[ext_resource type="Script" path="res://scripts/management/resources/BuildingData.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+building_id = "lumber_camp"
+display_name = "Lumber Camp"
+build_cost = {"Timber": 40}
+total_work_required = 80.0
+max_jobs = 2
+job_type = "woodcutter"
+visual_scene_path = "res://scenes/world/buildings/lumber_camp.tscn"
+storage_caps = {"Timber": 100}

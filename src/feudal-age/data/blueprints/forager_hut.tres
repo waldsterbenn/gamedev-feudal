@@ -4,10 +4,11 @@
 
 [resource]
 script = ExtResource("1_script")
-building_id = "forager_post"
-display_name = "Forager Post"
+building_id = "forager_hut"
+display_name = "Forager Hut"
 build_cost = {"Timber": 30}
 total_work_required = 60.0
 max_jobs = 2
 job_type = "forager"
-visual_scene_path = "res://scenes/world/buildings/forager_post.tscn"
+visual_scene_path = "res://scenes/world/buildings/forager_hut.tscn"
+storage_caps = {"Berries": 50, "Mushrooms": 50}

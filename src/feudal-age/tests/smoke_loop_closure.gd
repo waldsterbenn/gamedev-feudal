@@ -12,13 +12,13 @@ extends SceneTree
 const ZONE_ID: int = 1
 const TICKS_TO_RUN: int = 4
 const TENT_PATH: String = "res://data/blueprints/tent.tres"
-const FORAGER_PATH: String = "res://data/blueprints/forager_post.tres"
+const FORAGER_PATH: String = "res://data/blueprints/forager_hut.tres"
 
 var _frames_waited: int = 0
 var _ticks_run: int = 0
 var _stage: String = "boot"
 var _gc: Node = null
-var _timber_before_build: int = 0
+var _timber_after_tent_alloc: int = 0
 var _berries_start: int = 0
 var _mushrooms_start: int = 0
 var _tent_started: bool = false
@@ -67,18 +67,15 @@ func _run_loop_setup() -> void:
 		_fail("establish_camp did not raise tier to CAMP")
 		return
 
-	# STEP 2: Order a tent via the blueprint path (economy gate: Timber >= 25)
-	if not ResourceLoader.exists(TENT_PATH):
-		_fail("tent blueprint missing at %s" % TENT_PATH)
-		return
-	var tent: BuildingData = load(TENT_PATH)
-	_timber_before_build = zone.stockpile.get("Timber", 0)
-	var ordered: bool = api.order_building(ZONE_ID, tent)
-	if not ordered:
-		_fail("order_building(tent) refused — Timber=%d < cost %s" % [_timber_before_build, str(tent.build_cost)])
-		return
+	# STEP 2: establish_camp AUTO-QUEUES a tent (#85) — assert that instead of
+	# ordering one manually (a manual order here would queue a SECOND tent).
 	if zone.buildings.is_empty():
-		_fail("zone.buildings empty after successful order")
+		_fail("establish_camp did not auto-queue a tent")
+		return
+	var auto_tent: BuildingInstance = zone.buildings[0]
+	if auto_tent.blueprint.building_id != "tent" or auto_tent.is_completed:
+		_fail("buildings[0] after establish_camp is not a queued tent (id=%s completed=%s)" % [
+			auto_tent.blueprint.building_id, str(auto_tent.is_completed)])
 		return
 	_tent_started = true
 
@@ -121,8 +118,9 @@ func _run_loop_setup() -> void:
 
 	_berries_start = zone.stockpile.get("Berries", 0)
 	_mushrooms_start = zone.stockpile.get("Mushrooms", 0)
-	print("SMOKE: camp=%s tent ordered (Timber %d -> %d), forager postings added, workers=%d, postings=%s" % [
-		zone.current_tier, _timber_before_build, zone.stockpile.get("Timber", 0),
+	_timber_after_tent_alloc = zone.stockpile.get("Timber", 0)
+	print("SMOKE: camp=%s tent auto-queued (Timber now %d), forager postings added, workers=%d, postings=%s" % [
+		zone.current_tier, _timber_after_tent_alloc,
 		zone.local_workers.size(), str(zone.manual_job_postings)])
 
 	# Stop realtime timer; tick deterministically
@@ -178,7 +176,7 @@ func _verify_and_quit() -> void:
 	print("SMOKE: timber growth verified — Timber %d -> %d over %d ticks" % [timber_before, timber_after, TICKS_TO_RUN])
 	# ALL-3-BLUEPRINTS acceptance (#68): order the remaining two blueprints.
 	zone.stockpile["Timber"] = zone.stockpile.get("Timber", 0) + 120  # smoke grant
-	for bp_path in ["res://data/blueprints/forager_post.tres", "res://data/blueprints/charcoal_stack.tres"]:
+	for bp_path in ["res://data/blueprints/forager_hut.tres", "res://data/blueprints/lumber_camp.tres"]:
 		var bp: BuildingData = load(bp_path)
 		if not api.order_building(ZONE_ID, bp):
 			_fail("order_building(%s) refused" % bp_path)
@@ -186,13 +184,13 @@ func _verify_and_quit() -> void:
 	if zone.buildings.size() < 3:
 		_fail("expected >=3 buildings after ordering all blueprints, got %d" % zone.buildings.size())
 		return
-	print("SMOKE: all 3 blueprints orderable — forager_post + charcoal_stack accepted (Timber %d left)" % zone.stockpile.get("Timber", 0))
+	print("SMOKE: all 3 blueprints orderable — forager_hut + lumber_camp accepted (Timber %d left)" % zone.stockpile.get("Timber", 0))
 	# ALL-3 + STALL->GATHER acceptance (#70): with only 17 Timber in stockpile
 	# both orders are accepted with shortfalls; zeroed targets free every
 	# worker to gather; allocated construction resources must grow.
 	zone.stockpile["Timber"] = 17
 	var shortfall_orders: int = 0
-	for bp_path in ["res://data/blueprints/forager_post.tres", "res://data/blueprints/charcoal_stack.tres"]:
+	for bp_path in ["res://data/blueprints/forager_hut.tres", "res://data/blueprints/lumber_camp.tres"]:
 		var bp: BuildingData = load(bp_path)
 		if not api.order_building(ZONE_ID, bp):
 			_fail("order_building(%s) refused despite order-anytime rule" % bp_path)
@@ -223,11 +221,11 @@ func _verify_and_quit() -> void:
 	for i in range(1):
 		_gc._on_simulation_tick_elapsed()
 		_ticks_run += 1
-	var post_building: Resource = zone.buildings[1]  # forager_post, first in queue
+	var post_building: Resource = zone.buildings[1]  # forager_hut, first in queue
 	if post_building.construction_progress <= 0.0:
-		_fail("construction did not resume after shortfall was covered (forager_post progress=%.1f)" % post_building.construction_progress)
+		_fail("construction did not resume after shortfall was covered (forager_hut progress=%.1f)" % post_building.construction_progress)
 		return
-	print("SMOKE: construction resumed — forager_post progress %.1f/%d" % [post_building.construction_progress, post_building.blueprint.total_work_required])
+	print("SMOKE: construction resumed — forager_hut progress %.1f/%d" % [post_building.construction_progress, post_building.blueprint.total_work_required])
 	print("SMOKE: PASS")
 	quit(0)
 

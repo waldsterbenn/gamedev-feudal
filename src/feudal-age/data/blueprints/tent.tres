@@ -10,4 +10,5 @@ build_cost = {"Timber": 25}
 total_work_required = 50.0
 max_jobs = 0
 job_type = "housing"
+housing_capacity = 4
 visual_scene_path = "res://scenes/world/buildings/tent.tscn"
