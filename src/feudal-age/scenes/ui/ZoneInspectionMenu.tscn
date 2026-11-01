@@ -79,12 +79,6 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "🍄 0"
 
-[node name="WorkersLabel" type="Label" parent="MarginContainer/VBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "0 workers"
-theme_override_font_sizes/font_size = 12
-
 [node name="HSeparator3" type="HSeparator" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
@@ -122,8 +116,9 @@ text = "🪵 Post Woodcutter Job"
 layout_mode = 2
 
 [node name="WorkersHeader" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
-text = "👷 Workers: 0 total"
+text = "👷 Peasants: 0"
 
 [node name="WoodcutterRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
