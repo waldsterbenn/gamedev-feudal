@@ -29,6 +29,9 @@ func get_key(action: String) -> Key:
 
 ## Short human label for UI display: "E", "Esc", "Tab"
 func get_display(action: String) -> String:
+	# Ranges are display-only (no single Key constant): "1-9"
+	if bindings.get(action, "").ends_with("-9"):
+		return "1-9"
 	var key: Key = get_key(action)
 	match key:
 		Key.KEY_ESCAPE:
