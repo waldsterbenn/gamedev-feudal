@@ -6,6 +6,7 @@ extends PanelContainer
 @onready var canopy_bar: ProgressBar = %CanopyBar
 @onready var org_bar: ProgressBar = %OrgBar
 @onready var famine_panel: PanelContainer = %FaminePanel
+@onready var off_land_label: Label = %OffLandLabel
 @onready var timber_label: Label = %TimberValueLabel
 @onready var berries_label: Label = %BerriesValueLabel
 @onready var mushrooms_label: Label = %MushroomsValueLabel
@@ -123,6 +124,12 @@ func _refresh_display_metrics() -> void:
 	var has_status: bool = latched or data.get("starving", 0) > 0
 	famine_panel.visible = has_status
 	starving_label.visible = has_status
+	# "Living off the land" is a worker category during famine (#91) —
+	# shown in the jobs list like woodcutter/forager/foreman, cap = all.
+	off_land_label.get_parent().visible = latched
+	if latched:
+		off_land_label.text = "🌾 Living off the land %d/%d" % [
+			data.get("famine", 0), data.get("worker_count", 0)]
 	famine_explain_label.visible = latched
 	work_through_button.visible = latched
 	work_through_desc_label.visible = latched

@@ -332,17 +332,17 @@ func _execute_production_and_labor() -> void:
 			var trickle_mushrooms: int = roundi(resting * 3 * fertilities.get("Mushrooms", 0.0) * canopy_density * TRICKLE_RATE)
 			# Anti-deadlock floor (#91 v4): ONLY while the ledger is in
 			# deficit — with EVERYONE resting the gross then exceeds the
-			# daily accrual by `residents`, so even a barren zone grinds
-			# back at >= +residents/day (~6-day famine at any camp size).
-			# Each working builder drops the gross by FAMINE_DEBT_RATE: a
-			# small camp's recovery stalls under work-through. Once the
-			# debt is cleared the floor VANISHES — the organic trickle
-			# (~calc) banks the pantry over several more days.
-			# The floor's extra rations materialize as scavenged berries so
-			# real items back every repayment.
+			# daily accrual by `max(1, residents/4)`, so even a barren zone
+			# grinds back at a crawl (8-resident famine ~8 debt days + ~3
+			# bank days; 2-resident ~4+2). Each working builder drops the
+			# gross by FAMINE_DEBT_RATE: a small camp's recovery stalls or
+			# deepens under work-through. Once the debt is cleared the
+			# floor VANISHES — the organic trickle banks the pantry over
+			# several more days. The floor's extra rations materialize as
+			# scavenged berries so real items back every repayment.
 			var floor_target: int = 0
 			if famine_deficit > 0:
-				floor_target = resting * FAMINE_DEBT_RATE + residents_count
+				floor_target = resting * FAMINE_DEBT_RATE + maxi(1, residents_count / 4)
 			var floor_extra: int = maxi(0, floor_target - (trickle_berries + trickle_mushrooms))
 			trickle_berries += floor_extra
 			var gross: int = maxi(trickle_berries + trickle_mushrooms, floor_target)

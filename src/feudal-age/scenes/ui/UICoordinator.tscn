@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://vng17ts6kmiy"]
+[gd_scene load_steps=9 format=3 uid="uid://vng17ts6kmiy"]
 
 [ext_resource type="Script" uid="uid://fh4o8gx5oefa" path="res://scripts/ui/ui_coordinator.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ZoneInspectionMenu.tscn" id="3_zone_menu"]
@@ -9,6 +9,22 @@
 [sub_resource type="SystemFont" id="SystemFont_bold"]
 font_names = PackedStringArray("sans-serif")
 font_weight = 700
+
+[sub_resource type="StyleBoxFlat" id="SB_toast"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.08, 0.06, 0.04, 0.92)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.45, 0.35, 0.2, 1)
 
 [node name="UICoordinator" type="CanvasLayer" unique_id=2046750659]
 script = ExtResource("1_script")
@@ -65,5 +81,6 @@ theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(1, 0.96, 0.85, 1)
 theme_override_colors/font_outline_color = Color(0.1, 0.08, 0.05, 1)
 theme_override_constants/outline_size = 6
+theme_override_styles/normal = SubResource("SB_toast")
 
 [node name="DebugConsole" parent="." unique_id=947416520 instance=ExtResource("5_dbg")]

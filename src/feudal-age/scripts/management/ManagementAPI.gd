@@ -168,6 +168,7 @@ func get_node_inspection_data(node_id: int) -> Dictionary:
 		},
 		"starving": node._last_starving_count,
 		"famine": node._get_assigned_count("off_the_land"),
+		"worker_count": node.local_workers.size(),
 		"famine_latched": node.famine_latched,
 		"famine_banked": node.stockpile.get("Berries", 0) + node.stockpile.get("Mushrooms", 0),
 		"famine_needed": node.local_workers.size() * node.FAMINE_EXIT_BUFFER,
