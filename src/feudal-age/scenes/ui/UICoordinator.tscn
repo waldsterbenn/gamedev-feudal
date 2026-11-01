@@ -1,21 +1,21 @@
-[gd_scene load_steps=6 format=3 uid="uid://ui_coordinator"]
+[gd_scene format=3 uid="uid://vng17ts6kmiy"]
 
-[ext_resource type="Script" path="res://scripts/ui/ui_coordinator.gd" id="1_script"]
-[ext_resource type="PackedScene" uid="uid://zone_inspection_menu" path="res://scenes/ui/ZoneInspectionMenu.tscn" id="3_zone_menu"]
-[ext_resource type="Script" path="res://scripts/ui/management_mode_controller.gd" id="4_mgmt_ctrl"]
-[ext_resource type="PackedScene" uid="uid://debug_console" path="res://scenes/ui/DebugConsole.tscn" id="5_dbg"]
+[ext_resource type="Script" uid="uid://fh4o8gx5oefa" path="res://scripts/ui/ui_coordinator.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ZoneInspectionMenu.tscn" id="3_zone_menu"]
+[ext_resource type="Script" uid="uid://c5p76eomt7e88" path="res://scripts/ui/management_mode_controller.gd" id="4_mgmt_ctrl"]
+[ext_resource type="PackedScene" path="res://scenes/ui/DebugConsole.tscn" id="5_dbg"]
+[ext_resource type="Script" path="res://scripts/ui/contextual_key_hints.gd" id="6_hints"]
 
-[node name="UICoordinator" type="CanvasLayer"]
+[node name="UICoordinator" type="CanvasLayer" unique_id=2046750659]
 script = ExtResource("1_script")
 
-[node name="ZoneInspectionMenu" parent="." instance=ExtResource("3_zone_menu")]
-anchors_preset = 0
+[node name="ZoneInspectionMenu" parent="." unique_id=1083962659 instance=ExtResource("3_zone_menu")]
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 340.0
 offset_bottom = 440.0
 
-[node name="OptionsMenu" type="PanelContainer" parent="."]
+[node name="OptionsMenu" type="PanelContainer" parent="." unique_id=1025578795]
 visible = false
 anchors_preset = 8
 anchor_left = 0.5
@@ -27,39 +27,32 @@ offset_top = -100.0
 offset_right = 150.0
 offset_bottom = 100.0
 
-[node name="ManagementModeController" type="Node" parent="."]
+[node name="ManagementModeController" type="Node" parent="." unique_id=80835458]
 script = ExtResource("4_mgmt_ctrl")
 
-[node name="HUDInstructions" type="Label" parent="."]
-visible = true
+[node name="ContextualKeyHints" type="Node" parent="." unique_id=80835459]
+script = ExtResource("6_hints")
+
+[node name="HUDInstructions" type="Label" parent="." unique_id=1974968682]
 anchors_preset = 2
-anchor_left = 0.0
 anchor_top = 1.0
-anchor_right = 0.0
 anchor_bottom = 1.0
 offset_left = 16.0
 offset_top = -230.0
 offset_right = 400.0
 offset_bottom = -16.0
 grow_vertical = 0
-text = ""
 theme_override_constants/line_spacing = 2
-font_size = 14
 
-[node name="HUDMessage" type="Label" parent="."]
+[node name="HUDMessage" type="Label" parent="." unique_id=2058164522]
 unique_name_in_owner = true
-visible = true
 anchors_preset = 2
-anchor_left = 0.0
 anchor_top = 1.0
-anchor_right = 0.0
 anchor_bottom = 1.0
 offset_left = 16.0
 offset_top = -280.0
 offset_right = 700.0
 offset_bottom = -240.0
 grow_vertical = 0
-text = ""
-font_size = 18
 
-[node name="DebugConsole" parent="." instance=ExtResource("5_dbg")]
+[node name="DebugConsole" parent="." unique_id=947416520 instance=ExtResource("5_dbg")]

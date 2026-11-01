@@ -8,6 +8,7 @@ var current_ui_state: UIState = UIState.HUD_ONLY
 @onready var options_menu: Control = $OptionsMenu
 @onready var hud_message: Label = %HUDMessage
 @onready var hud_instructions: Label = $HUDInstructions
+@onready var contextual_hints: ContextualKeyHints = $ContextualKeyHints
 
 var _message_clear_timer: Timer
 
@@ -15,7 +16,10 @@ func _ready() -> void:
 	EventBus.ui.zone_selected.connect(_on_zone_selected)
 	EventBus.ui.zone_deselected.connect(close_menus)
 	EventBus.ui.message_logged.connect(_on_message_logged)
-	_apply_key_hints()
+	# Contextual hint component owns WHICH hints are shown (per UI state);
+	# this coordinator only renders them into the shared label.
+	contextual_hints.hints_changed.connect(_render_hints)
+	_render_hints()
 	# One-shot timer hides the toast a few seconds after each message
 	_message_clear_timer = Timer.new()
 	_message_clear_timer.one_shot = true
@@ -24,24 +28,10 @@ func _ready() -> void:
 	add_child(_message_clear_timer)
 	change_ui_state(UIState.HUD_ONLY)
 
-## HUD shortcut list is composed from the key-binding config (single source of truth)
-## and shown stacked in the lower-left corner.
-func _apply_key_hints() -> void:
-	var bindings: KeyBindingSet = load("res://data/ui/keybindings.tres")
-	if bindings == null or hud_instructions == null:
-		return
-	var entries: Array[String] = [
-		"%s = Management mode" % bindings.get_display("management_mode"),
-		"1-9 = Select zone",
-		"%s = Inspect zone" % bindings.get_display("inspect_zone"),
-		"%s = Establish camp" % bindings.get_display("establish_camp"),
-		"%s = Order construction" % bindings.get_display("order_building"),
-		"%s = Cycle blueprint" % bindings.get_display("cycle_blueprint"),
-		"%s / Shift+%s = Woodcutter +1 / -1" % [bindings.get_display("post_woodcutter"), bindings.get_display("post_woodcutter")],
-		"%s / Shift+%s = Forager +1 / -1" % [bindings.get_display("post_forager"), bindings.get_display("post_forager")],
-		"%s = Close panel" % bindings.get_display("close_menu"),
-	]
-	hud_instructions.text = "\n".join(entries)
+## Renders the contextual hint lines into the HUD label
+func _render_hints() -> void:
+	if hud_instructions:
+		hud_instructions.text = "\n".join(contextual_hints.get_hint_lines())
 
 func _on_message_logged(message: String, level: String) -> void:
 	if hud_message == null:
