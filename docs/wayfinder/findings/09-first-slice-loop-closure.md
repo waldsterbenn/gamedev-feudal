@@ -1,6 +1,6 @@
 # Findings — First Slice Loop Closure (#54)
 
-**Status: implemented, user manual test in progress.** The full Phase-1 management loop (ticket #54 steps 1–9) is wired player-facing; the data layer was already complete.
+**Status: complete — merged PR #65 (dca5abe), playtest-verified, #54 closed.** The full Phase-1 management loop (ticket #54 steps 1–9) is wired player-facing; the data layer was already complete.
 
 ## What was added (branch `feature/loop-closure`)
 
