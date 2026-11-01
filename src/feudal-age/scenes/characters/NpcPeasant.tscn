@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cr3vwy55rhen1"]
 
 [ext_resource type="PackedScene" path="res://scenes/characters/PeasantCharacter.tscn" id="1"]
-[ext_resource type="Script" path="res://scripts/characters/NpcPeasant.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/characters/NPC.gd" id="2"]
 [ext_resource type="Script" uid="uid://doxyjnyo5ll0b" path="res://scripts/core/InteractableComponent.gd" id="3"]
 [ext_resource type="Script" uid="uid://wcrlpcc8h37g" path="res://scripts/core/StateMachine.gd" id="5"]
 [ext_resource type="Script" uid="uid://6yb4onmdw32v" path="res://scripts/characters/states/NpcIdleState.gd" id="6"]

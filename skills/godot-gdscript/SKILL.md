@@ -5,6 +5,9 @@ description: Use this skill when working on any Godot 4.6 task — writing GDScr
 
 # Godot 4.6 — GDScript & Scene Authoring
 
+## Standing preference (for this user)
+Direct, terminal-first, concise. Verify with `python validate_godot.py` before presenting; report execution results (`PASS`, `FAIL`, exit code) rather than describing intent. No drive-by refactors; touch only what the task needs.
+
 ## MANDATORY: Validate After Every File Write
 
 After writing or editing any `.tscn`, `.tres`, or `.gd` file, run:
@@ -290,6 +293,28 @@ After adding new FBX/PNG assets, force Godot to generate `.import` files without
 ```bash
 godot --path ./src/my-project --editor --quit --headless
 ```
+
+## Pitfalls
+
+- Don't use `global` incorrectly in GDScript 4 — `global` references an external variable; declaring one uses `var`. Incorrect use (`global _frames` inside a function when `_frames` is declared at module level) causes parse errors.
+- Don't use `?:` ternary syntax — GDScript 4 uses `if-else` expressions (`value if condition else other`), not C-style ternary. `quit(ok ? 0 : 1)` fails at parse time; replace with explicit `if ok: ... else: ...` blocks.
+- Broken `.tscn` `.gd` references — after renaming/moving scripts (`NpcPeasant.gd` → `NPC.gd`), grep all `.tscn` (`grep -r 'old_name' src/feudal-age/scenes/`) and patch the `ext_resource` path before opening the scene in the editor. A missing script produces "Failed loading resource" and "Cannot set object script" errors.
+- Always validate before claiming — `validate_godot.py` catches format/load-steps errors; `.uid` warnings are normal and don't block. Report `PASS`, exit code, and any warnings honestly — don't invent a clean pass.
+
+## Headless SceneTree (`--script`) smoke / debug patterns
+
+When running `godot --path <proj> --headless --script res://tests/<name>.gd`, autoload globals (`ServiceLocator`, `EventBus`) are NOT available as GDScript identifiers at compile time in the custom `SceneTree`. Load them at runtime from the root:
+
+```gdscript
+var service_locator: Node = root.get_node_or_null("ServiceLocator")
+var api: Node = service_locator.get_management_service() if service_locator else null
+```
+
+Always load project scenes (`GameCoordinator.tscn`, etc.) inside `_process()`, not `_init()` — the autoload registration completes during the first process frame. For deterministic data-layer driving (e.g. establishing a camp, assigning a worker, running ticks), call `_run_data_layer_setup()` after a small frame delay (`_frames_waited >= 5`) and stop the GC's real-time timer (`get_children()` loop finding `Timer`) before issuing ticks manually.
+
+Always validate smoke scripts (`tests/smoke_slice.gd`) and repro instruments (`tests/debug_populants.gd`, `tests/debug_step.gd`) with `python ./skills/godot-gdscript/scripts/validate_godot.py <file>`. Keep debug scripts in-tree (`tests/debug_invest_*.gd`) rather than deleting them — they are the reproducible evidence for any future registration or tick-economy bug.
+
+See `references/headless-smoke.md` for the full smoke-test recipe (data-layer seeding, tick loop, assertions, exit 0/1).
 
 ## Validation Checks Reference (validate_godot.py)
 - Ensures `format=3` (Godot 4).
