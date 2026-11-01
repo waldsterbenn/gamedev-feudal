@@ -57,7 +57,8 @@ func _on_establish_camp_pressed() -> void:
 
 func _on_build_button_pressed() -> void:
 	# TODO (Phase 6 extension): Open a building-picker sub-panel
-	# For now, attempt to order a tent as a placeholder
+	# Slice: pick the tent blueprint explicitly (simplest — 0 jobs, just tests the construction path).
+	# Other blueprints live in res://data/blueprints/ for future extension.
 	var api = ServiceLocator.get_management_service()
 	var tent_path := "res://data/blueprints/tent.tres"
 	if api and ResourceLoader.exists(tent_path):
