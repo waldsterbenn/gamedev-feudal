@@ -46,7 +46,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		var bindings: KeyBindingSet = load("res://data/ui/keybindings.tres")
 		if bindings and event.keycode == bindings.get_key("close_menu") and current_ui_state == UIState.INSPECTING_NODE:
 			EventBus.ui.debug("Esc pressed — closing inspection")
-			close_menus()
+			# Decoupled close path (PR #67 pattern): emit the signal so ALL
+			# subscribers react (panel hide + contextual hints state), not
+			# just this coordinator. Direct close_menus() calls would leave
+			# the hints component stuck in INSPECTING_NODE.
+			EventBus.ui.zone_deselected.emit()
 			get_viewport().set_input_as_handled()
 
 func _on_zone_selected(zone_node: ZoneNode) -> void:
