@@ -28,6 +28,14 @@ func _on_message_logged(message: String, level: String) -> void:
 	hud_message.modulate = Color(1.0, 0.75, 0.4) if level == "warn" else Color(1, 1, 1)
 	_message_clear_timer.start()
 
+## Esc closes the inspection panel (keyboard-only players cannot click Close)
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_ESCAPE and current_ui_state == UIState.INSPECTING_NODE:
+			print("DEBUG: Esc pressed — closing inspection")
+			close_menus()
+			get_viewport().set_input_as_handled()
+
 func _on_zone_selected(zone_node: ZoneNode) -> void:
 	if zone_node != null:
 		inspect_zone(zone_node.node_id)

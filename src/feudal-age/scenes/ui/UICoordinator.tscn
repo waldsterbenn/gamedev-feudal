@@ -33,7 +33,7 @@ script = ExtResource("4_mgmt_ctrl")
 visible = true
 anchor_left = 0.02
 anchor_top = 0.02
-text = "Tab=Mode  1-9=Zone  Enter=Inspect  E=Camp  B=Build  F=Forager  G=Lumber"
+text = "Tab=Mode  1-9=Zone  Enter=Inspect  E=Camp  B=Build  F=Forager  G=Lumber  Esc=Close"
 font_size = 16
 
 [node name="HUDMessage" type="Label" parent="."]
