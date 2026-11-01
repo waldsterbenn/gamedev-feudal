@@ -129,32 +129,84 @@ func _process(_delta: float) -> bool:
 			print("SMOKE: housing cap verified — 4/4 residents, 5th refused")
 			_stage = 7
 		7:
-			# Famine (#88): drain all food -> tick -> everyone off the land,
-			# no workplaces manned, desperate trickle refills the stockpile.
+			# Famine latch (#92): zero production first (forager posting -> 0)
+			# so the unfed tick can't be refilled in the same tick, then drain
+			# food -> residents unfed -> latch closes at END of tick.
+			_api.adjust_job_target(1, "forager", -2)
 			_zone.stockpile["Berries"] = 0
 			_zone.stockpile["Mushrooms"] = 0
+			_tick()
+			if not _zone.famine_latched:
+				_fail("famine: latch did not close after residents went unfed")
+				return true
+			print("SMOKE: famine latched — residents unfed, latch closed at tick end")
+			_stage = 8
+		8:
+			# Latched tick: everyone off the land, trickle banks food (6 < 8
+			# needed) -> still latched; org drained to 0.
 			_tick()
 			if _zone._get_assigned_count("off_the_land") != 4:
 				_fail("famine: expected 4 off the land, got %d" % _zone._get_assigned_count("off_the_land"))
 				return true
-			if _zone._get_assigned_count("forager") != 0 or _zone._get_assigned_count("builder") != 0:
-				_fail("famine: workplaces still manned (forager=%d builder=%d)" % [
-					_zone._get_assigned_count("forager"), _zone._get_assigned_count("builder")])
+			if _zone._get_assigned_count("forager") != 0:
+				_fail("famine: foragers still manned")
 				return true
 			var food: int = _zone.stockpile.get("Berries", 0) + _zone.stockpile.get("Mushrooms", 0)
-			if food <= 0:
-				_fail("famine: desperate forage trickle did not refill the stockpile")
+			if food != 6:
+				_fail("famine: trickle banked %d food, expected 6 (4 berries + 2 mushrooms)" % food)
 				return true
-			print("SMOKE: famine verified — 4 off the land, workplaces unmanned, trickle +%d food" % food)
-			_stage = 8
-		8:
-			# Recovery: stockpile food >= residents -> normal tick re-mans
-			# workplaces from the persisted postings.
+			if _zone.famine_latched == false:
+				_fail("famine: unlatched before 2x buffer (food=%d needed=8)" % food)
+				return true
+			print("SMOKE: famine tick — 4 off the land, trickle banked 6/8, org drained %d" % int(_zone.camp_organization))
+			_stage = 9
+		9:
+			# Work through starvation (#92): order + cover an incomplete
+			# building, toggle ON — 1 builder crawls at half speed, 3 rest.
+			var lumber_bp: Resource = load("res://data/blueprints/lumber_camp.tres")
+			_api.order_building(1, lumber_bp)
+			_zone.allocated_construction_resources["Timber"] = 40  # cover its cost
+			_api.toggle_work_through_famine(1, true)
+			var progress_before: float = 0.0
+			for building in _zone.buildings:
+				if building.blueprint.building_id == "lumber_camp":
+					progress_before = building.construction_progress
+			_tick()
+			if _zone._get_assigned_count("builder") != 1:
+				_fail("work-through: expected 1 builder, got %d" % _zone._get_assigned_count("builder"))
+				return true
+			if _zone._get_assigned_count("off_the_land") != 3:
+				_fail("work-through: expected 3 off the land, got %d" % _zone._get_assigned_count("off_the_land"))
+				return true
+			for building in _zone.buildings:
+				if building.blueprint.building_id == "lumber_camp":
+					if building.construction_progress - progress_before != 5.0:
+						_fail("work-through: progress +%f, expected +5.0 (half speed)" % (building.construction_progress - progress_before))
+						return true
+			print("SMOKE: work-through verified — 1 builder at half speed (+5 labor), 3 off the land")
+			_stage = 10
+		10:
+			# Toggle OFF + escape: crawl resumes; stock climbs to the 2x
+			# buffer (8) and the latch OPENS at end of tick.
+			_api.toggle_work_through_famine(1, false)
+			_tick()
+			if _zone.famine_latched:
+				_fail("famine: still latched after banking the 2x buffer")
+				return true
+			print("SMOKE: famine escaped — food hit the 2x buffer, workplaces re-manned")
+			_stage = 11
+		11:
+			# Recovery: re-post foragers, normal tick re-mans workplaces from
+			# postings; foreman regrows Organization.
+			_api.adjust_job_target(1, "forager", 2)
 			_tick()
 			if _zone._get_assigned_count("forager") != 2:
 				_fail("famine recovery failed — foragers assigned %d != 2" % _zone._get_assigned_count("forager"))
 				return true
-			print("SMOKE: famine recovery verified — workplaces re-manned from postings")
+			if _zone.camp_organization < 10.0:
+				_fail("organization did not regrow with foreman (org=%f)" % _zone.camp_organization)
+				return true
+			print("SMOKE: recovery verified — foragers re-manned, Organization regrowing (%d/100)" % int(_zone.camp_organization))
 			print("SMOKE: PASS")
 			quit(0)
 			return true
