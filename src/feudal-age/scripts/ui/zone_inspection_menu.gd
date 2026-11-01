@@ -117,12 +117,17 @@ func _refresh_display_metrics() -> void:
 	work_through_desc_label.visible = latched
 	famine_explain_label.visible = latched
 	if latched:
-		starving_label.text = "🌾 FAMINE — %d living off the land, no food stores!" % data.get("famine", 0)
+		var deficit: int = data.get("famine_deficit", 0)
+		var position: int = banked - deficit
+		if deficit > 0:
+			starving_label.text = "🌾 FAMINE — %d living off the land · ration debt %d" % [data.get("famine", 0), deficit]
+		else:
+			starving_label.text = "🌾 FAMINE — %d living off the land, workplaces unmanned!" % data.get("famine", 0)
 		starving_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.3))
 		famine_explain_label.text = "Workplaces unmanned, construction paused (except work-through). " \
-			+ "Recovery: %d/%d rations banked — the camp escapes when food reaches %d. " % [banked, needed, needed] \
-			+ "Famine drains Camp Organization daily."
-		work_through_desc_label.text = "Cost: working builders forage nothing — food recovery stalls and the famine lasts longer. Benefit: construction crawls at half speed. Toggle off to crawl out fastest."
+			+ "The camp owes %d rations — foraging repays the debt first, then banks toward %d rations (%d/%d banked). " % [deficit, needed, position, needed] \
+			+ "Only a clean ledger + full pantry ends the famine. Camp Organization drains daily."
+		work_through_desc_label.text = "Cost: working builders forage almost nothing — the ration debt keeps growing while this is ON, so the famine cannot end. Benefit: construction crawls at half speed. Toggle OFF to let the camp grind out of debt."
 		work_through_button.text = "⛏ Work through starvation: %s" % ("ON" if data.get("work_through_famine", false) else "OFF")
 	elif data.get("starving", 0) > 0:
 		starving_label.text = "⚠ %d starving — assign foragers!" % data["starving"]

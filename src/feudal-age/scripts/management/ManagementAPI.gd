@@ -171,6 +171,7 @@ func get_node_inspection_data(node_id: int) -> Dictionary:
 		"famine_latched": node.famine_latched,
 		"famine_banked": node.stockpile.get("Berries", 0) + node.stockpile.get("Mushrooms", 0),
 		"famine_needed": node.local_workers.size() * 2,
+		"famine_deficit": node.famine_deficit,
 		"work_through_famine": node.work_through_famine,
 		"camp_organization": int(node.camp_organization),
 		"org_bonus_pct": int(minf(node.camp_organization, 25.0)),

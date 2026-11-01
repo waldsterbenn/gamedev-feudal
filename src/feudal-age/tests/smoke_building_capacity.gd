@@ -6,6 +6,7 @@ extends SceneTree
 var _stage: int = 0
 var _api: Node = null
 var _zone: Resource = null
+var _grind: int = 0
 var _frames: int = 0
 var _gc: Node = null
 
@@ -129,9 +130,10 @@ func _process(_delta: float) -> bool:
 			print("SMOKE: housing cap verified — 4/4 residents, 5th refused")
 			_stage = 7
 		7:
-			# Famine latch (#92): zero production first (forager posting -> 0)
+			# Famine latch (#91 v3): zero production first (forager posting -> 0)
 			# so the unfed tick can't be refilled in the same tick, then drain
-			# food -> residents unfed -> latch closes at END of tick.
+			# food -> residents unfed -> latch closes at END of tick. The
+			# unfed day also opens the ration debt ledger (4 residents).
 			_api.adjust_job_target(1, "forager", -2)
 			_zone.stockpile["Berries"] = 0
 			_zone.stockpile["Mushrooms"] = 0
@@ -139,11 +141,15 @@ func _process(_delta: float) -> bool:
 			if not _zone.famine_latched:
 				_fail("famine: latch did not close after residents went unfed")
 				return true
-			print("SMOKE: famine latched — residents unfed, latch closed at tick end")
+			if _zone.famine_deficit != 4:
+				_fail("famine: entry deficit %d != 4 (one owed day)" % _zone.famine_deficit)
+				return true
+			print("SMOKE: famine latched — ration debt opened at 4")
 			_stage = 8
 		8:
-			# Latched tick: everyone off the land, trickle banks food (6 < 8
-			# needed) -> still latched; org drained to 0.
+			# Latched tick: everyone off the land; trickle 6/day (4 resting)
+			# repays the debt FIRST — debt 4 -> +4 owed -> repay 6 -> 2 left
+			# owed, NOTHING banks yet (negative balance grinding, #91 v3).
 			_tick()
 			if _zone._get_assigned_count("off_the_land") != 4:
 				_fail("famine: expected 4 off the land, got %d" % _zone._get_assigned_count("off_the_land"))
@@ -152,17 +158,22 @@ func _process(_delta: float) -> bool:
 				_fail("famine: foragers still manned")
 				return true
 			var food: int = _zone.stockpile.get("Berries", 0) + _zone.stockpile.get("Mushrooms", 0)
-			if food != 6:
-				_fail("famine: trickle banked %d food, expected 6 (4 berries + 2 mushrooms)" % food)
+			if _zone.famine_deficit != 3:
+				_fail("famine: deficit %d != 3 (4 owed + 4 accrued - 5 floor gross repaid)" % _zone.famine_deficit)
+				return true
+			if food != 0:
+				_fail("famine: %d banked during debt repayment, expected 0" % food)
 				return true
 			if _zone.famine_latched == false:
-				_fail("famine: unlatched before 2x buffer (food=%d needed=8)" % food)
+				_fail("famine: unlatched while debt outstanding (position=%d)" % (food - _zone.famine_deficit))
 				return true
-			print("SMOKE: famine tick — 4 off the land, trickle banked 6/8, org drained %d" % int(_zone.camp_organization))
+			print("SMOKE: famine tick — 4 off the land, debt ground 4 -> 3 (trickle 5/day), pantry still empty, org drained %d" % int(_zone.camp_organization))
 			_stage = 9
 		9:
 			# Work through starvation (#92): order + cover an incomplete
 			# building, toggle ON — 1 builder crawls at half speed, 3 rest.
+			# Debt accrual (4) vs 3-resting floor gross (4) -> net 0: recovery
+			# STALLS but the builder crawls (+5 labor).
 			var lumber_bp: Resource = load("res://data/blueprints/lumber_camp.tres")
 			_api.order_building(1, lumber_bp)
 			_zone.allocated_construction_resources["Timber"] = 40  # cover its cost
@@ -183,21 +194,38 @@ func _process(_delta: float) -> bool:
 					if building.construction_progress - progress_before != 5.0:
 						_fail("work-through: progress +%f, expected +5.0 (half speed)" % (building.construction_progress - progress_before))
 						return true
-			print("SMOKE: work-through verified — 1 builder at half speed (+5 labor), 3 off the land")
+			if _zone.famine_deficit != 3:
+				_fail("work-through: deficit %d != 3 — accrual (4) and floor gross (4) must cancel while 1 builds" % _zone.famine_deficit)
+				return true
+			var food9: int = _zone.stockpile.get("Berries", 0) + _zone.stockpile.get("Mushrooms", 0)
+			if food9 != 0:
+				_fail("work-through: %d banked — recovery must stall while the toggle is ON" % food9)
+				return true
+			print("SMOKE: work-through verified — builder +5 labor, debt frozen at 3, nothing banks (recovery stalled)")
 			_stage = 10
 		10:
-			# Toggle OFF + escape: crawl resumes; stock climbs to the 2x
-			# buffer (8) and the latch OPENS at end of tick.
+			# Toggle OFF: the full grind — deficit 3 -> 0, then the pantry
+			# banks +1/day to the 2x buffer (8).
 			_api.toggle_work_through_famine(1, false)
-			_tick()
-			if _zone.famine_latched:
-				_fail("famine: still latched after banking the 2x buffer")
-				return true
-			print("SMOKE: famine escaped — food hit the 2x buffer, workplaces re-manned")
+			_grind = 0
 			_stage = 11
 		11:
+			# Grind loop: debt repaid (deficit 3 -> 0), then the pantry banks
+			# +1/day to the 2x buffer (8) and the latch OPENS.
+			_tick()
+			_grind += 1
+			if not _zone.famine_latched:
+				print("SMOKE: famine escaped after %d grind ticks — debt repaid + 2x buffer banked, workplaces re-manned" % _grind)
+				_stage = 12
+				return false
+			if _grind >= 20:
+				_fail("famine grind did not converge in 12 ticks (deficit=%d stock=%s)" % [
+					_zone.famine_deficit, str(_zone.stockpile)])
+				return true
+			return false
+		12:
 			# Recovery: re-post foragers, normal tick re-mans workplaces from
-			# postings; foreman regrows Organization.
+			# postings; foreman regrows Organization from the drained level.
 			_api.adjust_job_target(1, "forager", 2)
 			_tick()
 			if _zone._get_assigned_count("forager") != 2:

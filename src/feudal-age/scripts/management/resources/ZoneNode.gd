@@ -7,7 +7,7 @@ signal populants_starving(node_id: int, starving_count: int)
 signal zone_famine(node_id: int, off_the_land_count: int)
 signal zone_famine_ended(node_id: int, food_stock: int)
 
-const TRICKLE_RATE: float = 0.35   # desperate forage: 35% of forager yield per resting resident (#92)
+const TRICKLE_RATE: float = 0.30   # desperate forage: 30% of forager yield per resting resident (#92)
 const ORG_GEN_RATE: float = 10.0   # Camp Organization gained per day with a foreman (#92)
 const ORG_DRAIN_RATE: float = 10.0 # Camp Organization drained per famine day (#92)
 const ORG_MAX: float = 100.0
@@ -37,6 +37,11 @@ var _last_starving_count: int = 0
 ## STICKY famine state (#92): true from the day residents go unfed until
 ## food >= 2x residents. Evaluated once per tick (end), never per stage.
 var famine_latched: bool = false
+## Ration debt ledger (#91 v3): while famine-latched, the camp owes 1
+## ration per resident per day. The off-the-land trickle repays this debt
+## FIRST; only the surplus banks into the stockpile. Exit requires
+## famine_deficit == 0 AND stock food >= 2x residents.
+var famine_deficit: int = 0
 ## Player toggle (#92): keep building through famine at half speed — the
 ## working builders stop foraging, so recovery stalls while they work.
 var work_through_famine: bool = false
@@ -114,7 +119,10 @@ func _update_famine_latch() -> void:
 		if residents > 0 and _last_starving_count > 0:
 			famine_latched = true
 			zone_famine.emit(node_id, residents)
-	elif food >= residents * 2:
+	# Exit (#91 v3): the ledger must be CLEAN — no ration debt — AND the
+	# camp must have banked the 2x buffer. Debt grows daily while latched,
+	# so the camp grinds from negative through zero into surplus.
+	elif famine_deficit <= 0 and food >= residents * 2:
 		famine_latched = false
 		zone_famine_ended.emit(node_id, food)
 
@@ -238,13 +246,19 @@ func _construction_shortfall() -> int:
 	return shortfall
 
 ## Processes daily food consumption across all checked residents.
-## During famine (#92) consumption continues — residents eat whatever the
-## desperate trickle has banked; going hungry keeps the latch closed.
+## Famine ledger (#91 v3): off-the-land residents live off their own
+## foraging — the camp OWES a ration per resident per unfed day. The
+## deficit accrues daily while latched; the trickle repays it before
+## anything banks. Residents never eat the store during famine: the
+## store IS the recovery goal (2x residents banked).
 func _deduct_sustenance_inventories() -> void:
 	var hungry_mouths: int = local_workers.size()
 	if hungry_mouths <= 0:
 		return
-		
+	if _is_famine():
+		famine_deficit += hungry_mouths
+		_last_starving_count = 0  # famine toast already covers it — no daily spam
+		return
 	for food_type in DietPriorities.CONSUMPTION_ORDER:
 		if hungry_mouths <= 0:
 			break
@@ -256,6 +270,7 @@ func _deduct_sustenance_inventories() -> void:
 
 	if hungry_mouths > 0:
 		_last_starving_count = hungry_mouths
+		famine_deficit += hungry_mouths  # the unfed day opens the ledger (#91 v3)
 		populants_starving.emit(node_id, hungry_mouths)
 	else:
 		_last_starving_count = 0
@@ -305,6 +320,22 @@ func _execute_production_and_labor() -> void:
 		if resting > 0:
 			var trickle_berries: int = roundi(resting * 5 * fertilities.get("Berries", 0.0) * TRICKLE_RATE)
 			var trickle_mushrooms: int = roundi(resting * 3 * fertilities.get("Mushrooms", 0.0) * canopy_density * TRICKLE_RATE)
+			# Anti-deadlock floor (#91 v3): a forager always scrapes at least
+			# 1 ration — with EVERYONE resting the ledger climbs >= +1/day, so
+			# even a barren zone can grind back to surplus. Each working
+			# builder drops the floor by 1: 1 builder stalls recovery, 2+
+			# deepen the debt. The floor's extra ration materializes as
+			# scavenged berries so real items back every repayment.
+			var floor_extra: int = maxi(0, (resting + 1) - (trickle_berries + trickle_mushrooms))
+			trickle_berries += floor_extra
+			var gross: int = maxi(trickle_berries + trickle_mushrooms, resting + 1)
+			var repay: int = mini(famine_deficit, gross)
+			famine_deficit -= repay
+			var to_remove: int = repay
+			var take_b: int = mini(trickle_berries, to_remove)
+			trickle_berries -= take_b
+			to_remove -= take_b
+			trickle_mushrooms = maxi(0, trickle_mushrooms - to_remove)
 			stockpile["Berries"] = stockpile.get("Berries", 0) + trickle_berries
 			stockpile["Mushrooms"] = stockpile.get("Mushrooms", 0) + trickle_mushrooms
 		return
