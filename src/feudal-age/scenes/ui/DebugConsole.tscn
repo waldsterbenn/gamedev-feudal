@@ -1,0 +1,38 @@
+[gd_scene load_steps=2 format=3 uid="uid://debug_console"]
+
+[ext_resource type="Script" path="res://scripts/ui/debug_console.gd" id="1_dbg"]
+
+[node name="DebugConsole" type="PanelContainer"]
+anchors_preset = 11
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -360.0
+offset_bottom = 0.0
+grow_horizontal = 0
+visible = false
+script = ExtResource("1_dbg")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="DebugTitle" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Debug Console"
+theme_override_font_sizes/font_size = 14
+
+[node name="DebugLogText" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+scroll_following = true
+theme_override_font_sizes/normal_font_size = 12

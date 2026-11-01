@@ -38,7 +38,7 @@ func _ready() -> void:
 	_apply_key_hints()
 
 func open_inspection_window(node_id: int) -> void:
-	print("DEBUG: open_inspection_window node_id=" + str(node_id))
+	EventBus.ui.debug("open_inspection_window node_id=" + str(node_id))
 	_active_node_id = node_id
 	_refresh_display_metrics()
 
@@ -70,7 +70,7 @@ func _refresh_display_metrics() -> void:
 	post_woodcutter_button.visible = not is_wilderness
 
 func _on_establish_camp_pressed() -> void:
-	print("DEBUG: Establish Camp pressed (node=", _active_node_id, ")")
+	EventBus.ui.debug("Establish Camp pressed (node=" + " " + str(_active_node_id) + " " + ")")
 	var api = ServiceLocator.get_management_service()
 	if api:
 		api.establish_camp(_active_node_id)
@@ -83,11 +83,11 @@ func _on_post_woodcutter_pressed() -> void:
 	_post_job("woodcutter", 1)
 
 func _post_job(job_type: String, slots: int) -> void:
-	print("DEBUG: Post ", job_type, " Job pressed (node=", _active_node_id, ")")
+	EventBus.ui.debug("Post " + " " + str(job_type) + " " + " Job pressed (node=" + " " + str(_active_node_id) + " " + ")")
 	var api = ServiceLocator.get_management_service()
 	if api:
 		var ok: bool = api.post_manual_job(_active_node_id, job_type, slots)
-		print("DEBUG: Post ", job_type, " Job result: ", ok)
+		EventBus.ui.debug("Post " + " " + str(job_type) + " " + " Job result: " + " " + str(ok))
 		_refresh_display_metrics()
 
 func _on_build_button_pressed() -> void:
@@ -100,21 +100,21 @@ func _on_build_button_pressed() -> void:
 	var tent_path := "res://data/blueprints/tent.tres"
 	if ResourceLoader.exists(tent_path):
 		var tent_blueprint: BuildingData = load(tent_path)
-		print("DEBUG: Attempted to order building (node=" + str(_active_node_id) + ")")
+		EventBus.ui.debug("Attempted to order building (node=" + str(_active_node_id) + ")")
 		var ok: bool = api.order_building(_active_node_id, tent_blueprint)
 		if ok:
-			print("DEBUG: Building order succeeded")
+			EventBus.ui.debug("Building order succeeded")
 			_refresh_display_metrics()
 	else:
 		# TODO(event-system): surface this via the replacement for legacy EventBus.message_logged
-		print("No blueprints available yet.")
+		EventBus.ui.debug("No blueprints available yet.")
 
 func _on_close_pressed() -> void:
 	# TODO(event-system): emit zone-deselected via the replacement for legacy EventBus
 	close_menus_fallback()
 
 func close_menus_fallback() -> void:
-	print("DEBUG: close_menus_fallback (zone inspection closed)")
+	EventBus.ui.debug("close_menus_fallback (zone inspection closed)")
 	var coordinator := get_parent()
 	if coordinator and coordinator.has_method("close_menus"):
 		coordinator.close_menus()

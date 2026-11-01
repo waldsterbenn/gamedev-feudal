@@ -23,20 +23,23 @@ func _ready() -> void:
 	add_child(_message_clear_timer)
 	change_ui_state(UIState.HUD_ONLY)
 
-## HUD shortcut line is composed from the key-binding config (single source of truth)
+## HUD shortcut list is composed from the key-binding config (single source of truth)
+## and shown stacked in the lower-left corner.
 func _apply_key_hints() -> void:
 	var bindings: KeyBindingSet = load("res://data/ui/keybindings.tres")
 	if bindings == null or hud_instructions == null:
 		return
-	hud_instructions.text = "%s=Mode  1-9=Zone  %s=Inspect  %s=Camp  %s=Build  %s=Forager  %s=Lumber  %s=Close" % [
-		bindings.get_display("management_mode"),
-		bindings.get_display("inspect_zone"),
-		bindings.get_display("establish_camp"),
-		bindings.get_display("order_building"),
-		bindings.get_display("post_forager"),
-		bindings.get_display("post_woodcutter"),
-		bindings.get_display("close_menu"),
+	var entries: Array[String] = [
+		"%s = Management mode" % bindings.get_display("management_mode"),
+		"1-9 = Select zone",
+		"%s = Inspect zone" % bindings.get_display("inspect_zone"),
+		"%s = Establish camp" % bindings.get_display("establish_camp"),
+		"%s = Order construction" % bindings.get_display("order_building"),
+		"%s = Post forager jobs" % bindings.get_display("post_forager"),
+		"%s = Post woodcutter job" % bindings.get_display("post_woodcutter"),
+		"%s = Close panel" % bindings.get_display("close_menu"),
 	]
+	hud_instructions.text = "\n".join(entries)
 
 func _on_message_logged(message: String, level: String) -> void:
 	if hud_message == null:
@@ -50,7 +53,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		var bindings: KeyBindingSet = load("res://data/ui/keybindings.tres")
 		if bindings and event.keycode == bindings.get_key("close_menu") and current_ui_state == UIState.INSPECTING_NODE:
-			print("DEBUG: Esc pressed — closing inspection")
+			EventBus.ui.debug("Esc pressed — closing inspection")
 			close_menus()
 			get_viewport().set_input_as_handled()
 

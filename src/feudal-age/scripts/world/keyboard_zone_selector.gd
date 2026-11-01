@@ -14,7 +14,7 @@ func _on_mode_changed(active: bool) -> void:
 
 func _refresh_zones() -> void:
 	var zones := _get_zones()
-	print("DEBUG: Keyboard selector found ", zones.size(), " zones")
+	EventBus.ui.debug("Keyboard selector found " + " " + str(zones.size()) + " " + " zones")
 	if selected_index >= zones.size():
 		selected_index = -1
 
@@ -64,13 +64,13 @@ func _select_zone(zones: Array) -> void:
 		return
 	var anchor: ZoneAnchor3D = zones[selected_index]
 	if anchor.zone_node != null:
-		print("DEBUG: Selecting zone ", selected_index, " node_id=", anchor.zone_node.node_id, " name=", anchor.zone_node.node_name)
+		EventBus.ui.debug("Selecting zone " + " " + str(selected_index) + " " + " node_id=" + " " + str(anchor.zone_node.node_id) + " " + " name=" + " " + str(anchor.zone_node.node_name))
 		EventBus.ui.zone_selected.emit(anchor.zone_node)
 
 func _build_on_selected(zones: Array) -> void:
 	if selected_index < 0 or selected_index >= zones.size():
 		EventBus.ui.message_logged.emit("Select a zone first (press 1-9).", "warn")
-		print("DEBUG: Build pressed but no zone selected — press 1-9 first")
+		EventBus.ui.debug("Build pressed but no zone selected — press 1-9 first")
 		return
 	var anchor: ZoneAnchor3D = zones[selected_index]
 	if anchor.zone_node == null:
@@ -78,20 +78,20 @@ func _build_on_selected(zones: Array) -> void:
 	EventBus.ui.zone_selected.emit(anchor.zone_node)
 	var api = ServiceLocator.get_management_service()
 	if api == null:
-		print("DEBUG: Build failed — ManagementAPI not available")
+		EventBus.ui.debug("Build failed — ManagementAPI not available")
 		return
 	var bp_path := "res://data/blueprints/tent.tres"
 	if not ResourceLoader.exists(bp_path):
-		print("DEBUG: Build failed — blueprint missing")
+		EventBus.ui.debug("Build failed — blueprint missing")
 		return
 	var bp = load(bp_path)
 	var ok: bool = api.order_building(anchor.zone_node.node_id, bp)
-	print("DEBUG: Keyboard Build result: ", ok)
+	EventBus.ui.debug("Keyboard Build result: " + " " + str(ok))
 
 func _establish_camp_on_selected(zones: Array) -> void:
 	if selected_index < 0 or selected_index >= zones.size():
 		EventBus.ui.message_logged.emit("Select a zone first (press 1-9).", "warn")
-		print("DEBUG: Establish Camp pressed but no zone selected — press 1-9 first")
+		EventBus.ui.debug("Establish Camp pressed but no zone selected — press 1-9 first")
 		return
 	var anchor: ZoneAnchor3D = zones[selected_index]
 	if anchor.zone_node == null:
@@ -99,15 +99,15 @@ func _establish_camp_on_selected(zones: Array) -> void:
 	EventBus.ui.zone_selected.emit(anchor.zone_node)
 	var api = ServiceLocator.get_management_service()
 	if api == null:
-		print("DEBUG: Establish Camp failed — ManagementAPI not available")
+		EventBus.ui.debug("Establish Camp failed — ManagementAPI not available")
 		return
-	print("DEBUG: Keyboard Establish Camp on node=", anchor.zone_node.node_id)
+	EventBus.ui.debug("Keyboard Establish Camp on node=" + " " + str(anchor.zone_node.node_id))
 	api.establish_camp(anchor.zone_node.node_id)
 
 func _post_job_on_selected(zones: Array, job_type: String, slots: int) -> void:
 	if selected_index < 0 or selected_index >= zones.size():
 		EventBus.ui.message_logged.emit("Select a zone first (press 1-9).", "warn")
-		print("DEBUG: Post ", job_type, " pressed but no zone selected")
+		EventBus.ui.debug("Post " + " " + str(job_type) + " " + " pressed but no zone selected")
 		return
 	var anchor: ZoneAnchor3D = zones[selected_index]
 	if anchor.zone_node == null:
@@ -118,7 +118,7 @@ func _post_job_on_selected(zones: Array, job_type: String, slots: int) -> void:
 		EventBus.ui.message_logged.emit("Management service unavailable.", "warn")
 		return
 	var ok: bool = api.post_manual_job(anchor.zone_node.node_id, job_type, slots)
-	print("DEBUG: Keyboard Post ", job_type, " result: ", ok)
+	EventBus.ui.debug("Keyboard Post " + " " + str(job_type) + " " + " result: " + " " + str(ok))
 
 func _is_key_just_pressed(key_code: int) -> bool:
 	var currently_pressed: bool = Input.is_key_pressed(key_code)

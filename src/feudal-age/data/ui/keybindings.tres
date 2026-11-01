@@ -5,12 +5,13 @@
 [resource]
 script = ExtResource("1_kbs")
 bindings = {
-"close_menu": "KEY_ESCAPE",
-"establish_camp": "KEY_E",
-"inspect_zone": "KEY_ENTER",
-"management_mode": "KEY_TAB",
-"order_building": "KEY_B",
-"post_forager": "KEY_F",
-"post_woodcutter": "KEY_G",
-"select_zone": "KEY_1-9"
+"close_menu": "ESCAPE",
+"debug_overlay": "F12",
+"establish_camp": "E",
+"inspect_zone": "ENTER",
+"management_mode": "TAB",
+"order_building": "B",
+"post_forager": "F",
+"post_woodcutter": "G",
+"select_zone": "1-9"
 }

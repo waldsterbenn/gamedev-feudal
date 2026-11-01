@@ -15,6 +15,7 @@ class_name KeyBindingSet
 	"post_forager": "KEY_F",
 	"post_woodcutter": "KEY_G",
 	"close_menu": "KEY_ESCAPE",
+	"debug_overlay": "KEY_F12",
 }
 
 ## Returns the Key constant for an action, or KEY_NONE if unmapped/unparsed
@@ -22,7 +23,8 @@ func get_key(action: String) -> Key:
 	var code_name: String = bindings.get(action, "")
 	var key: Key = OS.find_keycode_from_string(code_name)
 	if key == Key.KEY_NONE and code_name.begins_with("KEY_"):
-		key = OS.find_keycode_from_string("KEY_" + code_name.substr(4))
+		# Tolerate legacy "KEY_E" style entries by stripping the prefix
+		key = OS.find_keycode_from_string(code_name.substr(4))
 	return key
 
 ## Short human label for UI display: "E", "Esc", "Tab"
