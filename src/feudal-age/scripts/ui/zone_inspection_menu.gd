@@ -18,6 +18,9 @@ extends PanelContainer
 @onready var builder_label: Label = %BuilderLabel
 @onready var foreman_label: Label = %ForemanLabel
 @onready var starving_label: Label = %StarvingLabel
+@onready var famine_explain_label: Label = %FamineExplainLabel
+@onready var work_through_button: Button = %WorkThroughButton
+@onready var work_through_desc_label: Label = %WorkThroughDescLabel
 @onready var post_forager_button: Button = %PostForagerButton
 @onready var post_woodcutter_button: Button = %PostWoodcutterButton
 @onready var post_foreman_button: Button = %PostForemanButton
@@ -54,6 +57,7 @@ func _ready() -> void:
 	post_forager_button.pressed.connect(_on_post_forager_pressed)
 	post_woodcutter_button.pressed.connect(_on_post_woodcutter_pressed)
 	post_foreman_button.pressed.connect(_on_post_foreman_pressed)
+	work_through_button.pressed.connect(_on_work_through_pressed)
 	close_button.pressed.connect(_on_close_pressed)
 	# Live refresh: the panel follows stockpile growth on every day tick
 	EventBus.day_ticked.connect(_on_day_ticked)
@@ -80,9 +84,11 @@ func _refresh_display_metrics() -> void:
 	node_name_label.text = data["node_name"]
 	tier_label.text = data["tier_name"].capitalize()
 	canopy_bar.value = data["canopy"] * 100.0
-	timber_label.text = "🪵 " + str(data["timber_stock"])
-	berries_label.text = "🫐 " + str(data["berry_stock"])
-	mushrooms_label.text = "🍄 " + str(data["mushroom_stock"])
+	# Per-resource stockpiling trend arrows (#92): ▲ building, ▼ draining
+	var trends: Dictionary = data.get("stock_trends", {})
+	timber_label.text = "%s 🪵 %d" % [_trend_arrow(trends, "Timber"), data["timber_stock"]]
+	berries_label.text = "%s 🫐 %d" % [_trend_arrow(trends, "Berries"), data["berry_stock"]]
+	mushrooms_label.text = "%s 🍄 %d" % [_trend_arrow(trends, "Mushrooms"), data["mushroom_stock"]]
 
 	# Per-job rows show ASSIGNED / CAP where cap = completed-building slots
 	# (#88): "wanted" targets no longer render — buildings define capacity.
@@ -99,12 +105,25 @@ func _refresh_display_metrics() -> void:
 	builder_label.text = "🔨 Builders %d (free workers, auto)" % jobs["builder"]["assigned"]
 	foreman_label.get_parent().visible = caps["foreman"] > 0
 	if jobs["foreman"]["assigned"] > 0:
-		foreman_label.text = "🎖 Foreman %d/%d · production +%d%%" % [jobs["foreman"]["assigned"], caps["foreman"], int(jobs["foreman"]["assigned"] * 25)]
+		foreman_label.text = "🎖 Foreman %d/%d · Organization %d/100 → +%d%% resources" % [
+			jobs["foreman"]["assigned"], caps["foreman"], data.get("camp_organization", 0), data.get("org_bonus_pct", 0)]
 	else:
-		foreman_label.text = "🎖 Foreman %d/%d · +25%% production per foreman" % [jobs["foreman"]["assigned"], caps["foreman"]]
-	if data.get("famine", 0) > 0:
-		starving_label.text = "🌾 %d living off the land — no food stores!" % data["famine"]
+		foreman_label.text = "🎖 Foreman %d/%d · grows Camp Organization (up to +25%% resources)" % [jobs["foreman"]["assigned"], caps["foreman"]]
+	# Famine state block (#92): status, crawl progress, escape options
+	var latched: bool = data.get("famine_latched", false)
+	var banked: int = data.get("famine_banked", 0)
+	var needed: int = data.get("famine_needed", 0)
+	work_through_button.visible = latched
+	work_through_desc_label.visible = latched
+	famine_explain_label.visible = latched
+	if latched:
+		starving_label.text = "🌾 FAMINE — %d living off the land, no food stores!" % data.get("famine", 0)
 		starving_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.3))
+		famine_explain_label.text = "Workplaces unmanned, construction paused (except work-through). " \
+			+ "Recovery: %d/%d rations banked — the camp escapes when food reaches %d. " % [banked, needed, needed] \
+			+ "Famine drains Camp Organization daily."
+		work_through_desc_label.text = "Cost: working builders forage nothing — food recovery stalls and the famine lasts longer. Benefit: construction crawls at half speed. Toggle off to crawl out fastest."
+		work_through_button.text = "⛏ Work through starvation: %s" % ("ON" if data.get("work_through_famine", false) else "OFF")
 	elif data.get("starving", 0) > 0:
 		starving_label.text = "⚠ %d starving — assign foragers!" % data["starving"]
 		starving_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.3))
@@ -148,6 +167,13 @@ func _on_post_woodcutter_pressed() -> void:
 func _on_post_foreman_pressed() -> void:
 	_post_job("foreman", 1)
 
+func _on_work_through_pressed() -> void:
+	var api = ServiceLocator.get_management_service()
+	if api and _active_node_id != -1:
+		var data: Dictionary = api.get_node_inspection_data(_active_node_id)
+		api.toggle_work_through_famine(_active_node_id, not data.get("work_through_famine", false))
+		_refresh_display_metrics()
+
 func _post_job(job_type: String, slots: int) -> void:
 	EventBus.ui.debug("Post " + " " + str(job_type) + " " + " Job pressed (node=" + " " + str(_active_node_id) + " " + ")")
 	var api = ServiceLocator.get_management_service()
@@ -155,6 +181,14 @@ func _post_job(job_type: String, slots: int) -> void:
 		var ok: bool = api.post_manual_job(_active_node_id, job_type, slots)
 		EventBus.ui.debug("Post " + " " + str(job_type) + " " + " Job result: " + " " + str(ok))
 		_refresh_display_metrics()
+
+func _trend_arrow(trends: Dictionary, resource_name: String) -> String:
+	var delta: int = int(trends.get(resource_name, 0))
+	if delta > 0:
+		return "▲"
+	if delta < 0:
+		return "▼"
+	return "·"
 
 func _on_build_button_pressed() -> void:
 	if _active_node_id == -1:

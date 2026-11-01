@@ -14,6 +14,16 @@ var _registered_populants: Dictionary = {}
 func _enter_tree() -> void:
 	ServiceLocator.register_management_service(self)
 
+## Player toggle (#92): keep building through famine at half speed.
+func toggle_work_through_famine(node_id: int, enabled: bool) -> bool:
+	var node: ZoneNode = _get_world_nodes().get(node_id)
+	if not node:
+		return false
+	node.work_through_famine = enabled
+	EventBus.ui.message_logged.emit(
+		"Work through starvation %s at %s." % ["ENABLED" if enabled else "DISABLED", node.node_name], "info")
+	return true
+
 ## Wire a zone's starving + famine signals to UI toasts. Done at
 ## establish_camp — food pressure only matters once a camp exists. Kept in
 ## the API layer (Node): ZoneNode stays signal-only and compiles standalone
@@ -23,6 +33,8 @@ func _wire_starving_toast(node: ZoneNode) -> void:
 		node.populants_starving.connect(_on_populants_starving)
 	if not node.zone_famine.is_connected(_on_zone_famine):
 		node.zone_famine.connect(_on_zone_famine)
+	if not node.zone_famine_ended.is_connected(_on_zone_famine_ended):
+		node.zone_famine_ended.connect(_on_zone_famine_ended)
 
 func _on_populants_starving(node_id: int, starving_count: int) -> void:
 	var node: ZoneNode = _get_world_nodes().get(node_id)
@@ -33,6 +45,11 @@ func _on_zone_famine(node_id: int, off_the_land_count: int) -> void:
 	var node: ZoneNode = _get_world_nodes().get(node_id)
 	var zone_name: String = node.node_name if node else "Zone %d" % node_id
 	EventBus.ui.message_logged.emit("🌾 Famine at %s — %d living off the land, workplaces unmanned." % [zone_name, off_the_land_count], "warn")
+
+func _on_zone_famine_ended(node_id: int, food_stock: int) -> void:
+	var node: ZoneNode = _get_world_nodes().get(node_id)
+	var zone_name: String = node.node_name if node else "Zone %d" % node_id
+	EventBus.ui.message_logged.emit("☀ Famine ended at %s — work resumes (%d food banked)." % [zone_name, food_stock], "info")
 
 func register_populant_component(comp: ManagementPopulantComponent) -> void:
 	_registered_populants[comp.character_id] = comp
@@ -151,6 +168,13 @@ func get_node_inspection_data(node_id: int) -> Dictionary:
 		},
 		"starving": node._last_starving_count,
 		"famine": node._get_assigned_count("off_the_land"),
+		"famine_latched": node.famine_latched,
+		"famine_banked": node.stockpile.get("Berries", 0) + node.stockpile.get("Mushrooms", 0),
+		"famine_needed": node.local_workers.size() * 2,
+		"work_through_famine": node.work_through_famine,
+		"camp_organization": int(node.camp_organization),
+		"org_bonus_pct": int(minf(node.camp_organization, 25.0)),
+		"stock_trends": node.stock_trends.duplicate(),
 	}
 
 ## API Query: Returns the number of local workers assigned to a node
