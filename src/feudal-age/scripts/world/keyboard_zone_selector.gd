@@ -50,6 +50,9 @@ func _process(_delta: float) -> void:
 	# M / Shift+M = foreman ±1 on selected zone (camp only) — #85 (max 1)
 	if _is_key_just_pressed(bindings.get_key("post_foreman")):
 		_adjust_job_on_selected(zones, "foreman", 1 if not _shift_held() else -1)
+	# T = toggle work-through-starvation on selected zone — #91
+	if _is_key_just_pressed(bindings.get_key("work_through")):
+		_toggle_work_through_on_selected(zones)
 	# C = cycle the blueprint selection in the inspection panel
 	if _is_key_just_pressed(bindings.get_key("cycle_blueprint")):
 		EventBus.ui.blueprint_cycle_requested.emit()
@@ -122,6 +125,23 @@ func _adjust_job_on_selected(zones: Array, job_type: String, delta: int) -> void
 		return
 	var ok: bool = api.adjust_job_target(anchor.zone_node.node_id, job_type, delta)
 	EventBus.ui.debug("Keyboard adjust %s %+d result: %s" % [job_type, delta, str(ok)])
+
+## Toggles work-through-starvation on the selected zone (#91)
+func _toggle_work_through_on_selected(zones: Array) -> void:
+	if selected_index < 0 or selected_index >= zones.size():
+		EventBus.ui.message_logged.emit("Select a zone first (press 1-9).", "warn")
+		return
+	var anchor: ZoneAnchor3D = zones[selected_index]
+	if anchor.zone_node == null:
+		return
+	EventBus.ui.zone_selected.emit(anchor.zone_node)
+	var api = ServiceLocator.get_management_service()
+	if api == null:
+		EventBus.ui.message_logged.emit("Management service unavailable.", "warn")
+		return
+	var node = anchor.zone_node
+	var ok: bool = api.toggle_work_through_famine(node.node_id, not node.work_through_famine)
+	EventBus.ui.debug("Keyboard work-through toggle result: " + str(ok))
 
 func _is_key_just_pressed(key_code: int) -> bool:
 	var currently_pressed: bool = Input.is_key_pressed(key_code)

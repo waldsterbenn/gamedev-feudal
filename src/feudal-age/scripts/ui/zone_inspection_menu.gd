@@ -40,7 +40,11 @@ func _apply_key_hints() -> void:
 	post_forager_button.text = "🌿 Forager +1  (%s / Shift+%s)" % [bindings.get_display("post_forager"), bindings.get_display("post_forager")]
 	post_woodcutter_button.text = "🪵 Woodcutter +1  (%s / Shift+%s)" % [bindings.get_display("post_woodcutter"), bindings.get_display("post_woodcutter")]
 	post_foreman_button.text = "🎖 Foreman +1  (%s / Shift+%s)" % [bindings.get_display("post_foreman"), bindings.get_display("post_foreman")]
+	work_through_button.text = "⛏ Work through starvation: OFF  (%s)" % bindings.get_display("work_through")
+	_wt_key_hint = bindings.get_display("work_through")
 	close_button.text = "✕ Close  (%s)" % bindings.get_display("close_menu")
+
+var _wt_key_hint: String = "T"
 
 var _active_node_id: int = -1
 
@@ -155,7 +159,8 @@ func _refresh_display_metrics() -> void:
 			+ "The camp owes %d rations — foraging repays the debt first, then banks toward %d rations (%d/%d banked). " % [deficit, needed, position, needed] \
 			+ "Only a clean ledger + full pantry ends the famine. Camp Organization drains daily."
 		work_through_desc_label.text = "Cost: working builders forage almost nothing — each builder slows the ration-debt repayment by 2 rations/day, so recovery stalls (small camps) or crawls (large camps) while this is ON. Benefit: construction proceeds at half speed. Toggle OFF to let the camp grind out of debt fastest."
-		work_through_button.text = "⛏ Work through starvation: %s" % ("ON" if data.get("work_through_famine", false) else "OFF")
+		work_through_button.text = "⛏ Work through starvation: %s  (%s)" % [
+			"ON" if data.get("work_through_famine", false) else "OFF", _wt_key_hint]
 	elif data.get("starving", 0) > 0:
 		starving_label.text = "⚠ %d starving — assign foragers!" % data["starving"]
 		starving_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.3))
@@ -177,9 +182,14 @@ func _refresh_display_metrics() -> void:
 	var is_wilderness: bool = data["is_camp_creatable"]
 	establish_camp_button.visible = is_wilderness
 	build_button.visible = not is_wilderness
+	# Assignment disabled during famine (#91 v4.3): the API hard-gates it;
+	# buttons render greyed. Build/order stays allowed.
 	cycle_blueprint_button.visible = not is_wilderness
 	blueprint_selection_label.visible = not is_wilderness
 	post_forager_button.visible = not is_wilderness and caps["forager"] > 0
+	post_forager_button.disabled = latched
+	post_woodcutter_button.disabled = latched
+	post_foreman_button.disabled = latched
 	post_woodcutter_button.visible = not is_wilderness and caps["woodcutter"] > 0
 	post_foreman_button.visible = not is_wilderness and caps["foreman"] > 0
 

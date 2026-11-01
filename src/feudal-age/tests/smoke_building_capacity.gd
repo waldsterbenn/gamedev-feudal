@@ -162,7 +162,10 @@ func _process(_delta: float) -> bool:
 			if _zone.famine_latched == false:
 				_fail("famine: unlatched while debt outstanding (position=%d)" % (food - _zone.famine_deficit))
 				return true
-			print("SMOKE: famine tick — 4 off the land, debt ground 8 -> 7 (floor gross 9/day), pantry still empty, org drained %d" % int(_zone.camp_organization))
+			if _api.adjust_job_target(1, "forager", 1):
+				_fail("famine: assignment must be REFUSED during famine")
+				return true
+			print("SMOKE: famine tick — 4 off the land, debt ground 8 -> 7 (floor gross 9/day), pantry still empty, org drained %d; assignment refused" % int(_zone.camp_organization))
 			_stage = 9
 		9:
 			# Work through starvation (#92): order + cover an incomplete

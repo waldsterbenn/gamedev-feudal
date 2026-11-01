@@ -330,6 +330,12 @@ func adjust_job_target(node_id: int, job_type: String, delta: int) -> bool:
 	var node: ZoneNode = nodes.get(node_id)
 	if not node:
 		return false
+	# Famine hard gate (#91 v4.3): during famine ALL peasants live off the
+	# land — no new assignments. Covers buttons, G/F/M keys, and any API
+	# path. Queuing a BUILDING stays allowed (order_building is separate).
+	if node.famine_latched:
+		EventBus.ui.message_logged.emit("All peasants live off the land at %s during famine — assignments resume when it ends." % node.node_name, "warn")
+		return false
 	var capacity: int = node._building_capacity(job_type)
 	var current: int = node.manual_job_postings.get(job_type, 0)
 	var desired: int = current + delta

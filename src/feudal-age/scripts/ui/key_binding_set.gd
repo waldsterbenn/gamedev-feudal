@@ -15,6 +15,7 @@ class_name KeyBindingSet
 	"post_forager": "KEY_F",
 	"post_foreman": "KEY_M",
 	"post_woodcutter": "KEY_G",
+	"work_through": "KEY_T",
 	"close_menu": "KEY_ESCAPE",
 	"debug_overlay": "KEY_F12",
 }
