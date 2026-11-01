@@ -13,6 +13,7 @@ var _message_clear_timer: Timer
 
 func _ready() -> void:
 	EventBus.ui.zone_selected.connect(_on_zone_selected)
+	EventBus.ui.zone_deselected.connect(close_menus)
 	EventBus.ui.message_logged.connect(_on_message_logged)
 	_apply_key_hints()
 	# One-shot timer hides the toast a few seconds after each message
