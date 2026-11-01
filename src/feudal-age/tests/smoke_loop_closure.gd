@@ -82,7 +82,22 @@ func _run_loop_setup() -> void:
 		return
 	_tent_started = true
 
-	# STEP 3: Post forager jobs via the new manual-posting API (adds 2 slots)
+	# STEP 3: construction first — no forager targets while the tent builds
+	# (player-controlled model #70: targeted workers keep their tasks, free
+	# workers build). Foragers are posted AFTER completion, like a player would.
+	# Stop realtime timer; tick deterministically
+	for child in _gc.get_children():
+		if child is Timer:
+			child.stop()
+	for i in range(TICKS_TO_RUN):
+		_gc._on_simulation_tick_elapsed()
+		_ticks_run += 1
+
+	if not zone.buildings.is_empty() and not zone.buildings[0].is_completed:
+		_fail("tent construction did not complete after %d uninterrupted builder ticks" % TICKS_TO_RUN)
+		return
+
+	# STEP 4: post forager jobs via the manual-posting API (adds 2 slots)
 	var posted: bool = api.post_manual_job(ZONE_ID, "forager", 2)
 	if not posted:
 		_fail("post_manual_job(forager) refused at CAMP tier")
@@ -172,6 +187,47 @@ func _verify_and_quit() -> void:
 		_fail("expected >=3 buildings after ordering all blueprints, got %d" % zone.buildings.size())
 		return
 	print("SMOKE: all 3 blueprints orderable — forager_post + charcoal_stack accepted (Timber %d left)" % zone.stockpile.get("Timber", 0))
+	# ALL-3 + STALL->GATHER acceptance (#70): with only 17 Timber in stockpile
+	# both orders are accepted with shortfalls; zeroed targets free every
+	# worker to gather; allocated construction resources must grow.
+	zone.stockpile["Timber"] = 17
+	var shortfall_orders: int = 0
+	for bp_path in ["res://data/blueprints/forager_post.tres", "res://data/blueprints/charcoal_stack.tres"]:
+		var bp: BuildingData = load(bp_path)
+		if not api.order_building(ZONE_ID, bp):
+			_fail("order_building(%s) refused despite order-anytime rule" % bp_path)
+			return
+		shortfall_orders += 1
+	if zone.buildings.size() < 3:
+		_fail("expected >=3 buildings after ordering all blueprints, got %d" % zone.buildings.size())
+		return
+	if zone._construction_shortfall() <= 0:
+		_fail("expected a construction shortfall after partial-payment orders (Timber=17)")
+		return
+	# Zero the production targets so free workers can gather (player control)
+	api.adjust_job_target(ZONE_ID, "forager", -2)
+	api.adjust_job_target(ZONE_ID, "woodcutter", -1)
+	var allocated_before: int = zone.allocated_construction_resources.get("Timber", 0)
+	for i in range(TICKS_TO_RUN):
+		_gc._on_simulation_tick_elapsed()
+		_ticks_run += 1
+	var allocated_after: int = zone.allocated_construction_resources.get("Timber", 0)
+	if allocated_after <= allocated_before:
+		_fail("free workers did not gather into allocated construction resources (before=%d, after=%d)" % [
+			allocated_before, allocated_after])
+		return
+	print("SMOKE: stall->gather verified — allocated Timber %d -> %d (orders=%d, shortfall filled partially)" % [
+		allocated_before, allocated_after, shortfall_orders])
+	# RESUME acceptance (#70): once materials are fully covered, builders build.
+	zone.allocated_construction_resources["Timber"] += zone._construction_shortfall()  # smoke: cover remainder
+	for i in range(1):
+		_gc._on_simulation_tick_elapsed()
+		_ticks_run += 1
+	var post_building: Resource = zone.buildings[1]  # forager_post, first in queue
+	if post_building.construction_progress <= 0.0:
+		_fail("construction did not resume after shortfall was covered (forager_post progress=%.1f)" % post_building.construction_progress)
+		return
+	print("SMOKE: construction resumed — forager_post progress %.1f/%d" % [post_building.construction_progress, post_building.blueprint.total_work_required])
 	print("SMOKE: PASS")
 	quit(0)
 

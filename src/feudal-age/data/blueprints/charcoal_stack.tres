@@ -10,3 +10,4 @@ build_cost = {"Timber": 40}
 total_work_required = 80.0
 max_jobs = 2
 job_type = "woodcutter"
+visual_scene_path = "res://scenes/world/buildings/charcoal_stack.tscn"

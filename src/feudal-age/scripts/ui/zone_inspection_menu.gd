@@ -12,6 +12,14 @@ extends PanelContainer
 @onready var build_button: Button = %BuildButton
 @onready var cycle_blueprint_button: Button = %CycleBlueprintButton
 @onready var blueprint_selection_label: Label = %BlueprintSelectionLabel
+@onready var buildings_list_label: Label = %BuildingsListLabel
+@onready var woodcutter_label: Label = %WoodcutterLabel
+@onready var woodcutter_minus_button: Button = %WoodcutterMinusButton
+@onready var woodcutter_plus_button: Button = %WoodcutterPlusButton
+@onready var forager_label: Label = %ForagerLabel
+@onready var forager_minus_button: Button = %ForagerMinusButton
+@onready var forager_plus_button: Button = %ForagerPlusButton
+@onready var builder_label: Label = %BuilderLabel
 @onready var post_forager_button: Button = %PostForagerButton
 @onready var post_woodcutter_button: Button = %PostWoodcutterButton
 @onready var close_button: Button = %CloseButton
@@ -47,8 +55,14 @@ func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
 	# Live refresh: the panel follows stockpile growth on every day tick
 	EventBus.day_ticked.connect(_on_day_ticked)
-	# Keyboard blueprint cycling (C key emits the request)
+	# Keyboard blueprint cycling / ordering (C and B keys emit the requests)
 	EventBus.ui.blueprint_cycle_requested.connect(_cycle_blueprint)
+	EventBus.ui.blueprint_order_requested.connect(_on_build_button_pressed)
+	# Worker control ([+/-] rows)
+	woodcutter_minus_button.pressed.connect(_on_job_adjust.bind("woodcutter", -1))
+	woodcutter_plus_button.pressed.connect(_on_job_adjust.bind("woodcutter", 1))
+	forager_minus_button.pressed.connect(_on_job_adjust.bind("forager", -1))
+	forager_plus_button.pressed.connect(_on_job_adjust.bind("forager", 1))
 	_apply_key_hints()
 
 func open_inspection_window(node_id: int) -> void:
@@ -72,6 +86,21 @@ func _refresh_display_metrics() -> void:
 	timber_label.text = "🪵 " + str(data["timber_stock"])
 	berries_label.text = "🫐 " + str(data["berry_stock"])
 	mushrooms_label.text = "🍄 " + str(data["mushroom_stock"])
+
+	# Per-job worker assignment rows (#70)
+	var jobs: Dictionary = data["job_assignments"]
+	woodcutter_label.text = "🪵 Woodcutter %d/%d" % [jobs["woodcutter"]["assigned"], jobs["woodcutter"]["target"]]
+	forager_label.text = "🌿 Forager %d/%d" % [jobs["forager"]["assigned"], jobs["forager"]["target"]]
+	builder_label.text = "🔨 Builders %d (auto)" % jobs["builder"]["assigned"]
+
+	# Per-building construction progress (#70)
+	var lines: PackedStringArray = []
+	for b in data["buildings"]:
+		if b["completed"]:
+			lines.append("✔ %s — complete" % b["name"])
+		else:
+			lines.append("🔨 %s — %d/%d" % [b["name"], int(b["progress"]), int(b["total"])])
+	buildings_list_label.text = "\n".join(lines)
 
 	# Count workers from the API
 	var worker_count: int = api.get_node_worker_count(_active_node_id)
@@ -99,6 +128,14 @@ func _on_post_forager_pressed() -> void:
 func _on_post_woodcutter_pressed() -> void:
 	_post_job("woodcutter", 1)
 
+## [+/-] worker control rows (#70)
+func _on_job_adjust(job_type: String, delta: int) -> void:
+	if _active_node_id == -1:
+		return
+	var api = ServiceLocator.get_management_service()
+	if api and api.adjust_job_target(_active_node_id, job_type, delta):
+		_refresh_display_metrics()
+
 func _post_job(job_type: String, slots: int) -> void:
 	EventBus.ui.debug("Post " + " " + str(job_type) + " " + " Job pressed (node=" + " " + str(_active_node_id) + " " + ")")
 	var api = ServiceLocator.get_management_service()
@@ -108,6 +145,9 @@ func _post_job(job_type: String, slots: int) -> void:
 		_refresh_display_metrics()
 
 func _on_build_button_pressed() -> void:
+	if _active_node_id == -1:
+		EventBus.ui.message_logged.emit("Open a zone inspection first (press 1-9, then Enter).", "warn")
+		return
 	var api = ServiceLocator.get_management_service()
 	if not api:
 		return
