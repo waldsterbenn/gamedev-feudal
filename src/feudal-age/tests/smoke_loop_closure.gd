@@ -122,6 +122,8 @@ func _run_loop_setup() -> void:
 func _verify_and_quit() -> void:
 	var context: Resource = _gc.game_context
 	var zone: Resource = context.world_nodes[ZONE_ID]
+	var service_locator: Node = root.get_node_or_null("ServiceLocator")
+	var api: Node = service_locator.get_management_service() if service_locator else null
 	var tent: Resource = zone.buildings[0]
 	var berries_now: int = zone.stockpile.get("Berries", 0)
 	var mushrooms_now: int = zone.stockpile.get("Mushrooms", 0)
@@ -142,6 +144,34 @@ func _verify_and_quit() -> void:
 		return
 
 	print("SMOKE: forager production verified — Berries +%d, Mushrooms +%d" % [berries_delta, mushrooms_delta])
+	# TIMBER-GROWTH acceptance (#47/#68): with the tent complete there are no
+	# open builder slots, so a posted woodcutter job must pull the woodcutter
+	# worker into production — Timber must strictly increase over N ticks.
+	var woodcutter_ok: bool = api.post_manual_job(ZONE_ID, "woodcutter", 1)
+	if not woodcutter_ok:
+		_fail("post_manual_job(woodcutter) refused")
+		return
+	var timber_before: int = zone.stockpile.get("Timber", 0)
+	for i in range(TICKS_TO_RUN):
+		_gc._on_simulation_tick_elapsed()
+		_ticks_run += 1
+	var timber_after: int = zone.stockpile.get("Timber", 0)
+	if timber_after <= timber_before:
+		_fail("Timber did not strictly increase over %d woodcutter ticks (before=%d, after=%d)" % [
+			TICKS_TO_RUN, timber_before, timber_after])
+		return
+	print("SMOKE: timber growth verified — Timber %d -> %d over %d ticks" % [timber_before, timber_after, TICKS_TO_RUN])
+	# ALL-3-BLUEPRINTS acceptance (#68): order the remaining two blueprints.
+	zone.stockpile["Timber"] = zone.stockpile.get("Timber", 0) + 120  # smoke grant
+	for bp_path in ["res://data/blueprints/forager_post.tres", "res://data/blueprints/charcoal_stack.tres"]:
+		var bp: BuildingData = load(bp_path)
+		if not api.order_building(ZONE_ID, bp):
+			_fail("order_building(%s) refused" % bp_path)
+			return
+	if zone.buildings.size() < 3:
+		_fail("expected >=3 buildings after ordering all blueprints, got %d" % zone.buildings.size())
+		return
+	print("SMOKE: all 3 blueprints orderable — forager_post + charcoal_stack accepted (Timber %d left)" % zone.stockpile.get("Timber", 0))
 	print("SMOKE: PASS")
 	quit(0)
 

@@ -6,6 +6,7 @@
 script = ExtResource("1_kbs")
 bindings = {
 "close_menu": "ESCAPE",
+"cycle_blueprint": "C",
 "debug_overlay": "F12",
 "establish_camp": "E",
 "inspect_zone": "ENTER",

@@ -47,6 +47,9 @@ func _process(_delta: float) -> void:
 	# G = post 1 woodcutter job on selected zone (camp only) — timber regrowth
 	if _is_key_just_pressed(bindings.get_key("post_woodcutter")):
 		_post_job_on_selected(zones, "woodcutter", 1)
+	# C = cycle the blueprint selection in the inspection panel
+	if _is_key_just_pressed(bindings.get_key("cycle_blueprint")):
+		EventBus.ui.blueprint_cycle_requested.emit()
 
 ## Returns the ZoneAnchor3D children of the zone container
 func _get_zones() -> Array:
