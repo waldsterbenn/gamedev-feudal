@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="BuildingData" load_steps=2 format=3 uid="uid://bp_tent_01"]
+
+[ext_resource type="Script" path="res://scripts/management/resources/BuildingData.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+building_id = "tent"
+display_name = "Tent"
+build_cost = {"Timber": 25}
+total_work_required = 50.0
+max_jobs = 0
+job_type = "housing"

@@ -28,3 +28,10 @@ offset_bottom = 100.0
 
 [node name="ManagementModeController" type="Node" parent="."]
 script = ExtResource("4_mgmt_ctrl")
+
+[node name="HUDInstructions" type="Label" parent="."]
+visible = true
+anchor_left = 0.02
+anchor_top = 0.02
+text = "Tab=Mode  1-9=Zone  Enter=Inspect  B=Build"
+font_size = 16
