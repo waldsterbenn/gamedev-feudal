@@ -8,8 +8,12 @@ var current_ui_state: UIState = UIState.HUD_ONLY
 @onready var options_menu: Control = $OptionsMenu
 
 func _ready() -> void:
-	# TODO(event-system): subscribe to zone select/deselect via the replacement for legacy EventBus
+	EventBus.ui.zone_selected.connect(_on_zone_selected)
 	change_ui_state(UIState.HUD_ONLY)
+
+func _on_zone_selected(zone_node: ZoneNode) -> void:
+	if zone_node != null:
+		inspect_zone(zone_node.node_id)
 
 ## Authoritative state machine — resets all panels then shows what's needed
 func change_ui_state(new_state: UIState) -> void:
