@@ -119,6 +119,16 @@ func _refresh_display_metrics() -> void:
 	# the panel is the single visibility writer for the block; inner
 	# widgets toggle only their own extras.
 	var latched: bool = data.get("famine_latched", false)
+	# Famine rows (#91 v4.3): during famine ALL peasants live off the land,
+	# so the other category rows would just read 0 — hide them, show only
+	# the 🌾 row. The +1 post buttons stay (postings apply on recovery).
+	if latched:
+		woodcutter_label.get_parent().visible = false
+		forager_label.get_parent().visible = false
+		foreman_label.get_parent().visible = false
+		builder_label.visible = false
+	else:
+		builder_label.visible = true
 	var banked: int = data.get("famine_banked", 0)
 	var needed: int = data.get("famine_needed", 0)
 	var has_status: bool = latched or data.get("starving", 0) > 0
