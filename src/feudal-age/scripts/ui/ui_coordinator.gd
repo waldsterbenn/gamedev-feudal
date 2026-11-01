@@ -6,10 +6,27 @@ var current_ui_state: UIState = UIState.HUD_ONLY
 
 @onready var zone_menu: Control = $ZoneInspectionMenu
 @onready var options_menu: Control = $OptionsMenu
+@onready var hud_message: Label = %HUDMessage
+
+var _message_clear_timer: Timer
 
 func _ready() -> void:
 	EventBus.ui.zone_selected.connect(_on_zone_selected)
+	EventBus.ui.message_logged.connect(_on_message_logged)
+	# One-shot timer hides the toast a few seconds after each message
+	_message_clear_timer = Timer.new()
+	_message_clear_timer.one_shot = true
+	_message_clear_timer.wait_time = 4.0
+	_message_clear_timer.timeout.connect(func(): hud_message.text = "")
+	add_child(_message_clear_timer)
 	change_ui_state(UIState.HUD_ONLY)
+
+func _on_message_logged(message: String, level: String) -> void:
+	if hud_message == null:
+		return
+	hud_message.text = message
+	hud_message.modulate = Color(1.0, 0.75, 0.4) if level == "warn" else Color(1, 1, 1)
+	_message_clear_timer.start()
 
 func _on_zone_selected(zone_node: ZoneNode) -> void:
 	if zone_node != null:

@@ -11,6 +11,7 @@ extends PanelContainer
 @onready var establish_camp_button: Button = %EstablishCampButton
 @onready var build_button: Button = %BuildButton
 @onready var post_forager_button: Button = %PostForagerButton
+@onready var post_woodcutter_button: Button = %PostWoodcutterButton
 @onready var close_button: Button = %CloseButton
 
 var _active_node_id: int = -1
@@ -19,6 +20,7 @@ func _ready() -> void:
 	establish_camp_button.pressed.connect(_on_establish_camp_pressed)
 	build_button.pressed.connect(_on_build_button_pressed)
 	post_forager_button.pressed.connect(_on_post_forager_pressed)
+	post_woodcutter_button.pressed.connect(_on_post_woodcutter_pressed)
 	close_button.pressed.connect(_on_close_pressed)
 	# Live refresh: the panel follows stockpile growth on every day tick
 	EventBus.day_ticked.connect(_on_day_ticked)
@@ -53,6 +55,7 @@ func _refresh_display_metrics() -> void:
 	establish_camp_button.visible = is_wilderness
 	build_button.visible = not is_wilderness
 	post_forager_button.visible = not is_wilderness
+	post_woodcutter_button.visible = not is_wilderness
 
 func _on_establish_camp_pressed() -> void:
 	print("DEBUG: Establish Camp pressed (node=", _active_node_id, ")")
@@ -62,11 +65,17 @@ func _on_establish_camp_pressed() -> void:
 		_refresh_display_metrics()
 
 func _on_post_forager_pressed() -> void:
-	print("DEBUG: Post Forager Job pressed (node=", _active_node_id, ")")
+	_post_job("forager", 2)
+
+func _on_post_woodcutter_pressed() -> void:
+	_post_job("woodcutter", 1)
+
+func _post_job(job_type: String, slots: int) -> void:
+	print("DEBUG: Post ", job_type, " Job pressed (node=", _active_node_id, ")")
 	var api = ServiceLocator.get_management_service()
 	if api:
-		var ok: bool = api.post_manual_job(_active_node_id, "forager", 2)
-		print("DEBUG: Post Forager Job result: ", ok)
+		var ok: bool = api.post_manual_job(_active_node_id, job_type, slots)
+		print("DEBUG: Post ", job_type, " Job result: ", ok)
 		_refresh_display_metrics()
 
 func _on_build_button_pressed() -> void:

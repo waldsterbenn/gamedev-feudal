@@ -114,12 +114,14 @@ func establish_camp(node_id: int, owner_id: String = "player") -> void:
 	var node: ZoneNode = nodes.get(node_id)
 	if not node or node.current_tier != ZoneNode.SettlementTier.WILDERNESS:
 		operation_failed.emit("Invalid or already settled node.")
+		EventBus.ui.message_logged.emit("Cannot establish camp — already settled.", "warn")
 		return
-		
+
 	node.current_tier = ZoneNode.SettlementTier.CAMP
-	
+
 	var tier_name = ZoneNode.SettlementTier.keys()[node.current_tier]
 	settlement_tier_changed.emit(node_id, tier_name)
+	EventBus.ui.message_logged.emit("Camp established at %s." % node.node_name, "info")
 
 ## Executed when the player issues a build blueprint command
 func order_building(node_id: int, blueprint: BuildingData) -> bool:
@@ -130,6 +132,7 @@ func order_building(node_id: int, blueprint: BuildingData) -> bool:
 		
 	if not node.has_available_resources(blueprint.build_cost):
 		construction_failed_no_resources.emit(node_id, blueprint.building_id)
+		EventBus.ui.message_logged.emit("Not enough resources for %s (needs %s)." % [blueprint.display_name, str(blueprint.build_cost)], "warn")
 		return false
 		
 	for resource_name in blueprint.build_cost:
@@ -143,6 +146,7 @@ func order_building(node_id: int, blueprint: BuildingData) -> bool:
 	new_building.construction_progress = 0.0
 	
 	node.buildings.append(new_building)
+	EventBus.ui.message_logged.emit("%s construction started (work %d)." % [blueprint.display_name, blueprint.total_work_required], "info")
 	return true
 
 ## Executed when the player posts a manual job opening from the UI
@@ -154,8 +158,10 @@ func post_manual_job(node_id: int, job_type: String, slots: int = 2) -> bool:
 		return false
 	if node.current_tier == ZoneNode.SettlementTier.WILDERNESS:
 		operation_failed.emit("Cannot post jobs at a wilderness zone — establish a camp first.")
+		EventBus.ui.message_logged.emit("Post jobs fails — establish a camp first.", "warn")
 		return false
 	node.manual_job_postings[job_type] = node.manual_job_postings.get(job_type, 0) + slots
+	EventBus.ui.message_logged.emit("%d %s job slot(s) posted at %s." % [slots, job_type, node.node_name], "info")
 	return true
 
 ## Binds an NPC's management component profile to a specific Lord faction
