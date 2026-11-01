@@ -1,22 +1,17 @@
-[gd_scene load_steps=4 format=3 uid="uid://forager_post_01"]
+[gd_scene load_steps=5 format=3 uid="uid://forager_post_01"]
 
-[sub_resource type="StandardMaterial3D" id="mat_post"]
-albedo_color = Color(0.35, 0.55, 0.2, 1.0)
+[ext_resource type="PackedScene" path="res://assets/models/buildings/SM_Bld_Stall_Cover_01.fbx" id="1_model"]
+[ext_resource type="Script" path="res://scripts/world/construction_visual_3d.gd" id="2_cv"]
+[ext_resource type="Material" path="res://assets/models/buildings/BuildingMaterial.tres" id="3_mat"]
 
-[sub_resource type="CylinderMesh" id="mesh_post"]
-material = SubResource("mat_post")
-top_radius = 0.6
-bottom_radius = 0.6
-height = 3.5
-
-[sub_resource type="CylinderShape3D" id="collision_post"]
-height = 3.5
-radius = 0.6
+[sub_resource type="BoxShape3D" id="collision_post"]
+extents = Vector3(1.7, 1.2, 1.2)
 
 [node name="ForagerPost" type="Node3D"]
+script = ExtResource("2_cv")
+atlas_material = ExtResource("3_mat")
 
-[node name="VisualMesh" type="MeshInstance3D" parent="."]
-mesh = SubResource("mesh_post")
+[node name="Model" parent="." instance=ExtResource("1_model")]
 
 [node name="PhysicsBody" type="StaticBody3D" parent="."]
 collision_layer = 1

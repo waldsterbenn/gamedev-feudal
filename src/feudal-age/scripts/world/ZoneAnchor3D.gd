@@ -73,6 +73,10 @@ func _spawn_building_visual(building: BuildingInstance) -> void:
 		return
 	var instance = scene.instantiate()
 	add_child(instance)
+	# Construction feedback (#70): bind the live instance so the visual
+	# grows/solidifies with progress
+	if instance.has_method("setup"):
+		instance.setup(building)
 
 	# Arrange buildings in a circle around the node anchor
 	var building_index: int = zone_node.buildings.find(building)
