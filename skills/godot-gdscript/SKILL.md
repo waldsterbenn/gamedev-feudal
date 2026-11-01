@@ -254,17 +254,23 @@ ERROR: Can't open file from path 'res://.../TEX_Characters_White.png'.
 Fix: rename the texture on disk to match the embedded name, or update the FBX import settings to point to the correct file.
 
 ### Animations may be bind pose only
-Use a headless `SceneTree` debug script to inspect imported FBX content before assuming animations are usable:
+Use a headless `SceneTree` debug script to inspect imported FBX content before assuming animations are usable. Declare the probe's frame callback as `func _process(_delta: float) -> bool:` returning `false` — `extends SceneTree` declares `_process(float) -> bool`, and a `void` override fails with "The function signature doesn't match the parent".
+
+### Probe scale and shape before writing building scenes
+POLYGON/Synty FBX import as single-mesh + AnimationPlayer nodes at RAW pack scale, and scale is inconsistent across asset classes — a building model can be twice the intended footprint while a prop is a third of it. Before writing a `.tscn` wrapper, run a throwaway headless probe that loads the FBX, finds the MeshInstance3D, and prints `mesh.get_aabb()`; then size the `Model` node's transform so the visual footprint matches the collision extents you author. Never eyeball scales from filenames.
+
+The same probe doubles as the scale inspector — extend `_inspect` to print the AABB when the node is a MeshInstance3D (`mesh.get_aabb()` gives position offset + size; both matter for placement and collision sizing).
 
 ```gdscript
 extends SceneTree
 
-func _init() -> void:
+func _process(_delta: float) -> bool:
     var scene: PackedScene = load("res://assets/char/model.fbx")
     var instance: Node = scene.instantiate()
     _inspect(instance, 0)
     instance.queue_free()
     quit()
+    return false
 
 func _inspect(node: Node, depth: int) -> void:
     var indent: String = "  ".repeat(depth)
@@ -299,7 +305,8 @@ godot --path ./src/my-project --editor --quit --headless
 
 ## Pitfalls
 
-- `OS.find_keycode_from_string()` takes BARE keycode names ("E", "ESCAPE", "TAB", "F12") — `KEY_`-prefixed strings return `KEY_NONE` (verified on 4.7.2). Same for `.tres` keybinding configs: store bare names. `OS.get_keycode_string()` output also has no `KEY_` prefix.
+- `OS.find_keycode_from_string()` takes BARE keycode names ("E", "ESCAPE", "TAB", "F12") — `KEY_`-prefixed strings return `KEY_NONE` (verified on 4.7.2). Same for `.tres` keybinding configs: store bare names. `OS.get_keycode_string()` output also has no `KEY_` prefix. Modifier enums: only `KEY_SHIFT` / `KEY_CTRL` / `KEY_ALT` exist — `KEY_SHIFT_LEFT` / `KEY_SHIFT_RIGHT` / `KEY_CTRL_LEFT` are NOT declared and fail at parse time; detect the modifier with `Input.is_key_pressed(KEY_SHIFT)`.
+- Slash-properties like `surface_material_override/0` are READ-ONLY as subscripts — `mesh.surface_material_override/0 = mat` fails with "Only identifier, attribute access, and subscription access can be used as assignment target". Use the accessors: `mesh.set_surface_override_material(0, mat)` and `mesh.get_surface_override_material(0)`. When a shared `.tres` material needs per-instance mutation (e.g. ghost alpha), `duplicate()` it and assign the copy — mutating the shared resource recolors every instance in the scene.
 - Adding a new `class_name` script and running `--headless --quit` immediately → `Could not find type "X" in current scope` parse errors. The global class cache (`.godot/global_script_class_cache.cfg`) only updates on an editor scan: run `godot --path <proj> --headless --editor --quit` once after adding new `class_name` scripts, then re-run the gate.
 - `pgrep -f "godot --path <proj>"` matches its own Hermes shell wrapper command line (the pattern string appears in `bash -c ...`) — kills your own command with SIGKILL instead of the game. Verify with `pgrep -af` (shows the actual process args) or check `ps -p <pid>` before killing.
 - Don't use `global` incorrectly in GDScript 4 — `global` references an external variable; declaring one uses `var`. Incorrect use (`global _frames` inside a function when `_frames` is declared at module level) causes parse errors.
@@ -318,7 +325,7 @@ var api: Node = service_locator.get_management_service() if service_locator else
 
 Always load project scenes (`GameCoordinator.tscn`, etc.) inside `_process()`, not `_init()` — the autoload registration completes during the first process frame. For deterministic data-layer driving (e.g. establishing a camp, assigning a worker, running ticks), call `_run_data_layer_setup()` after a small frame delay (`_frames_waited >= 5`) and stop the GC's real-time timer (`get_children()` loop finding `Timer`) before issuing ticks manually.
 
-When a smoke test asserts resource production growth, read the allocation priority table FIRST — workers are assigned to open jobs by a fixed hierarchy, and construction slots (several per incomplete building) preempt production jobs, so a stalled stockpile during construction is the scheduler correctly starving the producer, not broken production code. Assert growth while no construction is open (or after granting enough workers), and sequence smoke assertions to mirror the player flow rather than asserting everything after one setup burst.
+When a smoke test asserts resource production growth, read the current allocation model FIRST (read `get_total_job_slots()` / `_resolve_workforce_allocation()` before writing allocation-dependent assertions — it is gameplay-driven and has changed before). Assignment is driven solely by the player's targets (`zone.manual_job_postings`); completed buildings never auto-grab workers, and every free worker (total minus all targets) acts as a builder while construction is open. A stalled stockpile usually means all workers are target-locked (nothing free to build/gather), not broken production code. Assert production growth with explicit targets set and room to spare, assert construction gathering with targets zeroed, and sequence smoke assertions to mirror the player flow rather than asserting everything after one setup burst.
 
 Always validate smoke scripts (`tests/smoke_slice.gd`) and repro instruments (`tests/debug_populants.gd`, `tests/debug_step.gd`) with `python ./skills/godot-gdscript/scripts/validate_godot.py <file>`. Keep debug scripts in-tree (`tests/debug_invest_*.gd`) rather than deleting them — they are the reproducible evidence for any future registration or tick-economy bug.
 
