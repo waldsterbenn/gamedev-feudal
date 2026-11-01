@@ -86,13 +86,18 @@ func _refresh_display_metrics() -> void:
 
 	# Per-job rows show ASSIGNED / CAP where cap = completed-building slots
 	# (#88): "wanted" targets no longer render — buildings define capacity.
+	# Assignment buttons/rows hidden until the category's building exists —
+	# a job cannot be posted into nothing (#90).
 	var jobs: Dictionary = data["job_assignments"]
 	var caps: Dictionary = data["job_caps"]
 	var peasant_count: int = api.get_node_worker_count(_active_node_id)
 	peasants_label.text = "👷 Peasants: %d" % peasant_count
+	woodcutter_label.get_parent().visible = caps["woodcutter"] > 0
 	woodcutter_label.text = "🪵 Woodcutter %d/%d" % [jobs["woodcutter"]["assigned"], caps["woodcutter"]]
+	forager_label.get_parent().visible = caps["forager"] > 0
 	forager_label.text = "🌿 Forager %d/%d" % [jobs["forager"]["assigned"], caps["forager"]]
 	builder_label.text = "🔨 Builders %d (free workers, auto)" % jobs["builder"]["assigned"]
+	foreman_label.get_parent().visible = caps["foreman"] > 0
 	if jobs["foreman"]["assigned"] > 0:
 		foreman_label.text = "🎖 Foreman %d/%d · production +%d%%" % [jobs["foreman"]["assigned"], caps["foreman"], int(jobs["foreman"]["assigned"] * 25)]
 	else:
@@ -115,14 +120,17 @@ func _refresh_display_metrics() -> void:
 			lines.append("🔨 %s — %d/%d" % [b["name"], int(b["progress"]), int(b["total"])])
 	buildings_list_label.text = "\n".join(lines)
 
-	# Show contextual action buttons based on settlement state
+	# Show contextual action buttons based on settlement state. Job buttons
+	# need BOTH a camp AND the category's completed building (#90) — caps
+	# are 0 at wilderness anyway, so the cap gate covers both.
 	var is_wilderness: bool = data["is_camp_creatable"]
 	establish_camp_button.visible = is_wilderness
 	build_button.visible = not is_wilderness
 	cycle_blueprint_button.visible = not is_wilderness
 	blueprint_selection_label.visible = not is_wilderness
-	post_forager_button.visible = not is_wilderness
-	post_woodcutter_button.visible = not is_wilderness
+	post_forager_button.visible = not is_wilderness and caps["forager"] > 0
+	post_woodcutter_button.visible = not is_wilderness and caps["woodcutter"] > 0
+	post_foreman_button.visible = not is_wilderness and caps["foreman"] > 0
 
 func _on_establish_camp_pressed() -> void:
 	EventBus.ui.debug("Establish Camp pressed (node=" + " " + str(_active_node_id) + " " + ")")
