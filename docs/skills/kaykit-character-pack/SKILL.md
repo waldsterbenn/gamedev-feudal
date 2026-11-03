@@ -40,33 +40,23 @@ A low-poly character asset pack featuring 5 (+3 in EXTRA tier) fully rigged and 
 - **Animation Compatibility:** Works with free KayKit Character Animations pack
 
 ### Installation
-1. Download from itch.io (name your own price)
-2. Extract to project assets directory
-3. Import GLTF files through Godot's import system
-4. Configure materials and animations as needed
+1. Download from itch.io — the page needs a browser session and the direct file URL expires ~60 s, so follow `references/itchio-pack-download.md` for the working headless procedure.
+2. Stage the zip in `/assets/original/kaykit-adventurers/` (read-only originals, git-ignored), then copy only the needed files into `src/feudal-age/assets/characters/kaykit/`.
+3. Run a headless import pass (`godot --path <proj> --headless --editor --quit`) to generate `.import` files before first use.
+4. Character `.glb` files embed their texture and import cleanly on default settings — no import tweaks needed.
 
-### Usage in Godot
-```gdscript
-# Basic character instantiation
-var adventurer_scene = preload("res://assets/kaykit/adventurers/barbarian.gltf")
-var character = adventurer_scene.instantiate()
-add_child(character)
+### Verified rig facts (Godot 4.7 import, GLTF path)
+- Shared rig `Rig_Medium`: 23 joints with names like `root`, `hips`, `spine`, `chest`, `head`, and `.l`/`.r` pairs of `upperarm/lowerarm/wrist/hand/handslot` and `upperleg/lowerleg/foot/toes`.
+- Characters stand ~2.2 world units tall at scale 1.0.
+- Models face **+Z** (glTF convention); Godot forward is −Z, so give the model child a 180° yaw flip (`Transform3D(-1,0,0,0,1,0,0,0,-1)`) when movement code uses `look_at`.
+- Character GLBs ship with **no animations and no AnimationPlayer node**. The animation GLBs (`Rig_Medium_General`, `Rig_Medium_MovementBasic`) hold the clips, share identical bone names, and also carry a mannequin mesh — never instance them into a game scene; only harvest their Animation resources.
+- Clip names — General: `Death_A/B` (+`_Pose`), `Hit_A/B`, `Idle_A/B`, `Interact`, `PickUp`, `Spawn_Air/Ground`, `T-Pose`, `Throw`, `Use_Item`. MovementBasic: `Jump_*`, `Running_A/B`, `T-Pose`, `Walking_A/B/C`.
+- Clip track paths look like `Rig_Medium/Skeleton3D:hips`, relative to the AnimationPlayer's `root_node`.
 
-# Accessing animations
-var animation_player = character.get_node("AnimationPlayer")
-animation_player.play("run")
-
-# Equipment attachment
-# Accessories are separate mesh files that can be parented to bone attachments
-```
+### Using animations on a character
+Follow `references/gltf-animation-merge.md` for the Godot integration recipe: AnimationPlayer `root_node` wiring, runtime AnimationLibrary merge onto the character skeleton, loop modes, walk-speed sync, and state-driven component wiring.
 
 ### Integration Notes
-- Characters use a single gradient-based texture atlas
-- Materials are PBR-ready but may need adjustment for Godot's lighting
-- Animations are basic; consider KayKit Character Animations pack for more variety
-- CC0 license allows unrestricted commercial use (no attribution required)
-
-**Insufficient Information:**
-- Specific bone naming conventions not documented
-- No Godot-specific import settings provided
-- Animation state machine examples lacking
+- CC0 license — unrestricted commercial use, no attribution required.
+- Free tier has no dedicated peasant/villager body; pick the closest read for the role (the hooded rogue reads as a commoner).
+- Multiple source packs share one rig family — verify bone-name equality between model and animation GLBs before assuming clips retarget.
