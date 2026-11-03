@@ -13,8 +13,7 @@ func enter(_data: Dictionary = {}) -> void:
 	var npc: NPC = owner as NPC
 	if npc:
 		npc.velocity = Vector3.ZERO
-		if npc.visuals:
-			npc.visuals.play_animation("Take 001")
+		# Interact clip arrives via the state_changed mapping (NPC._on_state_changed).
 		# TODO(event-system): raise a petition via replacement for legacy EventBus.petition_started/npc_interacted
 
 func update(delta: float) -> void:

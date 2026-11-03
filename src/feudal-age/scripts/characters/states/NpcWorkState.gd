@@ -14,6 +14,9 @@ var _work_timer: float = 0.0
 func enter(_data: Dictionary = {}) -> void:
 	_pick_new_target()
 	_working = false
+	var npc: NPC = owner as NPC
+	if npc and npc.visuals:
+		npc.visuals.play_clip("Walking_A", work_speed)
 
 func physics_update(delta: float) -> void:
 	var npc: NPC = owner as NPC
@@ -24,6 +27,8 @@ func physics_update(delta: float) -> void:
 		if _work_timer <= 0:
 			_pick_new_target()
 			_working = false
+			if npc and npc.visuals:
+				npc.visuals.play_clip("Walking_A", work_speed)
 		return
 
 	var distance: float = npc.global_position.distance_to(_target_position)
@@ -61,5 +66,5 @@ func _start_working() -> void:
 	_work_timer = randf_range(5.0, 10.0)
 	var npc: NPC = owner as NPC
 	if npc and npc.visuals:
-		npc.visuals.play_animation("Take 001") # Placeholder for work anim
+		npc.visuals.play_clip("Use_Item") # Work cycle at the spot
 	npc.velocity = Vector3.ZERO

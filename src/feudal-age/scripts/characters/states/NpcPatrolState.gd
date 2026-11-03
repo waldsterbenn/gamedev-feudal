@@ -16,7 +16,7 @@ func enter(_data: Dictionary = {}) -> void:
 		state_machine.change_state_by_path("Idle")
 		return
 	if npc.visuals:
-		npc.visuals.play_animation("Take 001")
+		npc.visuals.play_clip("Walking_A", move_speed)
 	var points: Array[Vector3] = npc.patrol_points
 	if points.is_empty():
 		state_machine.change_state_by_path("Idle")
