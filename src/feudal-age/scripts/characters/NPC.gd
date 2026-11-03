@@ -13,7 +13,7 @@ var management_comp: ManagementPopulantComponent = null
 
 @onready var state_m: StateMachine = $StateMachine
 @onready var nav_agent: NavigationAgent3D = $NavigationAgent3D
-@onready var visuals: PeasantCharacter = $PeasantCharacter
+@onready var visuals: CharacterAnimationComponent = $PeasantCharacter
 @onready var interactable_component: InteractableComponent = $InteractableComponent
 @onready var status_label: Label3D = $StatusLabel
 
@@ -50,6 +50,9 @@ func _physics_process(_delta: float) -> void:
 func _on_state_changed(state_name: String) -> void:
 	if status_label:
 		status_label.text = npc_name + " (" + state_name + ")"
+	# State-driven animation: the state machine drives clips via the component.
+	if visuals:
+		visuals.play_for_state(state_name)
 
 func _on_interacted(_interactor: Node3D) -> void:
 	if state_m:

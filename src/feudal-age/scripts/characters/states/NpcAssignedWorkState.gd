@@ -19,6 +19,9 @@ func enter(_data: Dictionary = {}) -> void:
 	_arrived = false
 	_management_comp = owner.get_node_or_null("ManagementPopulantComponent")
 	_refresh_target()
+	var npc: NPC = owner as NPC
+	if npc and npc.visuals:
+		npc.visuals.play_clip("Walking_A", move_speed)
 	# TODO(event-system): re-evaluate target on day tick via the replacement for legacy EventBus.day_changed
 
 func exit() -> void:
@@ -44,7 +47,7 @@ func physics_update(delta: float) -> void:
 		_arrived = true
 		npc.velocity = Vector3.ZERO
 		if npc.visuals:
-			npc.visuals.play_animation("Take 001") # placeholder work animation
+			npc.visuals.play_clip("Use_Item") # Work cycle at the worksite
 		return
 
 	# Navigate toward target
